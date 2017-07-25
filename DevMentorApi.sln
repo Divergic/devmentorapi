@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26430.15
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevMentorApi", "DevMentorApi\DevMentorApi.csproj", "{390843F8-0700-4CF3-AD6A-8E853227F01D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevMentorApi.UnitTests", "DevMentorApi.UnitTests\DevMentorApi.UnitTests.csproj", "{17AF86B1-2E20-48BD-98DE-02B1BA8EA2A2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{390843F8-0700-4CF3-AD6A-8E853227F01D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{390843F8-0700-4CF3-AD6A-8E853227F01D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{390843F8-0700-4CF3-AD6A-8E853227F01D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{390843F8-0700-4CF3-AD6A-8E853227F01D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17AF86B1-2E20-48BD-98DE-02B1BA8EA2A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17AF86B1-2E20-48BD-98DE-02B1BA8EA2A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17AF86B1-2E20-48BD-98DE-02B1BA8EA2A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17AF86B1-2E20-48BD-98DE-02B1BA8EA2A2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
