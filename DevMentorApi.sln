@@ -7,7 +7,19 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DevMentorApi", "DevMentorAp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DevMentorApi.UnitTests", "DevMentorApi.UnitTests\DevMentorApi.UnitTests.csproj", "{17AF86B1-2E20-48BD-98DE-02B1BA8EA2A2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevMentorApi.AcceptanceTests", "DevMentorApi.AcceptanceTests\DevMentorApi.AcceptanceTests.csproj", "{DFD4FF25-AF16-4DA0-BA04-FBAB17159D92}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DevMentorApi.AcceptanceTests", "DevMentorApi.AcceptanceTests\DevMentorApi.AcceptanceTests.csproj", "{DFD4FF25-AF16-4DA0-BA04-FBAB17159D92}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DevMentorApi.Model", "DevMentorApi.Model\DevMentorApi.Model.csproj", "{0CB9B194-054C-42F8-AAF2-D8F1E5F20B83}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DevMentorApi.Azure", "DevMentorApi.Azure\DevMentorApi.Azure.csproj", "{B28B4BD6-43B0-49FE-B1E3-1EF0175D2297}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Application", "Application", "{84BFF4D4-DFBF-4061-8295-6A132B84DC1E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Testing", "Testing", "{A1C5E883-3433-43BC-AAD3-1AA85D124F18}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DevMentorApi.Azure.IntegrationTests", "DevMentorApi.Azure.IntegrationTests\DevMentorApi.Azure.IntegrationTests.csproj", "{F2737B36-D858-4F66-AF2F-401BB878788C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevMentorApi.Model.UnitTests", "DevMentorApi.Model.UnitTests\DevMentorApi.Model.UnitTests.csproj", "{1126F1B5-A279-42FD-B815-018136463EE3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,8 +39,33 @@ Global
 		{DFD4FF25-AF16-4DA0-BA04-FBAB17159D92}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DFD4FF25-AF16-4DA0-BA04-FBAB17159D92}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DFD4FF25-AF16-4DA0-BA04-FBAB17159D92}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0CB9B194-054C-42F8-AAF2-D8F1E5F20B83}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0CB9B194-054C-42F8-AAF2-D8F1E5F20B83}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0CB9B194-054C-42F8-AAF2-D8F1E5F20B83}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0CB9B194-054C-42F8-AAF2-D8F1E5F20B83}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B28B4BD6-43B0-49FE-B1E3-1EF0175D2297}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B28B4BD6-43B0-49FE-B1E3-1EF0175D2297}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B28B4BD6-43B0-49FE-B1E3-1EF0175D2297}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B28B4BD6-43B0-49FE-B1E3-1EF0175D2297}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F2737B36-D858-4F66-AF2F-401BB878788C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2737B36-D858-4F66-AF2F-401BB878788C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F2737B36-D858-4F66-AF2F-401BB878788C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F2737B36-D858-4F66-AF2F-401BB878788C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1126F1B5-A279-42FD-B815-018136463EE3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1126F1B5-A279-42FD-B815-018136463EE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1126F1B5-A279-42FD-B815-018136463EE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1126F1B5-A279-42FD-B815-018136463EE3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{390843F8-0700-4CF3-AD6A-8E853227F01D} = {84BFF4D4-DFBF-4061-8295-6A132B84DC1E}
+		{17AF86B1-2E20-48BD-98DE-02B1BA8EA2A2} = {A1C5E883-3433-43BC-AAD3-1AA85D124F18}
+		{DFD4FF25-AF16-4DA0-BA04-FBAB17159D92} = {A1C5E883-3433-43BC-AAD3-1AA85D124F18}
+		{0CB9B194-054C-42F8-AAF2-D8F1E5F20B83} = {84BFF4D4-DFBF-4061-8295-6A132B84DC1E}
+		{B28B4BD6-43B0-49FE-B1E3-1EF0175D2297} = {84BFF4D4-DFBF-4061-8295-6A132B84DC1E}
+		{F2737B36-D858-4F66-AF2F-401BB878788C} = {A1C5E883-3433-43BC-AAD3-1AA85D124F18}
+		{1126F1B5-A279-42FD-B815-018136463EE3} = {A1C5E883-3433-43BC-AAD3-1AA85D124F18}
 	EndGlobalSection
 EndGlobal
