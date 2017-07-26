@@ -24,9 +24,14 @@
 
         private static object BuildErrorObject(string message)
         {
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                message = Resources.WebApi_ExceptionShieldMessage;
+            }
+
             return new
             {
-                Error = message
+                Message = message
             };
         }
 

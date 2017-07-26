@@ -5,8 +5,10 @@
     using System.IdentityModel.Tokens.Jwt;
     using System.IO;
     using System.Linq;
+    using System.Reflection;
     using System.Threading.Tasks;
     using Autofac;
+    using Autofac.Extensions.DependencyInjection;
     using DevMentorApi.Core;
     using DevMentorApi.Security;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -34,7 +36,11 @@
             Configuration = ConfigurationRoot.Get<Config>();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, IApplicationLifetime appLifetime)
+        public void Configure(
+            IApplicationBuilder app,
+            IHostingEnvironment env,
+            ILoggerFactory loggerFactory,
+            IApplicationLifetime appLifetime)
         {
             if (env.IsDevelopment())
             {
@@ -54,11 +60,7 @@
             app.UseSwagger();
 
             // Enable middleware to serve swagger-ui (HTML, JS, CSS etc.), specifying the Swagger JSON endpoint.
-            app.UseSwaggerUI(
-                c =>
-                {
-                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "DevMentor API V1");
-                });
+            app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "DevMentor API V1"); });
 
             ConfigureAuthentication(app, env);
 
@@ -74,30 +76,29 @@
                 });
         }
 
-        public void ConfigureServices(IServiceCollection services)
+        public IServiceProvider ConfigureServices(IServiceCollection services)
         {
             // Add framework services.
             services.AddMvc(
-                    config =>
+                config =>
+                {
+                    if (Configuration.Authentication.RequireHttps)
                     {
-                        if (Configuration.Authentication.RequireHttps)
-                        {
-                            config.Filters.Add(new RequireHttpsFilter());
-                        }
+                        config.Filters.Add(new RequireHttpsFilter());
+                    }
 
-                        config.Filters.Add(new AuthorizeFilter("AuthenticatedUser"));
-                        config.Filters.Add(new ValidateModelAttribute());
-                    })
-                .AddJsonOptions(
-                    options =>
-                    {
-                        options.SerializerSettings.Converters.Add(
-                            new StringEnumConverter
-                            {
-                                CamelCaseText = true
-                            });
-                        options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
-                    });
+                    config.Filters.Add(new AuthorizeFilter("AuthenticatedUser"));
+                    config.Filters.Add(new ValidateModelAttribute());
+                }).AddJsonOptions(
+                options =>
+                {
+                    options.SerializerSettings.Converters.Add(
+                        new StringEnumConverter
+                        {
+                            CamelCaseText = true
+                        });
+                    options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+                });
 
             services.AddAuthorization(
                 options =>
@@ -139,6 +140,40 @@
                     c.OperationFilter<OAuth2OperationFilter>();
                 });
 
+            var loggerFactory = services.BuildServiceProvider().GetService<ILoggerFactory>();
+
+            var log = loggerFactory.CreateLogger(typeof(Startup));
+
+            try
+            {
+                ApplicationContainer = ContainerFactory.Build(services, Configuration);
+            }
+            catch (TypeInitializationException ex)
+            {
+                var eventId = new EventId(1);
+                log.LogError(eventId, ex, "Failed ConfigureServices");
+
+                var loaderFailure = ex.InnerException as ReflectionTypeLoadException;
+
+                if (loaderFailure != null)
+                {
+                    foreach (var loaderException in loaderFailure.LoaderExceptions)
+                    {
+                        log.LogError(eventId, loaderException, "Loader Exception in ConfigureServices");
+                    }
+                }
+
+                throw;
+            }
+            catch (Exception ex)
+            {
+                var eventId = new EventId(2);
+
+                log.LogError(eventId, ex, "Failed ConfigureServices");
+            }
+
+            // Create the IServiceProvider based on the container.
+            return new AutofacServiceProvider(ApplicationContainer);
         }
 
         private static byte[] Base64UrlDecode(string arg)
@@ -222,16 +257,20 @@
             app.UseJwtBearerAuthentication(options);
         }
 
-        private IContainer ApplicationContainer { get; set; }
+        public Config Configuration
+        {
+            get;
+        }
 
         public IConfigurationRoot ConfigurationRoot
         {
             get;
         }
 
-        public Config Configuration
+        private IContainer ApplicationContainer
         {
             get;
+            set;
         }
     }
 }
