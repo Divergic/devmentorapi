@@ -19,7 +19,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Testing", "Testing", "{A1C5
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DevMentorApi.Azure.IntegrationTests", "DevMentorApi.Azure.IntegrationTests\DevMentorApi.Azure.IntegrationTests.csproj", "{F2737B36-D858-4F66-AF2F-401BB878788C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevMentorApi.Model.UnitTests", "DevMentorApi.Model.UnitTests\DevMentorApi.Model.UnitTests.csproj", "{1126F1B5-A279-42FD-B815-018136463EE3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DevMentorApi.Model.UnitTests", "DevMentorApi.Model.UnitTests\DevMentorApi.Model.UnitTests.csproj", "{1126F1B5-A279-42FD-B815-018136463EE3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevMentorApi.Business", "DevMentorApi.Business\DevMentorApi.Business.csproj", "{1508657F-141F-42B4-AF10-74778310A43D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevMentoryApi.Business.UnitTests", "DevMentoryApi.Business.UnitTests\DevMentoryApi.Business.UnitTests.csproj", "{B3E32378-09A4-4FD1-8C35-48B5D73D11C1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -55,6 +59,14 @@ Global
 		{1126F1B5-A279-42FD-B815-018136463EE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1126F1B5-A279-42FD-B815-018136463EE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1126F1B5-A279-42FD-B815-018136463EE3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1508657F-141F-42B4-AF10-74778310A43D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1508657F-141F-42B4-AF10-74778310A43D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1508657F-141F-42B4-AF10-74778310A43D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1508657F-141F-42B4-AF10-74778310A43D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B3E32378-09A4-4FD1-8C35-48B5D73D11C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3E32378-09A4-4FD1-8C35-48B5D73D11C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B3E32378-09A4-4FD1-8C35-48B5D73D11C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B3E32378-09A4-4FD1-8C35-48B5D73D11C1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -67,5 +79,7 @@ Global
 		{B28B4BD6-43B0-49FE-B1E3-1EF0175D2297} = {84BFF4D4-DFBF-4061-8295-6A132B84DC1E}
 		{F2737B36-D858-4F66-AF2F-401BB878788C} = {A1C5E883-3433-43BC-AAD3-1AA85D124F18}
 		{1126F1B5-A279-42FD-B815-018136463EE3} = {A1C5E883-3433-43BC-AAD3-1AA85D124F18}
+		{1508657F-141F-42B4-AF10-74778310A43D} = {84BFF4D4-DFBF-4061-8295-6A132B84DC1E}
+		{B3E32378-09A4-4FD1-8C35-48B5D73D11C1} = {A1C5E883-3433-43BC-AAD3-1AA85D124F18}
 	EndGlobalSection
 EndGlobal

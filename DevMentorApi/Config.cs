@@ -1,7 +1,7 @@
 ﻿namespace DevMentorApi
 {
     using DevMentorApi.Azure;
-    using DevMentorApi.Security;
+    using DevMentorApi.Model;
 
     public class Config
     {

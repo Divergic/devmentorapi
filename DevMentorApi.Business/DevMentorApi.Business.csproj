@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard1.5</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="autofac" Version="4.6.0" />
+    <PackageReference Include="Ensure.That" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="1.1.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DevMentorApi.Azure\DevMentorApi.Azure.csproj" />
+    <ProjectReference Include="..\DevMentorApi.Model\DevMentorApi.Model.csproj" />
+  </ItemGroup>
+
+</Project>

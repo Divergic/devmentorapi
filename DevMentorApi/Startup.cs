@@ -100,6 +100,8 @@
                     options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
                 });
 
+            services.AddMemoryCache();
+
             services.AddAuthorization(
                 options =>
                 {
