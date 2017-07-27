@@ -10,17 +10,24 @@
 
     public class AccountManager : IAccountManager
     {
+        private readonly IAccountStore _accountStore;
         private readonly IMemoryCache _cache;
         private readonly IAuthenticationConfig _config;
-        private readonly IAccountStore _store;
+        private readonly IProfileStore _profileStore;
 
-        public AccountManager(IAccountStore store, IMemoryCache cache, IAuthenticationConfig config)
+        public AccountManager(
+            IAccountStore accountStore,
+            IProfileStore profileStore,
+            IMemoryCache cache,
+            IAuthenticationConfig config)
         {
-            Ensure.That(store, nameof(store)).IsNotNull();
+            Ensure.That(accountStore, nameof(accountStore)).IsNotNull();
+            Ensure.That(profileStore, nameof(profileStore)).IsNotNull();
             Ensure.That(cache, nameof(cache)).IsNotNull();
             Ensure.That(config, nameof(config)).IsNotNull();
 
-            _store = store;
+            _accountStore = accountStore;
+            _profileStore = profileStore;
             _cache = cache;
             _config = config;
         }
@@ -35,7 +42,7 @@
 
             // TODO: Update the cache of profiles to remove this account so that it does not appear in the public directory
 
-            return _store.BanAccount(accountId, bannedAt, cancellationToken);
+            return _accountStore.BanAccount(accountId, bannedAt, cancellationToken);
         }
 
         public async Task<Account> GetAccount(User user, CancellationToken cancellationToken)
@@ -68,14 +75,20 @@
                 username = parts[1];
             }
 
-            account = await _store.GetAccount(provider, username, cancellationToken).ConfigureAwait(false);
+            account = await _accountStore.GetAccount(provider, username, cancellationToken).ConfigureAwait(false);
 
             if (account == null)
             {
-                // This account doesn't exist so we will create it here
-                account = await CreateAccount(provider, username, cancellationToken);
+                var accountId = Guid.NewGuid();
 
-                // TODO: Create a new profile with the account information
+                // This account doesn't exist so we will create it here
+                var accountTask = CreateAccount(accountId, provider, username, cancellationToken);
+                var profileTask = CreateProfile(accountId, user, cancellationToken);
+
+                // Run the tasks together to save time
+                await Task.WhenAll(accountTask, profileTask).ConfigureAwait(false);
+
+                account = accountTask.Result;
             }
 
             // Cache this account for lookup later
@@ -87,23 +100,33 @@
             return account;
         }
 
-        private async Task<Account> CreateAccount(
-            string provider,
-            string username,
-            CancellationToken cancellationToken)
+        private async Task<Account> CreateAccount(Guid accountId, string provider, string username, CancellationToken cancellationToken)
         {
             var newAccount = new NewAccount
             {
-                Id = Guid.NewGuid(),
+                Id = accountId,
                 Provider = provider,
                 Username = username
             };
 
-            await _store.RegisterAccount(newAccount, cancellationToken).ConfigureAwait(false);
+            await _accountStore.RegisterAccount(newAccount, cancellationToken).ConfigureAwait(false);
 
             var account = new Account(newAccount);
 
             return account;
+        }
+
+        private Task CreateProfile(Guid accountId, User user, CancellationToken cancellationToken)
+        {
+            var profile = new Profile
+            {
+                AccountId = accountId,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName
+            };
+
+            return _profileStore.StoreProfile(profile, cancellationToken);
         }
     }
 }
