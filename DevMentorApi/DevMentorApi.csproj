@@ -29,6 +29,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DevMentorApi.Azure\DevMentorApi.Azure.csproj" />
+    <ProjectReference Include="..\DevMentorApi.Business\DevMentorApi.Business.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">

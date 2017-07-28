@@ -110,9 +110,8 @@
         [Fact]
         public async Task GetProfileReturnsCachedProfileTest()
         {
-            var user = Model.Create<User>();
             var expected = Model.Create<Profile>();
-            var cacheKey = "Profile|" + user.Username;
+            var cacheKey = "Profile|" + expected.AccountId;
 
             var profileStore = Substitute.For<IProfileStore>();
             var cache = Substitute.For<IMemoryCache>();

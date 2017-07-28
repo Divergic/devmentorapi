@@ -64,6 +64,9 @@
 
             ConfigureAuthentication(app, env);
 
+            // Ensure that identity information is populated before MVC middleware executes
+            app.UseMiddleware<AccountContextMiddleware>();
+
             app.UseMvc();
 
             // If you want to dispose of resources that have been resolved in the
