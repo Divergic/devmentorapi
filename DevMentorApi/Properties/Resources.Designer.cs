@@ -62,6 +62,15 @@ namespace DevMentorApi.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Not Found..
+        /// </summary>
+        internal static string NotFound {
+            get {
+                return ResourceManager.GetString("NotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The requested resource can only be accessed via HTTPS..
         /// </summary>
         internal static string RequireHttpsAttribute_MustUseSsl {

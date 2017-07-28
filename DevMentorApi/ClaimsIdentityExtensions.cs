@@ -1,4 +1,4 @@
-﻿namespace DevMentorApi.Security
+﻿namespace DevMentorApi
 {
     using System;
     using System.ComponentModel;

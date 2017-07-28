@@ -1,8 +1,7 @@
-﻿namespace DevMentorApi.UnitTests.Security
+﻿namespace DevMentorApi.UnitTests
 {
     using System;
     using System.Security.Claims;
-    using DevMentorApi.Security;
     using FluentAssertions;
     using Xunit;
 
