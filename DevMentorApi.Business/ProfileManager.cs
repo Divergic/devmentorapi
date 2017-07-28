@@ -25,18 +25,26 @@
             _config = config;
         }
 
-        public Task BanProfile(Guid accountId, DateTimeOffset bannedAt, CancellationToken cancellationToken)
+        public async Task BanProfile(Guid accountId, DateTimeOffset bannedAt, CancellationToken cancellationToken)
         {
             Ensure.That(accountId, nameof(accountId)).IsNotEmpty();
-            
-            // Update the cache of profiles to remove this profile so that it does not appear in the public directory
-            // In the short term, we will just update the profile and rely on the public search to filter out banned profiles
 
-            return _store.BanProfile(accountId, bannedAt, cancellationToken);
+            var profile = await _store.BanProfile(accountId, bannedAt, cancellationToken).ConfigureAwait(false);
+
+            // Update the cache of profiles for this profile
+            // In the short term, we will just update the profile and rely on the public search to filter out banned profiles
+            // TODO: Update all item links (and link caches) to removed the banned profile, then remove the banned profile from cache
+            var cacheKey = BuildCacheKey(accountId);
+            var cacheEntry = _cache.CreateEntry(cacheKey);
+
+            cacheEntry.SlidingExpiration = _config.ProfileExpiration;
+            cacheEntry.Value = profile;
         }
 
         public async Task<Profile> GetProfile(Guid accountId, CancellationToken cancellationToken)
         {
+            Ensure.That(accountId, nameof(accountId)).IsNotEmpty();
+
             Profile profile;
 
             var cacheKey = BuildCacheKey(accountId);
@@ -64,7 +72,7 @@
 
         private static string BuildCacheKey(Guid accountId)
         {
-// The cache key has a prefix to partition this type of object just in case there is a key collision with another object type
+            // The cache key has a prefix to partition this type of object just in case there is a key collision with another object type
             var cacheKey = "Profile|" + accountId;
             return cacheKey;
         }
