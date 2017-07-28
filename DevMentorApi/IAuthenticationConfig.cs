@@ -1,11 +1,7 @@
-﻿namespace DevMentorApi.Model
+﻿namespace DevMentorApi
 {
-    using System;
-
     public interface IAuthenticationConfig
     {
-        TimeSpan AccountCacheTtl { get; }
-
         string Audience { get; }
 
         string Authority { get; }

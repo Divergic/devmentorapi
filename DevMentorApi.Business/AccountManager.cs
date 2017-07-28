@@ -12,14 +12,14 @@
     {
         private readonly IAccountStore _accountStore;
         private readonly IMemoryCache _cache;
-        private readonly IAuthenticationConfig _config;
+        private readonly ICacheConfig _config;
         private readonly IProfileStore _profileStore;
 
         public AccountManager(
             IAccountStore accountStore,
             IProfileStore profileStore,
             IMemoryCache cache,
-            IAuthenticationConfig config)
+            ICacheConfig config)
         {
             Ensure.That(accountStore, nameof(accountStore)).IsNotNull();
             Ensure.That(profileStore, nameof(profileStore)).IsNotNull();
@@ -30,19 +30,6 @@
             _profileStore = profileStore;
             _cache = cache;
             _config = config;
-        }
-
-        public Task BanAccount(Guid accountId, DateTimeOffset bannedAt, CancellationToken cancellationToken)
-        {
-            Ensure.That(accountId, nameof(accountId)).IsNotEmpty();
-
-            // There will be no update the account cache here
-            // Caching the accounts is for authentication lookups and not about whether the profile is visible to the public
-            // Worst case, the user will continue to have access to modify their profile for a small sliding cache expiry window
-
-            // TODO: Update the cache of profiles to remove this account so that it does not appear in the public directory
-
-            return _accountStore.BanAccount(accountId, bannedAt, cancellationToken);
         }
 
         public async Task<Account> GetAccount(User user, CancellationToken cancellationToken)
@@ -94,25 +81,27 @@
             // Cache this account for lookup later
             var cacheEntry = _cache.CreateEntry(cacheKey);
 
-            cacheEntry.SlidingExpiration = _config.AccountCacheTtl;
+            cacheEntry.SlidingExpiration = _config.AccountExpiration;
             cacheEntry.Value = account;
 
             return account;
         }
 
-        private async Task<Account> CreateAccount(Guid accountId, string provider, string username, CancellationToken cancellationToken)
+        private async Task<Account> CreateAccount(
+            Guid accountId,
+            string provider,
+            string username,
+            CancellationToken cancellationToken)
         {
-            var newAccount = new NewAccount
+            var account = new Account
             {
                 Id = accountId,
                 Provider = provider,
                 Username = username
             };
 
-            await _accountStore.RegisterAccount(newAccount, cancellationToken).ConfigureAwait(false);
-
-            var account = new Account(newAccount);
-
+            await _accountStore.RegisterAccount(account, cancellationToken).ConfigureAwait(false);
+            
             return account;
         }
 

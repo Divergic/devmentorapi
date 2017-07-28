@@ -16,32 +16,56 @@
         {
         }
 
+        public async Task<Profile> BanProfile(
+            Guid accountId,
+            DateTimeOffset bannedAt,
+            CancellationToken cancellationToken)
+        {
+            Ensure.That(accountId, nameof(accountId)).IsNotEmpty();
+
+            var partitionKey = ProfileAdapter.BuildPartitionKey(accountId);
+            var rowKey = ProfileAdapter.BuildRowKey(accountId);
+
+            var operation = TableOperation.Retrieve<ProfileAdapter>(partitionKey, rowKey);
+            var table = GetTable(TableName);
+
+            var result = await table.ExecuteAsync(operation, null, null, cancellationToken).ConfigureAwait(false);
+
+            if (result.HttpStatusCode == 404)
+            {
+                throw new EntityNotFoundException();
+            }
+
+            var entity = (ProfileAdapter)result.Result;
+
+            entity.Value.BannedAt = bannedAt;
+
+            var updateOperation = TableOperation.Replace(entity);
+
+            await table.ExecuteAsync(updateOperation).ConfigureAwait(false);
+
+            return entity.Value;
+        }
+
         public async Task<Profile> GetProfile(Guid accountId, CancellationToken cancellationToken)
         {
             Ensure.That(accountId, nameof(accountId)).IsNotEmpty();
 
-            var rowKey = accountId.ToString();
-            var partitionKey = rowKey.Substring(0, 1);
+            var partitionKey = ProfileAdapter.BuildPartitionKey(accountId);
+            var rowKey = ProfileAdapter.BuildRowKey(accountId);
             var operation = TableOperation.Retrieve<ProfileAdapter>(partitionKey, rowKey);
             var table = GetTable(TableName);
 
-            try
+            var result = await table.ExecuteAsync(operation, null, null, cancellationToken).ConfigureAwait(false);
+
+            if (result.HttpStatusCode == 404)
             {
-                var result = await table.ExecuteAsync(operation, null, null, cancellationToken).ConfigureAwait(false);
-
-                var entity = result?.Result as ProfileAdapter;
-
-                return entity?.Value;
+                return null;
             }
-            catch (StorageException ex)
-            {
-                if (ex.RequestInformation.HttpStatusCode == 404)
-                {
-                    return null;
-                }
 
-                throw;
-            }
+            var entity = (ProfileAdapter)result.Result;
+
+            return entity.Value;
         }
 
         public async Task StoreProfile(Profile profile, CancellationToken cancellationToken)
@@ -50,7 +74,7 @@
 
             var adapter = new ProfileAdapter(profile);
             var table = GetTable(TableName);
-            var operation = TableOperation.Insert(adapter);
+            var operation = TableOperation.InsertOrReplace(adapter);
 
             try
             {

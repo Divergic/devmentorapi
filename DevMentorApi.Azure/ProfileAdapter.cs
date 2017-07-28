@@ -16,30 +16,44 @@
         {
         }
 
-        protected override void WriteValues(IDictionary<string, EntityProperty> properties, OperationContext operationContext)
+        public static string BuildPartitionKey(Guid accountId)
         {
-            properties.Remove(nameof(Profile.AccountId));
-
-            base.WriteValues(properties, operationContext);
+            // Use the first character of the Guid for the partition key
+            // This will provide up to 16 partitions
+            return accountId.ToString().Substring(0, 1);
         }
 
-        protected override void ReadValues(IDictionary<string, EntityProperty> properties, OperationContext operationContext)
+        public static string BuildRowKey(Guid accountId)
+        {
+            return accountId.ToString();
+        }
+
+        protected override string BuildPartitionKey()
+        {
+            return BuildPartitionKey(Value.AccountId);
+        }
+
+        protected override string BuildRowKey()
+        {
+            return BuildRowKey(Value.AccountId);
+        }
+
+        protected override void ReadValues(
+            IDictionary<string, EntityProperty> properties,
+            OperationContext operationContext)
         {
             Value.AccountId = Guid.Parse(RowKey);
 
             base.ReadValues(properties, operationContext);
         }
 
-        protected override string BuildPartitionKey()
+        protected override void WriteValues(
+            IDictionary<string, EntityProperty> properties,
+            OperationContext operationContext)
         {
-            // Use the first character of the Guid for the partition key
-            // This will provide up to 16 partitions
-            return Value.AccountId.ToString().Substring(0, 1);
-        }
+            properties.Remove(nameof(Profile.AccountId));
 
-        protected override string BuildRowKey()
-        {
-            return Value.AccountId.ToString();
+            base.WriteValues(properties, operationContext);
         }
     }
 }

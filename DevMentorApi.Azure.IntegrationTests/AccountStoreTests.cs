@@ -13,50 +13,6 @@ namespace DevMentorApi.Azure.IntegrationTests
     public class AccountStoreTests
     {
         [Fact]
-        public void BanAccountThrowsExceptionWhenAccountNotFoundTest()
-        {
-            var sut = new AccountStore(Config.Storage);
-
-            Func<Task> action = async () => await sut
-                .BanAccount(Guid.NewGuid(), DateTimeOffset.UtcNow, CancellationToken.None).ConfigureAwait(false);
-
-            action.ShouldThrow<EntityNotFoundException>();
-        }
-
-        [Fact]
-        public void BanAccountThrowsExceptionWithEmptyAccountIdTest()
-        {
-            var sut = new AccountStore(Config.Storage);
-
-            Func<Task> action = async () => await sut
-                .BanAccount(Guid.Empty, DateTimeOffset.UtcNow, CancellationToken.None).ConfigureAwait(false);
-
-            action.ShouldThrow<ArgumentException>();
-        }
-
-        [Fact]
-        public async Task BanAccountUpdatesExistingAccountTest()
-        {
-            var newAccount = Model.Create<NewAccount>();
-            var bannedAt = DateTimeOffset.UtcNow.AddDays(-2);
-
-            var sut = new AccountStore(Config.Storage);
-
-            await sut.RegisterAccount(newAccount, CancellationToken.None).ConfigureAwait(false);
-
-            var stored = await sut.GetAccount(newAccount.Provider, newAccount.Username, CancellationToken.None)
-                .ConfigureAwait(false);
-
-            await sut.BanAccount(stored.Id, bannedAt, CancellationToken.None).ConfigureAwait(false);
-
-            var actual = await sut.GetAccount(newAccount.Provider, newAccount.Username, CancellationToken.None)
-                .ConfigureAwait(false);
-
-            actual.ShouldBeEquivalentTo(newAccount, opt => opt.ExcludingMissingMembers());
-            actual.BannedAt.Should().Be(bannedAt);
-        }
-
-        [Fact]
         public async Task GetAccountReturnsNullWhenAccountNotFoundTest()
         {
             var provider = Guid.NewGuid().ToString();
@@ -68,7 +24,7 @@ namespace DevMentorApi.Azure.IntegrationTests
 
             actual.Should().BeNull();
         }
-
+        
         [Theory]
         [InlineData(null, "stuff")]
         [InlineData("", "stuff")]
@@ -89,17 +45,16 @@ namespace DevMentorApi.Azure.IntegrationTests
         [Fact]
         public async Task RegisterAccountStoresNewAccountTest()
         {
-            var newAccount = Model.Create<NewAccount>();
+            var account = Model.Create<Account>();
 
             var sut = new AccountStore(Config.Storage);
 
-            await sut.RegisterAccount(newAccount, CancellationToken.None).ConfigureAwait(false);
+            await sut.RegisterAccount(account, CancellationToken.None).ConfigureAwait(false);
 
-            var actual = await sut.GetAccount(newAccount.Provider, newAccount.Username, CancellationToken.None)
+            var actual = await sut.GetAccount(account.Provider, account.Username, CancellationToken.None)
                 .ConfigureAwait(false);
 
-            actual.ShouldBeEquivalentTo(newAccount, opt => opt.ExcludingMissingMembers());
-            actual.BannedAt.Should().NotHaveValue();
+            actual.ShouldBeEquivalentTo(account, opt => opt.ExcludingMissingMembers());
         }
 
         [Fact]
@@ -115,17 +70,31 @@ namespace DevMentorApi.Azure.IntegrationTests
 
             await table.DeleteIfExistsAsync();
 
-            var newAccount = Model.Create<NewAccount>();
+            var account = Model.Create<Account>();
 
             var sut = new AccountStore(Config.Storage);
 
-            await sut.RegisterAccount(newAccount, CancellationToken.None).ConfigureAwait(false);
+            await sut.RegisterAccount(account, CancellationToken.None).ConfigureAwait(false);
 
-            var actual = await sut.GetAccount(newAccount.Provider, newAccount.Username, CancellationToken.None)
+            var actual = await sut.GetAccount(account.Provider, account.Username, CancellationToken.None)
                 .ConfigureAwait(false);
 
-            actual.ShouldBeEquivalentTo(newAccount, opt => opt.ExcludingMissingMembers());
-            actual.BannedAt.Should().NotHaveValue();
+            actual.ShouldBeEquivalentTo(account, opt => opt.ExcludingMissingMembers());
+        }
+
+        [Fact]
+        public async Task RegisterAccountThrowsExceptionWhenAccountAlreadyExistsTest()
+        {
+            var account = Model.Create<Account>();
+
+            var sut = new AccountStore(Config.Storage);
+
+            await sut.RegisterAccount(account, CancellationToken.None).ConfigureAwait(false);
+
+            Func<Task> action = async () => await sut.RegisterAccount(account, CancellationToken.None)
+                .ConfigureAwait(false);
+
+            action.ShouldThrow<StorageException>();
         }
 
         [Fact]

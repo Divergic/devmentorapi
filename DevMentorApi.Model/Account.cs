@@ -1,27 +1,13 @@
 ﻿namespace DevMentorApi.Model
 {
     using System;
-    using EnsureThat;
 
-    public class Account : NewAccount
+    public class Account
     {
-        public Account()
-        {
-        }
+        public Guid Id { get; set; }
 
-        public Account(NewAccount account)
-        {
-            Ensure.That(account, nameof(account)).IsNotNull();
+        public string Provider { get; set; }
 
-            Id = account.Id;
-            Provider = account.Provider;
-            Username = account.Username;
-        }
-
-        public DateTimeOffset? BannedAt
-        {
-            get;
-            set;
-        }
+        public string Username { get; set; }
     }
 }

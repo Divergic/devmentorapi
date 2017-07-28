@@ -5,16 +5,10 @@
 
     public class Config
     {
-        public AuthenticationConfig Authentication
-        {
-            get;
-            set;
-        }
+        public AuthenticationConfig Authentication { get; set; }
 
-        public StorageConfiguration Storage
-        {
-            get;
-            set;
-        }
+        public CacheConfig Cache { get; set; }
+
+        public StorageConfiguration Storage { get; set; }
     }
 }

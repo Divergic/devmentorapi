@@ -15,45 +15,6 @@ namespace DevMentoryApi.Business.UnitTests
     public class AccountManagerTests
     {
         [Fact]
-        public async Task BanAccountCallsStoreWithBanInformationTest()
-        {
-            var accountId = Guid.NewGuid();
-            var bannedAt = DateTimeOffset.UtcNow.AddDays(-2);
-
-            var accountStore = Substitute.For<IAccountStore>();
-            var profileStore = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<IMemoryCache>();
-            var config = Substitute.For<IAuthenticationConfig>();
-
-            var sut = new AccountManager(accountStore, profileStore, cache, config);
-
-            using (var tokenSource = new CancellationTokenSource())
-            {
-                await sut.BanAccount(accountId, bannedAt, tokenSource.Token).ConfigureAwait(false);
-
-                await accountStore.Received().BanAccount(accountId, bannedAt, tokenSource.Token).ConfigureAwait(false);
-            }
-        }
-
-        [Fact]
-        public void BanAccountThrowsExceptionWithEmptyAccountIdTest()
-        {
-            var bannedAt = DateTimeOffset.UtcNow.AddDays(-2);
-
-            var accountStore = Substitute.For<IAccountStore>();
-            var profileStore = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<IMemoryCache>();
-            var config = Substitute.For<IAuthenticationConfig>();
-
-            var sut = new AccountManager(accountStore, profileStore, cache, config);
-
-            Func<Task> action = async () => await sut.BanAccount(Guid.Empty, bannedAt, CancellationToken.None)
-                .ConfigureAwait(false);
-
-            action.ShouldThrow<ArgumentException>();
-        }
-
-        [Fact]
         public async Task GetAccountCachesAccountReturnedFromStoreTest()
         {
             var provider = Guid.NewGuid().ToString();
@@ -65,10 +26,10 @@ namespace DevMentoryApi.Business.UnitTests
             var accountStore = Substitute.For<IAccountStore>();
             var profileStore = Substitute.For<IProfileStore>();
             var cache = Substitute.For<IMemoryCache>();
-            var config = Substitute.For<IAuthenticationConfig>();
+            var config = Substitute.For<ICacheConfig>();
             var cacheEntry = Substitute.For<ICacheEntry>();
 
-            config.AccountCacheTtl.Returns(cacheExpiry);
+            config.AccountExpiration.Returns(cacheExpiry);
             cache.CreateEntry("Account|" + user.Username).Returns(cacheEntry);
 
             var sut = new AccountManager(accountStore, profileStore, cache, config);
@@ -95,10 +56,10 @@ namespace DevMentoryApi.Business.UnitTests
             var accountStore = Substitute.For<IAccountStore>();
             var profileStore = Substitute.For<IProfileStore>();
             var cache = Substitute.For<IMemoryCache>();
-            var config = Substitute.For<IAuthenticationConfig>();
+            var config = Substitute.For<ICacheConfig>();
             var cacheEntry = Substitute.For<ICacheEntry>();
 
-            config.AccountCacheTtl.Returns(cacheExpiry);
+            config.AccountExpiration.Returns(cacheExpiry);
             cache.CreateEntry("Account|" + user.Username).Returns(cacheEntry);
 
             var sut = new AccountManager(accountStore, profileStore, cache, config);
@@ -122,7 +83,7 @@ namespace DevMentoryApi.Business.UnitTests
             var accountStore = Substitute.For<IAccountStore>();
             var profileStore = Substitute.For<IProfileStore>();
             var cache = Substitute.For<IMemoryCache>();
-            var config = Substitute.For<IAuthenticationConfig>();
+            var config = Substitute.For<ICacheConfig>();
 
             var sut = new AccountManager(accountStore, profileStore, cache, config);
 
@@ -156,7 +117,7 @@ namespace DevMentoryApi.Business.UnitTests
             var accountStore = Substitute.For<IAccountStore>();
             var profileStore = Substitute.For<IProfileStore>();
             var cache = Substitute.For<IMemoryCache>();
-            var config = Substitute.For<IAuthenticationConfig>();
+            var config = Substitute.For<ICacheConfig>();
 
             var sut = new AccountManager(accountStore, profileStore, cache, config);
 
@@ -180,7 +141,7 @@ namespace DevMentoryApi.Business.UnitTests
             var accountStore = Substitute.For<IAccountStore>();
             var profileStore = Substitute.For<IProfileStore>();
             var cache = Substitute.For<IMemoryCache>();
-            var config = Substitute.For<IAuthenticationConfig>();
+            var config = Substitute.For<ICacheConfig>();
 
             var sut = new AccountManager(accountStore, profileStore, cache, config);
 
@@ -188,22 +149,20 @@ namespace DevMentoryApi.Business.UnitTests
             {
                 var actual = await sut.GetAccount(user, tokenSource.Token).ConfigureAwait(false);
 
-                await accountStore.Received(1).RegisterAccount(Arg.Any<NewAccount>(), tokenSource.Token)
+                await accountStore.Received(1).RegisterAccount(Arg.Any<Account>(), tokenSource.Token)
                     .ConfigureAwait(false);
                 await accountStore.Received()
-                    .RegisterAccount(Arg.Is<NewAccount>(x => x.Id != Guid.Empty), tokenSource.Token)
+                    .RegisterAccount(Arg.Is<Account>(x => x.Id != Guid.Empty), tokenSource.Token).ConfigureAwait(false);
+                await accountStore.Received()
+                    .RegisterAccount(Arg.Is<Account>(x => x.Provider == provider), tokenSource.Token)
                     .ConfigureAwait(false);
                 await accountStore.Received()
-                    .RegisterAccount(Arg.Is<NewAccount>(x => x.Provider == provider), tokenSource.Token)
-                    .ConfigureAwait(false);
-                await accountStore.Received()
-                    .RegisterAccount(Arg.Is<NewAccount>(x => x.Username == username), tokenSource.Token)
+                    .RegisterAccount(Arg.Is<Account>(x => x.Username == username), tokenSource.Token)
                     .ConfigureAwait(false);
 
                 actual.Id.Should().NotBeEmpty();
                 actual.Provider.Should().Be(provider);
                 actual.Username.Should().Be(username);
-                actual.BannedAt.Should().NotHaveValue();
             }
         }
 
@@ -215,7 +174,7 @@ namespace DevMentoryApi.Business.UnitTests
             var accountStore = Substitute.For<IAccountStore>();
             var profileStore = Substitute.For<IProfileStore>();
             var cache = Substitute.For<IMemoryCache>();
-            var config = Substitute.For<IAuthenticationConfig>();
+            var config = Substitute.For<ICacheConfig>();
 
             var sut = new AccountManager(accountStore, profileStore, cache, config);
 
@@ -223,22 +182,20 @@ namespace DevMentoryApi.Business.UnitTests
             {
                 var actual = await sut.GetAccount(user, tokenSource.Token).ConfigureAwait(false);
 
-                await accountStore.Received(1).RegisterAccount(Arg.Any<NewAccount>(), tokenSource.Token)
+                await accountStore.Received(1).RegisterAccount(Arg.Any<Account>(), tokenSource.Token)
                     .ConfigureAwait(false);
                 await accountStore.Received()
-                    .RegisterAccount(Arg.Is<NewAccount>(x => x.Id != Guid.Empty), tokenSource.Token)
+                    .RegisterAccount(Arg.Is<Account>(x => x.Id != Guid.Empty), tokenSource.Token).ConfigureAwait(false);
+                await accountStore.Received()
+                    .RegisterAccount(Arg.Is<Account>(x => x.Provider == "Unspecified"), tokenSource.Token)
                     .ConfigureAwait(false);
-                await accountStore.Received().RegisterAccount(
-                    Arg.Is<NewAccount>(x => x.Provider == "Unspecified"),
-                    tokenSource.Token).ConfigureAwait(false);
-                await accountStore.Received().RegisterAccount(
-                    Arg.Is<NewAccount>(x => x.Username == user.Username),
-                    tokenSource.Token).ConfigureAwait(false);
+                await accountStore.Received()
+                    .RegisterAccount(Arg.Is<Account>(x => x.Username == user.Username), tokenSource.Token)
+                    .ConfigureAwait(false);
 
                 actual.Id.Should().NotBeEmpty();
                 actual.Provider.Should().Be("Unspecified");
                 actual.Username.Should().Be(user.Username);
-                actual.BannedAt.Should().NotHaveValue();
             }
         }
 
@@ -253,7 +210,7 @@ namespace DevMentoryApi.Business.UnitTests
             var accountStore = Substitute.For<IAccountStore>();
             var profileStore = Substitute.For<IProfileStore>();
             var cache = Substitute.For<IMemoryCache>();
-            var config = Substitute.For<IAuthenticationConfig>();
+            var config = Substitute.For<ICacheConfig>();
 
             var sut = new AccountManager(accountStore, profileStore, cache, config);
 
@@ -277,7 +234,7 @@ namespace DevMentoryApi.Business.UnitTests
             var accountStore = Substitute.For<IAccountStore>();
             var profileStore = Substitute.For<IProfileStore>();
             var cache = Substitute.For<IMemoryCache>();
-            var config = Substitute.For<IAuthenticationConfig>();
+            var config = Substitute.For<ICacheConfig>();
 
             object value;
 
@@ -305,7 +262,7 @@ namespace DevMentoryApi.Business.UnitTests
             var accountStore = Substitute.For<IAccountStore>();
             var profileStore = Substitute.For<IProfileStore>();
             var cache = Substitute.For<IMemoryCache>();
-            var config = Substitute.For<IAuthenticationConfig>();
+            var config = Substitute.For<ICacheConfig>();
 
             var sut = new AccountManager(accountStore, profileStore, cache, config);
 
@@ -315,11 +272,23 @@ namespace DevMentoryApi.Business.UnitTests
         }
 
         [Fact]
+        public void ThrowsExceptionWhenCreatedWithNullAccountStoreTest()
+        {
+            var profileStore = Substitute.For<IProfileStore>();
+            var cache = Substitute.For<IMemoryCache>();
+            var config = Substitute.For<ICacheConfig>();
+
+            Action action = () => new AccountManager(null, profileStore, cache, config);
+
+            action.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Fact]
         public void ThrowsExceptionWhenCreatedWithNullCacheTest()
         {
             var accountStore = Substitute.For<IAccountStore>();
             var profileStore = Substitute.For<IProfileStore>();
-            var config = Substitute.For<IAuthenticationConfig>();
+            var config = Substitute.For<ICacheConfig>();
 
             Action action = () => new AccountManager(accountStore, profileStore, null, config);
 
@@ -343,21 +312,9 @@ namespace DevMentoryApi.Business.UnitTests
         {
             var accountStore = Substitute.For<IAccountStore>();
             var cache = Substitute.For<IMemoryCache>();
-            var config = Substitute.For<IAuthenticationConfig>();
+            var config = Substitute.For<ICacheConfig>();
 
             Action action = () => new AccountManager(accountStore, null, cache, config);
-
-            action.ShouldThrow<ArgumentNullException>();
-        }
-
-        [Fact]
-        public void ThrowsExceptionWhenCreatedWithNullStoreTest()
-        {
-            var profileStore = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<IMemoryCache>();
-            var config = Substitute.For<IAuthenticationConfig>();
-
-            Action action = () => new AccountManager(null, profileStore, cache, config);
 
             action.ShouldThrow<ArgumentNullException>();
         }

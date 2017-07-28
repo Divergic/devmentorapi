@@ -1,7 +1,5 @@
 ﻿namespace DevMentorApi.Azure
 {
-    using System;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using DevMentorApi.Model;
@@ -17,30 +15,6 @@
         {
         }
 
-        public async Task BanAccount(Guid accountId, DateTimeOffset bannedAt, CancellationToken cancellationToken)
-        {
-            Ensure.That(accountId, nameof(accountId)).IsNotEmpty();
-
-            var filter = TableQuery.GenerateFilterConditionForGuid(nameof(Account.Id), QueryComparisons.Equal, accountId);
-            var query = new TableQuery<AccountAdapter>().Where(filter);
-            var table = GetTable(TableName);
-
-            var results = await table.ExecuteQueryAsync(query, cancellationToken).ConfigureAwait(false);
-
-            var result = results.SingleOrDefault();
-
-            if (result == null)
-            {
-                throw new EntityNotFoundException();
-            }
-
-            result.Value.BannedAt = bannedAt;
-
-            var updateOperation = TableOperation.Replace(result);
-
-            await table.ExecuteAsync(updateOperation).ConfigureAwait(false);
-        }
-
         public async Task<Account> GetAccount(string provider, string username, CancellationToken cancellationToken)
         {
             Ensure.That(provider, nameof(provider)).IsNotNullOrWhiteSpace();
@@ -49,31 +23,22 @@
             var operation = TableOperation.Retrieve<AccountAdapter>(provider, username);
             var table = GetTable(TableName);
 
-            try
+            var result = await table.ExecuteAsync(operation, null, null, cancellationToken).ConfigureAwait(false);
+
+            if (result.HttpStatusCode == 404)
             {
-                var result = await table.ExecuteAsync(operation, null, null, cancellationToken)
-                    .ConfigureAwait(false);
-
-                var entity = result?.Result as AccountAdapter;
-
-                return entity?.Value;
+                return null;
             }
-            catch (StorageException ex)
-            {
-                if (ex.RequestInformation.HttpStatusCode == 404)
-                {
-                    return null;
-                }
 
-                throw;
-            }
+            var entity = (AccountAdapter)result.Result;
+
+            return entity.Value;
         }
 
-        public async Task RegisterAccount(NewAccount newAccount, CancellationToken cancellationToken)
+        public async Task RegisterAccount(Account account, CancellationToken cancellationToken)
         {
-            Ensure.That(newAccount, nameof(newAccount)).IsNotNull();
+            Ensure.That(account, nameof(account)).IsNotNull();
 
-            var account = new Account(newAccount);
             var adapter = new AccountAdapter(account);
             var table = GetTable(TableName);
             var operation = TableOperation.Insert(adapter);

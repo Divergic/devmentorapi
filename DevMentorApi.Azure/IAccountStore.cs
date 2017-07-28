@@ -7,10 +7,8 @@
 
     public interface IAccountStore
     {
-        Task BanAccount(Guid accountId, DateTimeOffset bannedAt, CancellationToken cancellationToken);
-
         Task<Account> GetAccount(string provider, string username, CancellationToken cancellationToken);
 
-        Task RegisterAccount(NewAccount newAccount, CancellationToken cancellationToken);
+        Task RegisterAccount(Account account, CancellationToken cancellationToken);
     }
 }
