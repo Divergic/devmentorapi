@@ -51,8 +51,15 @@
 
             app.UseMiddleware<ShieldExceptionMiddleware>();
 
+            // This must be second because it calls all subsequent middleware and watches for failures
+            app.UseMiddleware<ExceptionMonitorMiddleware>();
+
             loggerFactory.AddConsole(ConfigurationRoot.GetSection("Logging"));
-            loggerFactory.AddDebug();
+            
+            if (env.IsDevelopment())
+            {
+                loggerFactory.AddDebug();
+            }
 
             app.UseCors(builder => builder.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
 
@@ -63,6 +70,9 @@
             app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "DevMentor API V1"); });
 
             ConfigureAuthentication(app, env);
+
+            // Ensure that identity information is populated before MVC middleware executes
+            app.UseMiddleware<AccountContextMiddleware>();
 
             app.UseMvc();
 
@@ -99,6 +109,8 @@
                         });
                     options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
                 });
+
+            services.AddMemoryCache();
 
             services.AddAuthorization(
                 options =>
