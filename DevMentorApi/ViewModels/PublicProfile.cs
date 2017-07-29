@@ -18,6 +18,7 @@
             Email = profile.Email;
             FirstName = profile.FirstName;
             LastName = profile.LastName;
+            Status = profile.Status;
         }
 
         public Guid AccountId { get; set; }
@@ -27,5 +28,7 @@
         public string FirstName { get; set; }
 
         public string LastName { get; set; }
+
+        public ProfileStatus Status { get; set; }
     }
 }
