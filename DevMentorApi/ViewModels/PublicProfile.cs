@@ -6,6 +6,10 @@
 
     public class PublicProfile
     {
+        public PublicProfile()
+        {
+        }
+
         public PublicProfile(Profile profile)
         {
             Ensure.That(profile, nameof(profile)).IsNotNull();

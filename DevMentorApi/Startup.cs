@@ -51,8 +51,15 @@
 
             app.UseMiddleware<ShieldExceptionMiddleware>();
 
+            // This must be second because it calls all subsequent middleware and watches for failures
+            app.UseMiddleware<ExceptionMonitorMiddleware>();
+
             loggerFactory.AddConsole(ConfigurationRoot.GetSection("Logging"));
-            loggerFactory.AddDebug();
+            
+            if (env.IsDevelopment())
+            {
+                loggerFactory.AddDebug();
+            }
 
             app.UseCors(builder => builder.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
 

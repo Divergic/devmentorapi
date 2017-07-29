@@ -5,6 +5,7 @@
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
     using DevMentorApi;
+    using DevMentorApi.Azure;
     using Microsoft.Extensions.DependencyInjection;
 
     public static class ContainerFactory
@@ -16,7 +17,9 @@
             
             var moduleAssemblies = new[]
             {
-                typeof(ContainerFactory).GetTypeInfo().Assembly
+                typeof(ContainerFactory).GetTypeInfo().Assembly,
+                typeof(BusinessModule).GetTypeInfo().Assembly,
+                typeof(AzureModule).GetTypeInfo().Assembly
             };
 
             // Register modules

@@ -6,17 +6,18 @@
     using System.Threading.Tasks;
     using DevMentorApi.Business;
     using DevMentorApi.Core;
-    using DevMentorApi.Model;
     using DevMentorApi.Properties;
+    using DevMentorApi.ViewModels;
     using EnsureThat;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Swashbuckle.AspNetCore.SwaggerGen;
 
-    public class ProfileController : Controller
+    public class PublicProfileController : Controller
     {
         private readonly IProfileManager _manager;
 
-        public ProfileController(IProfileManager manager)
+        public PublicProfileController(IProfileManager manager)
         {
             Ensure.That(manager, nameof(manager)).IsNotNull();
 
@@ -26,27 +27,36 @@
         /// <summary>
         ///     Gets the profile by its identifier.
         /// </summary>
+        /// <param name="profileId">
+        ///     The profile identifier.
+        /// </param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>
         ///     The profile.
         /// </returns>
-        [Route("profile")]
+        [Route("profiles/{profileId:guid}")]
         [HttpGet]
-        [ProducesResponseType(typeof(Profile), (int)HttpStatusCode.OK)]
+        [AllowAnonymous]
+        [ProducesResponseType(typeof(PublicProfile), (int)HttpStatusCode.OK)]
         [SwaggerResponse((int)HttpStatusCode.OK)]
         [SwaggerResponse((int)HttpStatusCode.NotFound, null, "The profile does not exist.")]
-        public async Task<IActionResult> Get(CancellationToken cancellationToken)
+        public async Task<IActionResult> Get(Guid profileId, CancellationToken cancellationToken)
         {
-            var accountId = User.Identity.GetClaimValue<Guid>(ClaimType.AccountId);
+            if (profileId == Guid.Empty)
+            {
+                return new ErrorMessageResult(Resources.NotFound, HttpStatusCode.NotFound);
+            }
 
-            var profile = await _manager.GetProfile(accountId, cancellationToken).ConfigureAwait(false);
+            var profile = await _manager.GetProfile(profileId, cancellationToken).ConfigureAwait(false);
 
             if (profile == null)
             {
                 return new ErrorMessageResult(Resources.NotFound, HttpStatusCode.NotFound);
             }
 
-            return new OkObjectResult(profile);
+            var publicProfile = new PublicProfile(profile);
+
+            return new OkObjectResult(publicProfile);
         }
     }
 }

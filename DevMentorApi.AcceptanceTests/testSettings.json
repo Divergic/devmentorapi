@@ -1,3 +1,6 @@
 ﻿{
-  "Website": "http://localhost:48497"
+  "Website": "http://localhost:48497",
+  "Storage": {
+    "ConnectionString": "UseDevelopmentStorage=true"
+  }
 }

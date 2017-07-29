@@ -10,6 +10,17 @@
     public class PublicProfileTests
     {
         [Fact]
+        public void CanCreateDefaultProfileTest()
+        {
+            var sut = new PublicProfile();
+
+            sut.AccountId.Should().BeEmpty();
+            sut.Email.Should().BeNull();
+            sut.FirstName.Should().BeNull();
+            sut.LastName.Should().BeNull();
+        }
+
+        [Fact]
         public void CopiesDataFromProfileTest()
         {
             var profile = Model.Create<Profile>();

@@ -16,18 +16,15 @@
     using NSubstitute;
     using Xunit;
 
-    public class ProfileControllerTests
+    public class PublicProfileControllerTests
     {
         [Fact]
         public async Task GetReturnsNotFoundWhenManagerReturnsNullTest()
         {
-            var account = Model.Create<Account>();
-            var user = ClaimsIdentityFactory.BuildPrincipal(account);
+            var id = Guid.NewGuid();
 
             var manager = Substitute.For<IProfileManager>();
             var httpContext = Substitute.For<HttpContext>();
-
-            httpContext.User = user;
 
             var routerData = new RouteData();
             var actionDescriptor = new ControllerActionDescriptor();
@@ -36,11 +33,11 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                using (var target = new ProfileController(manager))
+                using (var target = new PublicProfileController(manager))
                 {
                     target.ControllerContext = controllerContext;
 
-                    var actual = await target.Get(tokenSource.Token).ConfigureAwait(false);
+                    var actual = await target.Get(id, tokenSource.Token).ConfigureAwait(false);
 
                     actual.Should().BeOfType<ErrorMessageResult>();
                 }
@@ -48,16 +45,12 @@
         }
 
         [Fact]
-        public async Task GetReturnsProfileForSpecifiedAccountIdTest()
+        public async Task GetReturnsNotFoundWithEmptyIdTest()
         {
-            var account = Model.Create<Account>();
-            var profile = Model.Create<Profile>();
-            var user = ClaimsIdentityFactory.BuildPrincipal(account);
+            var id = Guid.Empty;
 
             var manager = Substitute.For<IProfileManager>();
             var httpContext = Substitute.For<HttpContext>();
-
-            httpContext.User = user;
 
             var routerData = new RouteData();
             var actionDescriptor = new ControllerActionDescriptor();
@@ -66,19 +59,45 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                manager.GetProfile(account.Id, tokenSource.Token).Returns(profile);
-
-                using (var target = new ProfileController(manager))
+                using (var target = new PublicProfileController(manager))
                 {
                     target.ControllerContext = controllerContext;
 
-                    var actual = await target.Get(tokenSource.Token).ConfigureAwait(false);
+                    var actual = await target.Get(id, tokenSource.Token).ConfigureAwait(false);
+
+                    actual.Should().BeOfType<ErrorMessageResult>();
+                }
+            }
+        }
+
+        [Fact]
+        public async Task GetReturnsProfileForSpecifiedProfileIdTest()
+        {
+            var profile = Model.Create<Profile>();
+
+            var manager = Substitute.For<IProfileManager>();
+            var httpContext = Substitute.For<HttpContext>();
+
+            var routerData = new RouteData();
+            var actionDescriptor = new ControllerActionDescriptor();
+            var actionContext = new ActionContext(httpContext, routerData, actionDescriptor);
+            var controllerContext = new ControllerContext(actionContext);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                manager.GetProfile(profile.AccountId, tokenSource.Token).Returns(profile);
+
+                using (var target = new PublicProfileController(manager))
+                {
+                    target.ControllerContext = controllerContext;
+
+                    var actual = await target.Get(profile.AccountId, tokenSource.Token).ConfigureAwait(false);
 
                     actual.Should().BeOfType<OkObjectResult>();
 
                     var result = actual.As<OkObjectResult>();
 
-                    result.Value.ShouldBeEquivalentTo(profile);
+                    result.Value.ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
                 }
             }
         }
@@ -86,7 +105,7 @@
         [Fact]
         public void ThrowsExceptionWhenCreatedWithNullManagerTest()
         {
-            Action action = () => new ProfileController(null);
+            Action action = () => new PublicProfileController(null);
 
             action.ShouldThrow<ArgumentNullException>();
         }

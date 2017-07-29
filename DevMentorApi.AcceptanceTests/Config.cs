@@ -1,6 +1,7 @@
 ﻿namespace DevMentorApi.AcceptanceTests
 {
     using System;
+    using DevMentorApi.Azure;
     using Microsoft.Extensions.Configuration;
 
     public static class Config
@@ -15,20 +16,19 @@
             {
                 WebsiteAddress = new Uri(config.Website, UriKind.RelativeOrAbsolute);
             }
+
+            Storage = config.Storage;
         }
 
-        public static Uri WebsiteAddress
-        {
-            get;
-        }
+        public static StorageConfiguration Storage { get; }
+
+        public static Uri WebsiteAddress { get; }
     }
 
     public class ConfigWrapper
     {
-        public string Website
-        {
-            get;
-            set;
-        }
+        public StorageConfiguration Storage { get; set; }
+
+        public string Website { get; set; }
     }
 }
