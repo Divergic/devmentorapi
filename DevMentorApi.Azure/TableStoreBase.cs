@@ -1,5 +1,7 @@
 ﻿namespace DevMentorApi.Azure
 {
+    using System.Threading;
+    using System.Threading.Tasks;
     using EnsureThat;
     using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Table;
@@ -25,6 +27,31 @@
             var client = storageAccount.CreateCloudTableClient();
 
             return client.GetTableReference(tableName);
+        }
+
+        protected async Task InsertOrReplaceEntity(string tableName, ITableEntity adapter, CancellationToken cancellationToken)
+        {
+            var table = GetTable(tableName);
+            var operation = TableOperation.InsertOrReplace(adapter);
+
+            try
+            {
+                await table.ExecuteAsync(operation).ConfigureAwait(false);
+            }
+            catch (StorageException ex)
+            {
+                if (ex.RequestInformation.HttpStatusCode == 404)
+                {
+                    // The table doesn't exist yet, retry
+                    await table.CreateIfNotExistsAsync(null, null, cancellationToken).ConfigureAwait(false);
+
+                    await table.ExecuteAsync(operation).ConfigureAwait(false);
+
+                    return;
+                }
+
+                throw;
+            }
         }
     }
 }
