@@ -21,9 +21,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DevMentorApi.Azure.Integrat
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DevMentorApi.Model.UnitTests", "DevMentorApi.Model.UnitTests\DevMentorApi.Model.UnitTests.csproj", "{1126F1B5-A279-42FD-B815-018136463EE3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevMentorApi.Business", "DevMentorApi.Business\DevMentorApi.Business.csproj", "{1508657F-141F-42B4-AF10-74778310A43D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DevMentorApi.Business", "DevMentorApi.Business\DevMentorApi.Business.csproj", "{1508657F-141F-42B4-AF10-74778310A43D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevMentoryApi.Business.UnitTests", "DevMentoryApi.Business.UnitTests\DevMentoryApi.Business.UnitTests.csproj", "{B3E32378-09A4-4FD1-8C35-48B5D73D11C1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DevMentoryApi.Business.UnitTests", "DevMentoryApi.Business.UnitTests\DevMentoryApi.Business.UnitTests.csproj", "{B3E32378-09A4-4FD1-8C35-48B5D73D11C1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{128653A0-520F-4070-AA43-C8EEA7A52CEF}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
