@@ -18,6 +18,7 @@
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Logging.AzureAppServices;
     using Microsoft.Extensions.PlatformAbstractions;
     using Microsoft.IdentityModel.Tokens;
     using Newtonsoft.Json;
@@ -54,12 +55,7 @@
             // This must be second because it calls all subsequent middleware and watches for failures
             app.UseMiddleware<ExceptionMonitorMiddleware>();
 
-            loggerFactory.AddConsole(ConfigurationRoot.GetSection("Logging"));
-            
-            if (env.IsDevelopment())
-            {
-                loggerFactory.AddDebug();
-            }
+            ConfigureLogging(env, loggerFactory);
 
             app.UseCors(builder => builder.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
 
@@ -84,6 +80,25 @@
                     ApplicationContainer.Dispose();
                     ApplicationContainer = null;
                 });
+        }
+
+        private void ConfigureLogging(IHostingEnvironment env, ILoggerFactory loggerFactory)
+        {
+            loggerFactory.AddConsole(ConfigurationRoot.GetSection("Logging"));
+
+            if (env.IsDevelopment())
+            {
+                loggerFactory.AddDebug();
+            }
+            else
+            {
+                loggerFactory.AddAzureWebAppDiagnostics(
+                    new AzureAppServicesDiagnosticsSettings
+                    {
+                        OutputTemplate =
+                            "{Timestamp:yyyy-MM-dd HH:mm:ss zzz} [{Level}] {RequestId}-{SourceContext}: {Message}{NewLine}{Exception}"
+                    });
+            }
         }
 
         public IServiceProvider ConfigureServices(IServiceCollection services)

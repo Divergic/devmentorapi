@@ -21,6 +21,17 @@
         }
 
         [Fact]
+        public async Task GetForNewUserCreatesProfileAsUnavailableTest()
+        {
+            var profile = Model.Create<Profile>().Set(x => x.BannedAt = null);
+            var address = ApiLocation.Profile;
+
+            var actual = await Client.Get<Profile>(address, null, profile, _logger).ConfigureAwait(false);
+
+            actual.Status.Should().Be(ProfileStatus.Unavailable);
+        }
+
+        [Fact]
         public async Task GetForNewUserRegistersAccountAndReturnsNewProfileTest()
         {
             var profile = Model.Create<Profile>().Set(x => x.BannedAt = null);
@@ -28,7 +39,7 @@
 
             var actual = await Client.Get<Profile>(address, null, profile, _logger).ConfigureAwait(false);
 
-            actual.ShouldBeEquivalentTo(profile, opt => opt.Excluding(x => x.AccountId));
+            actual.ShouldBeEquivalentTo(profile, opt => opt.Excluding(x => x.AccountId).Excluding(x => x.Status));
         }
 
         [Theory]
