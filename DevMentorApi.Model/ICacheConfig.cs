@@ -5,6 +5,7 @@
     public interface ICacheConfig
     {
         TimeSpan AccountExpiration { get; }
+        TimeSpan CategoriesExpiration { get; }
         TimeSpan ProfileExpiration { get; }
     }
 }

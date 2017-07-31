@@ -19,6 +19,21 @@
 
         public int AccountExpirationInSeconds { get; set; }
 
+        public TimeSpan CategoriesExpiration
+        {
+            get
+            {
+                if (CategoriesExpirationInSeconds == default(int))
+                {
+                    return TimeSpan.FromMinutes(5);
+                }
+
+                return TimeSpan.FromSeconds(CategoriesExpirationInSeconds);
+            }
+        }
+
+        public int CategoriesExpirationInSeconds { get; set; }
+
         public TimeSpan ProfileExpiration
         {
             get
