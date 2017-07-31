@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Table;
 
     public static class Extensions
@@ -13,21 +14,35 @@
             CancellationToken cancellationToken = default(CancellationToken)) where T : ITableEntity, new()
         {
             var items = new List<T>(100);
-            TableContinuationToken token = null;
 
-            do
+            try
             {
-                var segment = await table.ExecuteQuerySegmentedAsync(query, token, null, null, cancellationToken);
+                TableContinuationToken token = null;
 
-                if (segment == null)
+                do
                 {
-                    break;
+                    var segment = await table.ExecuteQuerySegmentedAsync(query, token, null, null, cancellationToken);
+
+                    if (segment == null)
+                    {
+                        break;
+                    }
+
+                    token = segment.ContinuationToken;
+                    items.AddRange(segment);
+                }
+                while (token != null &&
+                       cancellationToken.IsCancellationRequested == false);
+            }
+            catch (StorageException ex)
+            {
+                if (ex.RequestInformation.HttpStatusCode != 404)
+                {
+                    throw;
                 }
 
-                token = segment.ContinuationToken;
-                items.AddRange(segment);
+                return items;
             }
-            while (token != null && cancellationToken.IsCancellationRequested == false);
 
             return items;
         }

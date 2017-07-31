@@ -18,12 +18,15 @@
 
         public static string BuildPartitionKey(CategoryGroup group)
         {
-            return group.ToString();
+            // We get to save several bytes per record by storing the int representation of the enum in the parition key
+            return ((int)group).ToString();
         }
 
         public static string BuildRowKey(string name)
         {
-            return name;
+            // Store the name as the row key so that it will be case insensitive
+            // We only want one entry for Azure, azure and AZURE
+            return name.ToUpperInvariant();
         }
 
         protected override string BuildPartitionKey()
@@ -41,7 +44,6 @@
             OperationContext operationContext)
         {
             Value.Group = (CategoryGroup)Enum.Parse(typeof(CategoryGroup), PartitionKey);
-            Value.Name = RowKey;
 
             base.ReadValues(properties, operationContext);
         }
@@ -51,7 +53,6 @@
             OperationContext operationContext)
         {
             properties.Remove(nameof(Category.Group));
-            properties.Remove(nameof(Category.Name));
 
             base.WriteValues(properties, operationContext);
         }

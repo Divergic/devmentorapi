@@ -4,7 +4,6 @@
     using System.Threading.Tasks;
     using DevMentorApi.Model;
     using EnsureThat;
-    using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Table;
 
     public class AccountStore : TableStoreBase, IAccountStore
@@ -41,7 +40,7 @@
 
             var adapter = new AccountAdapter(account);
 
-            return InsertOrReplaceEntity(TableName, adapter, cancellationToken);
+            return InsertEntity(TableName, adapter, cancellationToken);
         }
     }
 }

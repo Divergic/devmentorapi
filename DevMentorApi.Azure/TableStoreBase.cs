@@ -18,6 +18,37 @@
             _configuration = configuration;
         }
 
+        protected async Task ExecuteWithCreateTable(
+            string tableName,
+            TableOperation operation,
+            CancellationToken cancellationToken)
+        {
+            var table = GetTable(tableName);
+
+            try
+            {
+                await table.ExecuteAsync(operation).ConfigureAwait(false);
+            }
+            catch (StorageException ex)
+            {
+                if (ex.RequestInformation.HttpStatusCode != 404)
+                {
+                    throw;
+                }
+
+                if (operation.OperationType == TableOperationType.Delete)
+                {
+                    // We can't delete what isn't there, but the outcome is the desired one
+                    return;
+                }
+
+                // The table doesn't exist yet, retry
+                await table.CreateIfNotExistsAsync(null, null, cancellationToken).ConfigureAwait(false);
+
+                await table.ExecuteAsync(operation).ConfigureAwait(false);
+            }
+        }
+
         protected CloudTable GetTable(string tableName)
         {
             // Retrieve storage account from connection-string
@@ -29,29 +60,18 @@
             return client.GetTableReference(tableName);
         }
 
-        protected async Task InsertOrReplaceEntity(string tableName, ITableEntity adapter, CancellationToken cancellationToken)
+        protected Task InsertEntity(string tableName, ITableEntity entity, CancellationToken cancellationToken)
         {
-            var table = GetTable(tableName);
-            var operation = TableOperation.InsertOrReplace(adapter);
+            var operation = TableOperation.Insert(entity);
 
-            try
-            {
-                await table.ExecuteAsync(operation).ConfigureAwait(false);
-            }
-            catch (StorageException ex)
-            {
-                if (ex.RequestInformation.HttpStatusCode == 404)
-                {
-                    // The table doesn't exist yet, retry
-                    await table.CreateIfNotExistsAsync(null, null, cancellationToken).ConfigureAwait(false);
+            return ExecuteWithCreateTable(tableName, operation, cancellationToken);
+        }
 
-                    await table.ExecuteAsync(operation).ConfigureAwait(false);
+        protected Task InsertOrReplaceEntity(string tableName, ITableEntity entity, CancellationToken cancellationToken)
+        {
+            var operation = TableOperation.InsertOrReplace(entity);
 
-                    return;
-                }
-
-                throw;
-            }
+            return ExecuteWithCreateTable(tableName, operation, cancellationToken);
         }
     }
 }
