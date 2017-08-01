@@ -10,5 +10,7 @@
         Task BanProfile(Guid accountId, DateTimeOffset bannedAt, CancellationToken cancellationToken);
 
         Task<Profile> GetProfile(Guid accountId, CancellationToken cancellationToken);
+
+        Task UpdateProfile(Profile profile, CancellationToken cancellationToken);
     }
 }
