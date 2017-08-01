@@ -64,6 +64,11 @@
             return profile;
         }
 
+        public Task UpdateProfile(Profile profile, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
         private void StoreProfileInCache(string cacheKey, Profile profile)
         {
             var options = new MemoryCacheEntryOptions
