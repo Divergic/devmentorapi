@@ -1,6 +1,8 @@
 ﻿namespace DevMentorApi.Model
 {
     using System;
+    using System.Collections;
+    using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
 
     public class Profile
@@ -12,6 +14,9 @@
         public DateTimeOffset? BannedAt { get; set; }
 
         public int? BirthYear { get; set; }
+
+        public ICollection<string> Languages { get; }
+        public ICollection<Skill> Skills { get; }
 
         [Required]
         public string Email { get; set; }
