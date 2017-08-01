@@ -48,5 +48,33 @@
 
             return new OkObjectResult(profile);
         }
+
+        /// <summary>
+        ///     Updates the profile.
+        /// </summary>
+        /// <param name="model">The updated profile.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        [Route("profile")]
+        [HttpPut]
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
+        [SwaggerResponse((int)HttpStatusCode.NoContent)]
+        public async Task<IActionResult> Put([FromBody] Profile model, CancellationToken cancellationToken)
+        {
+            if (model == null)
+            {
+                return new ErrorMessageResult(Resources.Controller_NoBodyDataProvided, HttpStatusCode.BadRequest);
+            }
+
+            var accountId = User.Identity.GetClaimValue<Guid>(ClaimType.AccountId);
+
+            if (accountId != model.AccountId)
+            {
+                return new ForbidResult();
+            }
+
+            await _manager.UpdateProfile(model, cancellationToken).ConfigureAwait(false);
+
+            return new NoContentResult();
+        }
     }
 }
