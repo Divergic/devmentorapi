@@ -2,12 +2,21 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Reflection;
     using DevMentorApi.Model;
     using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Table;
+    using Newtonsoft.Json;
 
     public class ProfileAdapter : EntityAdapter<Profile>
     {
+        private static readonly JsonSerializerSettings _settings = new JsonSerializerSettings
+        {
+            NullValueHandling = NullValueHandling.Ignore,
+            DefaultValueHandling = DefaultValueHandling.Ignore,
+            Formatting = Formatting.None
+        };
+
         public ProfileAdapter()
         {
         }
@@ -54,6 +63,49 @@
             properties.Remove(nameof(Profile.AccountId));
 
             base.WriteValues(properties, operationContext);
+        }
+
+        protected override void WriteAdditionalProperty(IDictionary<string, EntityProperty> properties, PropertyInfo propertyInfo, object propertyValue)
+        {
+            if (IsJsonStorage(propertyInfo))
+            {
+                var data = JsonConvert.SerializeObject(propertyValue, _settings);
+
+                base.WriteAdditionalProperty(properties, propertyInfo, data);
+            }
+            else
+            {
+                base.WriteAdditionalProperty(properties, propertyInfo, propertyValue);
+            }
+        }
+
+        protected override void ReadAdditionalProperty(PropertyInfo propertyInfo, EntityProperty propertyValue)
+        {
+            if (IsJsonStorage(propertyInfo))
+            {
+                var data = JsonConvert.DeserializeObject(propertyValue.StringValue, propertyInfo.PropertyType);
+
+                propertyInfo.SetValue(Value, data);
+            }
+            else
+            {
+                base.ReadAdditionalProperty(propertyInfo, propertyValue);
+            }
+        }
+
+        private static bool IsJsonStorage(MemberInfo property)
+        {
+            if (property.Name == nameof(Profile.Languages))
+            {
+                return true;
+            }
+
+            if (property.Name == nameof(Profile.Skills))
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }

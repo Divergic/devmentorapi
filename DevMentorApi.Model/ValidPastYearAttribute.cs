@@ -1,29 +1,49 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace DevMentorApi.Model
+﻿namespace DevMentorApi.Model
 {
+    using System;
     using System.ComponentModel.DataAnnotations;
+    using EnsureThat;
 
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter)]
     public class ValidPastYearAttribute : ValidationAttribute
     {
-        private int _minYear;
+        private readonly bool _allowNull;
+        private readonly int _minYear;
 
-        public ValidPastYearAttribute()
+        public ValidPastYearAttribute(int minYear, bool allowNull = true)
         {
-            _minYear = 0;
-        }
+            Ensure.That(minYear, nameof(minYear)).IsLte(DateTimeOffset.UtcNow.Year);
 
-        public ValidPastYearAttribute(int minYear)
-        {
             _minYear = minYear;
+            _allowNull = allowNull;
         }
 
         public override bool IsValid(object value)
         {
-            return false;
+            if (value == null)
+            {
+                return _allowNull;
+            }
+
+            if (value is int == false)
+            {
+                return false;
+            }
+
+            var year = (int)value;
+            var currentYear = DateTimeOffset.UtcNow.Year;
+
+            if (year > currentYear)
+            {
+                return false;
+            }
+
+            if (year < _minYear)
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }
