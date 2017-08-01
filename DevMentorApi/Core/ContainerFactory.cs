@@ -4,8 +4,8 @@
     using System.Reflection;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
-    using DevMentorApi;
     using DevMentorApi.Azure;
+    using DevMentorApi.Business;
     using Microsoft.Extensions.DependencyInjection;
 
     public static class ContainerFactory
@@ -14,19 +14,19 @@
         {
             // Create the container builder.
             var builder = new ContainerBuilder();
-            
+
             var moduleAssemblies = new[]
             {
                 typeof(ContainerFactory).GetTypeInfo().Assembly,
-                typeof(BusinessModule).GetTypeInfo().Assembly,
-                typeof(AzureModule).GetTypeInfo().Assembly
+                typeof(AzureModule).GetTypeInfo().Assembly,
+                typeof(BusinessModule).GetTypeInfo().Assembly
             };
 
             // Register modules
             builder.RegisterAssemblyModules(moduleAssemblies);
 
             RegisterConfigTypes(builder, configuration);
-            
+
             builder.Populate(services);
 
             var container = builder.Build();

@@ -2,29 +2,17 @@
 {
     using System;
     using System.Collections.Generic;
-    using DevMentorApi.Model;
+    using System.Security.Claims;
     using Jose;
 
     public static class TokenFactory
     {
-        public static string GenerateToken(Account account = null, Profile profile = null)
+        public static string GenerateToken(ClaimsIdentity identity)
         {
             const string ClientSecret = "qwertyuiopasdfghjklzxcvbnm123456";
             var secretKey = Base64UrlDecode(ClientSecret);
             var issued = DateTime.Now;
             var expire = DateTime.Now.AddHours(10);
-
-            var username = Guid.NewGuid().ToString();
-
-            if (account != null)
-            {
-                username = account.Username;
-            }
-
-            if (username.IndexOf("|", StringComparison.OrdinalIgnoreCase) == -1)
-            {
-                username = "local|" + username;
-            }
 
             var payload = new Dictionary<string, object>
             {
@@ -35,7 +23,7 @@
                     "aud", "http://localhost:5000/"
                 },
                 {
-                    "sub", username
+                    "sub", identity.Name
                 },
                 {
                     "iat", ToUnixTime(issued).ToString()
@@ -45,22 +33,14 @@
                 }
             };
 
-            if (profile != null)
+            foreach (var claim in identity.Claims)
             {
-                if (string.IsNullOrWhiteSpace(profile.Email) == false)
+                if (claim.Type == "sub")
                 {
-                    payload.Add("email", profile.Email);
+                    continue;
                 }
 
-                if (string.IsNullOrWhiteSpace(profile.FirstName) == false)
-                {
-                    payload.Add("givenName", profile.FirstName);
-                }
-
-                if (string.IsNullOrWhiteSpace(profile.LastName) == false)
-                {
-                    payload.Add("surname", profile.LastName);
-                }
+                payload.Add(claim.Type, claim.Value);
             }
 
             var token = JWT.Encode(payload, secretKey, JwsAlgorithm.HS256);

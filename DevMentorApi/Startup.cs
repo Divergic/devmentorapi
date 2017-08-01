@@ -131,6 +131,9 @@
                 options =>
                 {
                     options.AddPolicy("AuthenticatedUser", policyBuilder => policyBuilder.RequireAuthenticatedUser());
+                    options.AddPolicy(
+                        Role.Administrator,
+                        policyBuilder => policyBuilder.RequireRole(Role.Administrator));
                 });
 
             services.AddCors();
@@ -165,6 +168,7 @@
                     c.IncludeXmlComments(filePath);
 
                     c.OperationFilter<OAuth2OperationFilter>();
+                    c.DocumentFilter<AdministratorDocumentFilter>();
                 });
 
             var loggerFactory = services.BuildServiceProvider().GetService<ILoggerFactory>();

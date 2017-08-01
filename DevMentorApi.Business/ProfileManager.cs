@@ -35,10 +35,8 @@
             // In the short term, we will just update the profile and rely on the public search to filter out banned profiles
             // TODO: Update all item links (and link caches) to removed the banned profile, then remove the banned profile from cache
             var cacheKey = BuildCacheKey(accountId);
-            var cacheEntry = _cache.CreateEntry(cacheKey);
 
-            cacheEntry.SlidingExpiration = _config.ProfileExpiration;
-            cacheEntry.Value = profile;
+            StoreProfileInCache(cacheKey, profile);
         }
 
         public async Task<Profile> GetProfile(Guid accountId, CancellationToken cancellationToken)
@@ -61,13 +59,20 @@
                 return null;
             }
 
-            // Cache this account for lookup later
-            var cacheEntry = _cache.CreateEntry(cacheKey);
-
-            cacheEntry.SlidingExpiration = _config.ProfileExpiration;
-            cacheEntry.Value = profile;
+            StoreProfileInCache(cacheKey, profile);
 
             return profile;
+        }
+
+        private void StoreProfileInCache(string cacheKey, Profile profile)
+        {
+            var options = new MemoryCacheEntryOptions
+            {
+                SlidingExpiration = _config.ProfileExpiration
+            };
+
+            // Cache this account for lookup later
+            _cache.Set(cacheKey, profile, options);
         }
 
         private static string BuildCacheKey(Guid accountId)

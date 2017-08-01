@@ -17,6 +17,53 @@
     public class CategoryManagerTests
     {
         [Fact]
+        public async Task CreateCategoryProvidesCategoryToStoreTest()
+        {
+            var expected = Model.Create<NewCategory>();
+
+            var store = Substitute.For<ICategoryStore>();
+            var cache = Substitute.For<IMemoryCache>();
+            var config = Substitute.For<ICacheConfig>();
+
+            var sut = new CategoryManager(store, cache, config);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                await sut.CreateCategory(expected, tokenSource.Token).ConfigureAwait(false);
+
+                await store.Received(1).StoreCategory(Arg.Any<Category>(), tokenSource.Token).ConfigureAwait(false);
+                await store.Received().StoreCategory(
+                    Arg.Is<Category>(x => x.Group == expected.Group),
+                    tokenSource.Token).ConfigureAwait(false);
+                await store.Received().StoreCategory(Arg.Is<Category>(x => x.Name == expected.Name), tokenSource.Token)
+                    .ConfigureAwait(false);
+                await store.Received().StoreCategory(Arg.Is<Category>(x => x.LinkCount == 0), tokenSource.Token)
+                    .ConfigureAwait(false);
+                await store.Received().StoreCategory(Arg.Is<Category>(x => x.Reviewed), tokenSource.Token)
+                    .ConfigureAwait(false);
+                await store.Received().StoreCategory(Arg.Is<Category>(x => x.Visible), tokenSource.Token)
+                    .ConfigureAwait(false);
+
+                cache.Received().Remove("Categories");
+            }
+        }
+
+        [Fact]
+        public void CreateCategoryThrowsExceptionWithNullCategoryTest()
+        {
+            var store = Substitute.For<ICategoryStore>();
+            var cache = Substitute.For<IMemoryCache>();
+            var config = Substitute.For<ICacheConfig>();
+
+            var sut = new CategoryManager(store, cache, config);
+
+            Func<Task> action = async () => await sut.CreateCategory(null, CancellationToken.None)
+                .ConfigureAwait(false);
+
+            action.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Fact]
         public async Task GetCategoriesCachesCategoryReturnedFromStoreTest()
         {
             var expected = Model.Create<List<Category>>();
@@ -78,10 +125,16 @@
         public async Task GetCategoriesReturnsCategoriesFromStoreWhenNotInCacheTest()
         {
             var expected = Model.Create<List<Category>>();
+            var cacheExpiry = TimeSpan.FromMinutes(23);
+            const string CacheKey = "Categories";
 
             var store = Substitute.For<ICategoryStore>();
             var cache = Substitute.For<IMemoryCache>();
             var config = Substitute.For<ICacheConfig>();
+            var cacheEntry = Substitute.For<ICacheEntry>();
+
+            config.CategoriesExpiration.Returns(cacheExpiry);
+            cache.CreateEntry(CacheKey).Returns(cacheEntry);
 
             using (var tokenSource = new CancellationTokenSource())
             {

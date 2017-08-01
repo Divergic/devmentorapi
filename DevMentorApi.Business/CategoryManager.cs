@@ -11,6 +11,7 @@ namespace DevMentorApi.Business
 
     public class CategoryManager : ICategoryManager
     {
+        private const string CacheKey = "Categories";
         private readonly IMemoryCache _cache;
         private readonly ICacheConfig _config;
         private readonly ICategoryStore _store;
@@ -24,6 +25,24 @@ namespace DevMentorApi.Business
             _store = store;
             _cache = cache;
             _config = config;
+        }
+
+        public async Task CreateCategory(NewCategory newCategory, CancellationToken cancellationToken)
+        {
+            Ensure.That(newCategory, nameof(newCategory)).IsNotNull();
+
+            var category = new Category
+            {
+                Group = newCategory.Group,
+                LinkCount = 0,
+                Name = newCategory.Name,
+                Reviewed = true,
+                Visible = true
+            };
+
+            await _store.StoreCategory(category, cancellationToken).ConfigureAwait(false);
+
+            _cache.Remove(CacheKey);
         }
 
         public async Task<IEnumerable<Category>> GetCategories(ReadType readType, CancellationToken cancellationToken)
@@ -42,7 +61,6 @@ namespace DevMentorApi.Business
 
         private async Task<IEnumerable<Category>> GetCategoriesInternal(CancellationToken cancellationToken)
         {
-            const string CacheKey = "Categories";
             IEnumerable<Category> categories;
 
             if (_cache.TryGetValue(CacheKey, out categories))
@@ -50,20 +68,24 @@ namespace DevMentorApi.Business
                 return categories;
             }
 
-            categories = await _store.GetAllCategories(cancellationToken).ConfigureAwait(false);
+            var results = await _store.GetAllCategories(cancellationToken).ConfigureAwait(false);
 
-            if (categories == null)
+            if (results == null)
             {
                 return new List<Category>();
             }
 
+            var storedItems = results.ToList();
+
+            var options = new MemoryCacheEntryOptions
+            {
+                SlidingExpiration = _config.CategoriesExpiration
+            };
+
             // Cache this account for lookup later
-            var cacheEntry = _cache.CreateEntry(CacheKey);
+            _cache.Set(CacheKey, storedItems, options);
 
-            cacheEntry.SlidingExpiration = _config.CategoriesExpiration;
-            cacheEntry.Value = categories;
-
-            return categories;
+            return storedItems;
         }
     }
 }
