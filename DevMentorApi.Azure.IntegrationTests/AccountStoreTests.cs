@@ -24,7 +24,7 @@ namespace DevMentorApi.Azure.IntegrationTests
 
             actual.Should().BeNull();
         }
-        
+
         [Theory]
         [InlineData(null, "stuff")]
         [InlineData("", "stuff")]

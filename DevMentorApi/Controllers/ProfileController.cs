@@ -33,7 +33,7 @@
         [Route("profile")]
         [HttpGet]
         [ProducesResponseType(typeof(Profile), (int)HttpStatusCode.OK)]
-        [SwaggerResponse((int)HttpStatusCode.OK)]
+        [SwaggerResponse((int)HttpStatusCode.OK, typeof(Profile))]
         [SwaggerResponse((int)HttpStatusCode.NotFound, null, "The profile does not exist.")]
         public async Task<IActionResult> Get(CancellationToken cancellationToken)
         {

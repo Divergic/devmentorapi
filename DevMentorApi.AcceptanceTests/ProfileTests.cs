@@ -21,14 +21,27 @@
         }
 
         [Fact]
+        public async Task GetForNewUserCreatesProfileAsUnavailableTest()
+        {
+            var profile = Model.Create<Profile>().Set(x => x.BannedAt = null);
+            var identity = ClaimsIdentityFactory.Build(null, profile);
+            var address = ApiLocation.Profile;
+
+            var actual = await Client.Get<Profile>(address, _logger, identity).ConfigureAwait(false);
+
+            actual.Status.Should().Be(ProfileStatus.Unavailable);
+        }
+
+        [Fact]
         public async Task GetForNewUserRegistersAccountAndReturnsNewProfileTest()
         {
             var profile = Model.Create<Profile>().Set(x => x.BannedAt = null);
+            var identity = ClaimsIdentityFactory.Build(null, profile);
             var address = ApiLocation.Profile;
 
-            var actual = await Client.Get<Profile>(address, null, profile, _logger).ConfigureAwait(false);
+            var actual = await Client.Get<Profile>(address, _logger, identity).ConfigureAwait(false);
 
-            actual.ShouldBeEquivalentTo(profile, opt => opt.Excluding(x => x.AccountId));
+            actual.ShouldBeEquivalentTo(profile, opt => opt.Excluding(x => x.AccountId).Excluding(x => x.Status));
         }
 
         [Theory]
@@ -47,9 +60,10 @@
                 FirstName = firstName,
                 LastName = lastName
             };
+            var identity = ClaimsIdentityFactory.Build(null, profile);
             var address = ApiLocation.Profile;
 
-            var actual = await Client.Get<Profile>(address, null, profile, _logger).ConfigureAwait(false);
+            var actual = await Client.Get<Profile>(address, _logger, identity).ConfigureAwait(false);
 
             actual.ShouldBeEquivalentTo(profile, opt => opt.Excluding(x => x.AccountId));
         }
@@ -59,7 +73,7 @@
         {
             var address = ApiLocation.Profile;
 
-            await Client.Get(address, null, null, _logger, HttpStatusCode.Unauthorized).ConfigureAwait(false);
+            await Client.Get(address, _logger, null, HttpStatusCode.Unauthorized).ConfigureAwait(false);
         }
     }
 }

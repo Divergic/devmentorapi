@@ -62,6 +62,15 @@ namespace DevMentorApi.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No POST/PUT body data provided..
+        /// </summary>
+        internal static string Controller_NoBodyDataProvided {
+            get {
+                return ResourceManager.GetString("Controller_NoBodyDataProvided", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Not Found..
         /// </summary>
         internal static string NotFound {

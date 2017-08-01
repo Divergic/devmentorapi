@@ -79,11 +79,16 @@ namespace DevMentoryApi.Business.UnitTests
             var provider = Guid.NewGuid().ToString();
             var username = Guid.NewGuid().ToString();
             var user = Model.CreateWith<User>(provider + "|" + username);
+            var cacheExpiry = TimeSpan.FromMinutes(23);
 
             var accountStore = Substitute.For<IAccountStore>();
             var profileStore = Substitute.For<IProfileStore>();
             var cache = Substitute.For<IMemoryCache>();
             var config = Substitute.For<ICacheConfig>();
+            var cacheEntry = Substitute.For<ICacheEntry>();
+
+            config.AccountExpiration.Returns(cacheExpiry);
+            cache.CreateEntry("Account|" + user.Username).Returns(cacheEntry);
 
             var sut = new AccountManager(accountStore, profileStore, cache, config);
 
@@ -113,11 +118,16 @@ namespace DevMentoryApi.Business.UnitTests
         {
             var user = Model.Create<User>();
             var expected = Model.Create<Account>();
+            var cacheExpiry = TimeSpan.FromMinutes(23);
 
             var accountStore = Substitute.For<IAccountStore>();
             var profileStore = Substitute.For<IProfileStore>();
             var cache = Substitute.For<IMemoryCache>();
             var config = Substitute.For<ICacheConfig>();
+            var cacheEntry = Substitute.For<ICacheEntry>();
+
+            config.AccountExpiration.Returns(cacheExpiry);
+            cache.CreateEntry("Account|" + user.Username).Returns(cacheEntry);
 
             var sut = new AccountManager(accountStore, profileStore, cache, config);
 
@@ -137,11 +147,16 @@ namespace DevMentoryApi.Business.UnitTests
             var provider = Guid.NewGuid().ToString();
             var username = Guid.NewGuid().ToString();
             var user = Model.CreateWith<User>(provider + "|" + username);
+            var cacheExpiry = TimeSpan.FromMinutes(23);
 
             var accountStore = Substitute.For<IAccountStore>();
             var profileStore = Substitute.For<IProfileStore>();
             var cache = Substitute.For<IMemoryCache>();
             var config = Substitute.For<ICacheConfig>();
+            var cacheEntry = Substitute.For<ICacheEntry>();
+
+            config.AccountExpiration.Returns(cacheExpiry);
+            cache.CreateEntry("Account|" + user.Username).Returns(cacheEntry);
 
             var sut = new AccountManager(accountStore, profileStore, cache, config);
 
@@ -170,11 +185,16 @@ namespace DevMentoryApi.Business.UnitTests
         public async Task GetAccountRegistersNewAccountWithUnspecifiedProviderWhenNotFoundInStoreTest()
         {
             var user = Model.CreateWith<User>();
+            var cacheExpiry = TimeSpan.FromMinutes(23);
 
             var accountStore = Substitute.For<IAccountStore>();
             var profileStore = Substitute.For<IProfileStore>();
             var cache = Substitute.For<IMemoryCache>();
             var config = Substitute.For<ICacheConfig>();
+            var cacheEntry = Substitute.For<ICacheEntry>();
+
+            config.AccountExpiration.Returns(cacheExpiry);
+            cache.CreateEntry("Account|" + user.Username).Returns(cacheEntry);
 
             var sut = new AccountManager(accountStore, profileStore, cache, config);
 
@@ -206,11 +226,16 @@ namespace DevMentoryApi.Business.UnitTests
             var username = Guid.NewGuid().ToString();
             var user = Model.CreateWith<User>(provider + "|" + username);
             var expected = Model.Create<Account>();
+            var cacheExpiry = TimeSpan.FromMinutes(23);
 
             var accountStore = Substitute.For<IAccountStore>();
             var profileStore = Substitute.For<IProfileStore>();
             var cache = Substitute.For<IMemoryCache>();
             var config = Substitute.For<ICacheConfig>();
+            var cacheEntry = Substitute.For<ICacheEntry>();
+
+            config.AccountExpiration.Returns(cacheExpiry);
+            cache.CreateEntry("Account|" + user.Username).Returns(cacheEntry);
 
             var sut = new AccountManager(accountStore, profileStore, cache, config);
 

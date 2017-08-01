@@ -1,4 +1,4 @@
-﻿namespace DevMentorApi.Azure
+﻿namespace DevMentorApi.Business
 {
     using Autofac;
 

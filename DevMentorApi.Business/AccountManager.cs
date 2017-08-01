@@ -78,11 +78,13 @@
                 account = accountTask.Result;
             }
 
-            // Cache this account for lookup later
-            var cacheEntry = _cache.CreateEntry(cacheKey);
+            var options = new MemoryCacheEntryOptions
+            {
+                SlidingExpiration = _config.AccountExpiration
+            };
 
-            cacheEntry.SlidingExpiration = _config.AccountExpiration;
-            cacheEntry.Value = account;
+            // Cache this account for lookup later
+            _cache.Set(cacheKey, account, options);
 
             return account;
         }

@@ -19,10 +19,16 @@
         {
             var accountId = Guid.NewGuid();
             var bannedAt = DateTimeOffset.UtcNow.AddDays(-2);
+            var cacheKey = "Profile|" + accountId;
+            var cacheExpiry = TimeSpan.FromMinutes(23);
 
             var store = Substitute.For<IProfileStore>();
             var config = Substitute.For<ICacheConfig>();
             var cache = Substitute.For<IMemoryCache>();
+            var cacheEntry = Substitute.For<ICacheEntry>();
+
+            config.ProfileExpiration.Returns(cacheExpiry);
+            cache.CreateEntry(cacheKey).Returns(cacheEntry);
 
             var sut = new ProfileManager(store, cache, config);
 

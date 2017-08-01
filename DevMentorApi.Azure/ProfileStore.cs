@@ -5,7 +5,6 @@
     using System.Threading.Tasks;
     using DevMentorApi.Model;
     using EnsureThat;
-    using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Table;
 
     public class ProfileStore : TableStoreBase, IProfileStore
@@ -68,32 +67,13 @@
             return entity.Value;
         }
 
-        public async Task StoreProfile(Profile profile, CancellationToken cancellationToken)
+        public Task StoreProfile(Profile profile, CancellationToken cancellationToken)
         {
             Ensure.That(profile, nameof(profile)).IsNotNull();
 
             var adapter = new ProfileAdapter(profile);
-            var table = GetTable(TableName);
-            var operation = TableOperation.InsertOrReplace(adapter);
 
-            try
-            {
-                await table.ExecuteAsync(operation).ConfigureAwait(false);
-            }
-            catch (StorageException ex)
-            {
-                if (ex.RequestInformation.HttpStatusCode == 404)
-                {
-                    // The table doesn't exist yet, retry
-                    await table.CreateIfNotExistsAsync(null, null, cancellationToken).ConfigureAwait(false);
-
-                    await table.ExecuteAsync(operation).ConfigureAwait(false);
-
-                    return;
-                }
-
-                throw;
-            }
+            return InsertOrReplaceEntity(TableName, adapter, cancellationToken);
         }
     }
 }

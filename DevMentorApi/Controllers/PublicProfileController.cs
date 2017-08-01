@@ -38,7 +38,7 @@
         [HttpGet]
         [AllowAnonymous]
         [ProducesResponseType(typeof(PublicProfile), (int)HttpStatusCode.OK)]
-        [SwaggerResponse((int)HttpStatusCode.OK)]
+        [SwaggerResponse((int)HttpStatusCode.OK, typeof(PublicProfile))]
         [SwaggerResponse((int)HttpStatusCode.NotFound, null, "The profile does not exist.")]
         public async Task<IActionResult> Get(Guid profileId, CancellationToken cancellationToken)
         {

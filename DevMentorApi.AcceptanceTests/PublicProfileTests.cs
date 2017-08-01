@@ -26,7 +26,7 @@
             var profile = await Model.Create<Profile>().Save().ConfigureAwait(false);
             var address = ApiLocation.PublicProfileFor(profile.AccountId);
 
-            var actual = await Client.Get<PublicProfile>(address, null, null, _logger).ConfigureAwait(false);
+            var actual = await Client.Get<PublicProfile>(address, _logger).ConfigureAwait(false);
 
             actual.ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
         }

@@ -9,6 +9,7 @@
             return new Uri(Config.WebsiteAddress, "/profiles/" + accountId);
         }
 
+        public static Uri Categories => new Uri(Config.WebsiteAddress, "/categories");
         public static Uri Ping => new Uri(Config.WebsiteAddress, "/ping");
         public static Uri Profile => new Uri(Config.WebsiteAddress, "/profile");
     }

@@ -15,16 +15,13 @@
             Ensure.That(profile, nameof(profile)).IsNotNull();
 
             AccountId = profile.AccountId;
-            Email = profile.Email;
             FirstName = profile.FirstName;
             LastName = profile.LastName;
             Status = profile.Status;
         }
 
         public Guid AccountId { get; set; }
-
-        public string Email { get; set; }
-
+        
         public string FirstName { get; set; }
 
         public string LastName { get; set; }
