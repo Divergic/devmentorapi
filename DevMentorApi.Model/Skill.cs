@@ -13,9 +13,8 @@ namespace DevMentorApi.Model
 
         [EnumDataType(typeof(SkillLevel))]
         public SkillLevel Level { get; set; }
-
-        [System.ComponentModel.DataAnnotations.Range()]
-        [Range(1989, 2030)]
+        
+        [ValidPastYear(1989)]
         public int YearStarted { get; set; }
     }
 
