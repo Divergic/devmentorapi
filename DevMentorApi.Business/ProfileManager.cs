@@ -64,9 +64,15 @@
             return profile;
         }
 
-        public Task UpdateProfile(Profile profile, CancellationToken cancellationToken)
+        public async Task UpdateProfile(Profile profile, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            Ensure.That(profile, nameof(profile)).IsNotNull();
+
+            await _store.StoreProfile(profile, cancellationToken).ConfigureAwait(false);
+
+            var cacheKey = BuildCacheKey(profile.AccountId);
+
+            StoreProfileInCache(cacheKey, profile);
         }
 
         private void StoreProfileInCache(string cacheKey, Profile profile)

@@ -1,5 +1,6 @@
 ﻿namespace DevMentorApi.AcceptanceTests
 {
+    using System;
     using System.Net;
     using System.Threading.Tasks;
     using DevMentorApi.Model;
@@ -35,7 +36,12 @@
         [Fact]
         public async Task GetForNewUserRegistersAccountAndReturnsNewProfileTest()
         {
-            var profile = Model.Create<Profile>().Set(x => x.BannedAt = null);
+            var profile = new Profile
+            {
+                FirstName = Guid.NewGuid().ToString(),
+                LastName = Guid.NewGuid().ToString(),
+                Email = Guid.NewGuid().ToString("N") + "@test.com"
+            };
             var identity = ClaimsIdentityFactory.Build(null, profile);
             var address = ApiLocation.Profile;
 

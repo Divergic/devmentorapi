@@ -210,5 +210,47 @@
 
             action.ShouldThrow<ArgumentNullException>();
         }
+
+        [Fact]
+        public async Task UpdateProfileStoresProfileAndUpdatesCacheTest()
+        {
+            var expected = Model.Create<Profile>();
+            var cacheKey = "Profile|" + expected.AccountId;
+            var cacheExpiry = TimeSpan.FromMinutes(23);
+
+            var store = Substitute.For<IProfileStore>();
+            var config = Substitute.For<ICacheConfig>();
+            var cache = Substitute.For<IMemoryCache>();
+            var cacheEntry = Substitute.For<ICacheEntry>();
+
+            config.ProfileExpiration.Returns(cacheExpiry);
+            cache.CreateEntry(cacheKey).Returns(cacheEntry);
+
+            var sut = new ProfileManager(store, cache, config);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                await sut.UpdateProfile(expected, tokenSource.Token).ConfigureAwait(false);
+
+                await store.Received().StoreProfile(expected, tokenSource.Token).ConfigureAwait(false);
+
+                cacheEntry.Value.Should().Be(expected);
+                cacheEntry.SlidingExpiration.Should().Be(cacheExpiry);
+            }
+        }
+
+        [Fact]
+        public void UpdateProfileThrowsExceptionWithNullProfileTest()
+        {
+            var store = Substitute.For<IProfileStore>();
+            var config = Substitute.For<ICacheConfig>();
+            var cache = Substitute.For<IMemoryCache>();
+
+            var sut = new ProfileManager(store, cache, config);
+
+            Func<Task> action = async () => await sut.UpdateProfile(null, CancellationToken.None).ConfigureAwait(false);
+
+            action.ShouldThrow<ArgumentNullException>();
+        }
     }
 }
