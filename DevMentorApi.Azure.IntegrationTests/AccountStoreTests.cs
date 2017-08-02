@@ -25,6 +25,29 @@ namespace DevMentorApi.Azure.IntegrationTests
             actual.Should().BeNull();
         }
 
+        [Fact]
+        public async Task GetAccountReturnsNullWhenTableNotFoundTest()
+        {
+            // Retrieve storage account from connection-string
+            var storageAccount = CloudStorageAccount.Parse(Config.Storage.ConnectionString);
+
+            // Create the table client
+            var client = storageAccount.CreateCloudTableClient();
+
+            var table = client.GetTableReference("Accounts");
+
+            await table.DeleteIfExistsAsync();
+
+            var provider = Guid.NewGuid().ToString();
+            var username = Guid.NewGuid().ToString();
+
+            var sut = new AccountStore(Config.Storage);
+
+            var actual = await sut.GetAccount(provider, username, CancellationToken.None);
+
+            actual.Should().BeNull();
+        }
+
         [Theory]
         [InlineData(null, "stuff")]
         [InlineData("", "stuff")]
