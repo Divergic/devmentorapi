@@ -5,9 +5,9 @@
 
     public class CategoryLink
     {
-        public string CategoryName { get; set; }
+        public CategoryGroup CategoryGroup { get; set; }
 
-        public CategoryGroup Group { get; set; }
+        public string CategoryName { get; set; }
 
         public Guid ProfileId { get; set; }
     }
