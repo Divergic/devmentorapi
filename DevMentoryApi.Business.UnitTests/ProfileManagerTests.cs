@@ -17,9 +17,9 @@
         [Fact]
         public async Task BanProfileCallsStoreWithBanInformationTest()
         {
-            var accountId = Guid.NewGuid();
+            var profileId = Guid.NewGuid();
             var bannedAt = DateTimeOffset.UtcNow.AddDays(-2);
-            var cacheKey = "Profile|" + accountId;
+            var cacheKey = "Profile|" + profileId;
             var cacheExpiry = TimeSpan.FromMinutes(23);
 
             var store = Substitute.For<IProfileStore>();
@@ -34,14 +34,14 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                await sut.BanProfile(accountId, bannedAt, tokenSource.Token).ConfigureAwait(false);
+                await sut.BanProfile(profileId, bannedAt, tokenSource.Token).ConfigureAwait(false);
 
-                await store.Received().BanProfile(accountId, bannedAt, tokenSource.Token).ConfigureAwait(false);
+                await store.Received().BanProfile(profileId, bannedAt, tokenSource.Token).ConfigureAwait(false);
             }
         }
 
         [Fact]
-        public void BanProfileThrowsExceptionWithEmptyAccountIdTest()
+        public void BanProfileThrowsExceptionWithEmptyIdTest()
         {
             var bannedAt = DateTimeOffset.UtcNow.AddDays(-2);
 
@@ -62,7 +62,7 @@
         {
             var expected = Model.Create<Profile>();
             var bannedAt = DateTimeOffset.UtcNow.AddDays(-2);
-            var cacheKey = "Profile|" + expected.AccountId;
+            var cacheKey = "Profile|" + expected.Id;
             var cacheExpiry = TimeSpan.FromMinutes(23);
 
             var store = Substitute.For<IProfileStore>();
@@ -77,9 +77,9 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                store.BanProfile(expected.AccountId, bannedAt, tokenSource.Token).Returns(expected);
+                store.BanProfile(expected.Id, bannedAt, tokenSource.Token).Returns(expected);
 
-                await sut.BanProfile(expected.AccountId, bannedAt, tokenSource.Token).ConfigureAwait(false);
+                await sut.BanProfile(expected.Id, bannedAt, tokenSource.Token).ConfigureAwait(false);
 
                 cacheEntry.Value.Should().Be(expected);
                 cacheEntry.SlidingExpiration.Should().Be(cacheExpiry);
@@ -98,15 +98,15 @@
             var cacheEntry = Substitute.For<ICacheEntry>();
 
             config.ProfileExpiration.Returns(cacheExpiry);
-            cache.CreateEntry("Profile|" + expected.AccountId).Returns(cacheEntry);
+            cache.CreateEntry("Profile|" + expected.Id).Returns(cacheEntry);
 
             var sut = new ProfileManager(profileStore, cache, config);
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                profileStore.GetProfile(expected.AccountId, tokenSource.Token).Returns(expected);
+                profileStore.GetProfile(expected.Id, tokenSource.Token).Returns(expected);
 
-                var actual = await sut.GetProfile(expected.AccountId, tokenSource.Token).ConfigureAwait(false);
+                var actual = await sut.GetProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
 
                 cacheEntry.Value.Should().Be(actual);
                 cacheEntry.SlidingExpiration.Should().Be(cacheExpiry);
@@ -117,7 +117,7 @@
         public async Task GetProfileReturnsCachedProfileTest()
         {
             var expected = Model.Create<Profile>();
-            var cacheKey = "Profile|" + expected.AccountId;
+            var cacheKey = "Profile|" + expected.Id;
 
             var profileStore = Substitute.For<IProfileStore>();
             var cache = Substitute.For<IMemoryCache>();
@@ -137,7 +137,7 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                var actual = await sut.GetProfile(expected.AccountId, tokenSource.Token).ConfigureAwait(false);
+                var actual = await sut.GetProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
 
                 actual.ShouldBeEquivalentTo(expected);
             }
@@ -156,7 +156,7 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                var actual = await sut.GetProfile(expected.AccountId, tokenSource.Token).ConfigureAwait(false);
+                var actual = await sut.GetProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
 
                 actual.Should().BeNull();
                 cache.DidNotReceive().CreateEntry(Arg.Any<object>());
@@ -164,7 +164,7 @@
         }
 
         [Fact]
-        public void GetProfileThrowsExceptionWithEmptyAccountIdTest()
+        public void GetProfileThrowsExceptionWithEmptyIdTest()
         {
             var store = Substitute.For<IProfileStore>();
             var config = Substitute.For<ICacheConfig>();
@@ -215,7 +215,7 @@
         public async Task UpdateProfileStoresProfileAndUpdatesCacheTest()
         {
             var expected = Model.Create<Profile>();
-            var cacheKey = "Profile|" + expected.AccountId;
+            var cacheKey = "Profile|" + expected.Id;
             var cacheExpiry = TimeSpan.FromMinutes(23);
 
             var store = Substitute.For<IProfileStore>();

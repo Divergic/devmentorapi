@@ -7,9 +7,9 @@
 
     public interface IProfileManager
     {
-        Task BanProfile(Guid accountId, DateTimeOffset bannedAt, CancellationToken cancellationToken);
+        Task BanProfile(Guid id, DateTimeOffset bannedAt, CancellationToken cancellationToken);
 
-        Task<Profile> GetProfile(Guid accountId, CancellationToken cancellationToken);
+        Task<Profile> GetProfile(Guid id, CancellationToken cancellationToken);
 
         Task UpdateProfile(Profile profile, CancellationToken cancellationToken);
     }

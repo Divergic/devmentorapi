@@ -66,11 +66,11 @@
 
             if (account == null)
             {
-                var accountId = Guid.NewGuid();
+                var profileId = Guid.NewGuid();
 
                 // This account doesn't exist so we will create it here
-                var accountTask = CreateAccount(accountId, provider, username, cancellationToken);
-                var profileTask = CreateProfile(accountId, user, cancellationToken);
+                var accountTask = CreateAccount(profileId, provider, username, cancellationToken);
+                var profileTask = CreateProfile(profileId, user, cancellationToken);
 
                 // Run the tasks together to save time
                 await Task.WhenAll(accountTask, profileTask).ConfigureAwait(false);
@@ -90,28 +90,28 @@
         }
 
         private async Task<Account> CreateAccount(
-            Guid accountId,
+            Guid profileId,
             string provider,
             string username,
             CancellationToken cancellationToken)
         {
             var account = new Account
             {
-                Id = accountId,
+                Id = profileId,
                 Provider = provider,
                 Username = username
             };
 
             await _accountStore.RegisterAccount(account, cancellationToken).ConfigureAwait(false);
-            
+
             return account;
         }
 
-        private Task CreateProfile(Guid accountId, User user, CancellationToken cancellationToken)
+        private Task CreateProfile(Guid profileId, User user, CancellationToken cancellationToken)
         {
             var profile = new Profile
             {
-                AccountId = accountId,
+                Id = profileId,
                 Email = user.Email,
                 FirstName = user.FirstName,
                 LastName = user.LastName

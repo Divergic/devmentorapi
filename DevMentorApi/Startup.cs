@@ -30,8 +30,8 @@
         public Startup(IHostingEnvironment env)
         {
             var builder = new ConfigurationBuilder().SetBasePath(env.ContentRootPath)
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true).AddEnvironmentVariables();
+                .AddJsonFile("appsettings.json", false, true)
+                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true).AddEnvironmentVariables();
 
             ConfigurationRoot = builder.Build();
             Configuration = ConfigurationRoot.Get<Config>();
@@ -80,25 +80,6 @@
                     ApplicationContainer.Dispose();
                     ApplicationContainer = null;
                 });
-        }
-
-        private void ConfigureLogging(IHostingEnvironment env, ILoggerFactory loggerFactory)
-        {
-            loggerFactory.AddConsole(ConfigurationRoot.GetSection("Logging"));
-
-            if (env.IsDevelopment())
-            {
-                loggerFactory.AddDebug();
-            }
-            else
-            {
-                loggerFactory.AddAzureWebAppDiagnostics(
-                    new AzureAppServicesDiagnosticsSettings
-                    {
-                        OutputTemplate =
-                            "{Timestamp:yyyy-MM-dd HH:mm:ss zzz} [{Level}] {RequestId}-{SourceContext}: {Message}{NewLine}{Exception}"
-                    });
-            }
         }
 
         public IServiceProvider ConfigureServices(IServiceCollection services)
@@ -288,20 +269,29 @@
             app.UseJwtBearerAuthentication(options);
         }
 
-        public Config Configuration
+        private void ConfigureLogging(IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
-            get;
+            loggerFactory.AddConsole(ConfigurationRoot.GetSection("Logging"));
+
+            if (env.IsDevelopment())
+            {
+                loggerFactory.AddDebug();
+            }
+            else
+            {
+                loggerFactory.AddAzureWebAppDiagnostics(
+                    new AzureAppServicesDiagnosticsSettings
+                    {
+                        OutputTemplate =
+                            "{Timestamp:yyyy-MM-dd HH:mm:ss zzz} [{Level}] {RequestId}-{SourceContext}: {Message}{NewLine}{Exception}"
+                    });
+            }
         }
 
-        public IConfigurationRoot ConfigurationRoot
-        {
-            get;
-        }
+        public Config Configuration { get; }
 
-        private IContainer ApplicationContainer
-        {
-            get;
-            set;
-        }
+        public IConfigurationRoot ConfigurationRoot { get; }
+
+        private IContainer ApplicationContainer { get; set; }
     }
 }

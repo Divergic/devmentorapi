@@ -24,7 +24,7 @@
         public async Task GetReturnsOkForAnonymousUserTest()
         {
             var profile = await Model.Create<Profile>().Save().ConfigureAwait(false);
-            var address = ApiLocation.PublicProfileFor(profile.AccountId);
+            var address = ApiLocation.PublicProfileFor(profile.Id);
 
             var actual = await Client.Get<PublicProfile>(address, _logger).ConfigureAwait(false);
 

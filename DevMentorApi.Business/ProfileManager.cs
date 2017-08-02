@@ -25,34 +25,34 @@
             _config = config;
         }
 
-        public async Task BanProfile(Guid accountId, DateTimeOffset bannedAt, CancellationToken cancellationToken)
+        public async Task BanProfile(Guid id, DateTimeOffset bannedAt, CancellationToken cancellationToken)
         {
-            Ensure.That(accountId, nameof(accountId)).IsNotEmpty();
+            Ensure.That(id, nameof(id)).IsNotEmpty();
 
-            var profile = await _store.BanProfile(accountId, bannedAt, cancellationToken).ConfigureAwait(false);
+            var profile = await _store.BanProfile(id, bannedAt, cancellationToken).ConfigureAwait(false);
 
             // Update the cache of profiles for this profile
             // In the short term, we will just update the profile and rely on the public search to filter out banned profiles
             // TODO: Update all item links (and link caches) to removed the banned profile, then remove the banned profile from cache
-            var cacheKey = BuildCacheKey(accountId);
+            var cacheKey = BuildCacheKey(id);
 
             StoreProfileInCache(cacheKey, profile);
         }
 
-        public async Task<Profile> GetProfile(Guid accountId, CancellationToken cancellationToken)
+        public async Task<Profile> GetProfile(Guid id, CancellationToken cancellationToken)
         {
-            Ensure.That(accountId, nameof(accountId)).IsNotEmpty();
+            Ensure.That(id, nameof(id)).IsNotEmpty();
 
             Profile profile;
 
-            var cacheKey = BuildCacheKey(accountId);
+            var cacheKey = BuildCacheKey(id);
 
             if (_cache.TryGetValue(cacheKey, out profile))
             {
                 return profile;
             }
 
-            profile = await _store.GetProfile(accountId, cancellationToken).ConfigureAwait(false);
+            profile = await _store.GetProfile(id, cancellationToken).ConfigureAwait(false);
 
             if (profile == null)
             {
@@ -70,9 +70,16 @@
 
             await _store.StoreProfile(profile, cancellationToken).ConfigureAwait(false);
 
-            var cacheKey = BuildCacheKey(profile.AccountId);
+            var cacheKey = BuildCacheKey(profile.Id);
 
             StoreProfileInCache(cacheKey, profile);
+        }
+
+        private static string BuildCacheKey(Guid profileId)
+        {
+            // The cache key has a prefix to partition this type of object just in case there is a key collision with another object type
+            var cacheKey = "Profile|" + profileId;
+            return cacheKey;
         }
 
         private void StoreProfileInCache(string cacheKey, Profile profile)
@@ -84,13 +91,6 @@
 
             // Cache this account for lookup later
             _cache.Set(cacheKey, profile, options);
-        }
-
-        private static string BuildCacheKey(Guid accountId)
-        {
-            // The cache key has a prefix to partition this type of object just in case there is a key collision with another object type
-            var cacheKey = "Profile|" + accountId;
-            return cacheKey;
         }
     }
 }

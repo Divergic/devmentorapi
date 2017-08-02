@@ -71,7 +71,7 @@
         }
 
         [Fact]
-        public async Task GetReturnsProfileForSpecifiedProfileIdTest()
+        public async Task GetReturnsProfileForSpecifiedIdTest()
         {
             var profile = Model.Create<Profile>();
 
@@ -85,13 +85,13 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                manager.GetProfile(profile.AccountId, tokenSource.Token).Returns(profile);
+                manager.GetProfile(profile.Id, tokenSource.Token).Returns(profile);
 
                 using (var target = new PublicProfileController(manager))
                 {
                     target.ControllerContext = controllerContext;
 
-                    var actual = await target.Get(profile.AccountId, tokenSource.Token).ConfigureAwait(false);
+                    var actual = await target.Get(profile.Id, tokenSource.Token).ConfigureAwait(false);
 
                     actual.Should().BeOfType<OkObjectResult>();
 

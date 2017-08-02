@@ -8,6 +8,7 @@
     public interface ICategoryStore
     {
         Task CreateCategory(CategoryGroup group, string name, CancellationToken cancellationToken);
+
         Task<IEnumerable<Category>> GetAllCategories(CancellationToken cancellationToken);
 
         Task StoreCategory(Category category, CancellationToken cancellationToken);

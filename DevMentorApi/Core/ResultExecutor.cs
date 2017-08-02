@@ -2,11 +2,11 @@
 {
     using System;
     using System.Threading.Tasks;
+    using DevMentorApi.Properties;
     using EnsureThat;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Internal;
-    using DevMentorApi.Properties;
 
     public class ResultExecutor : IResultExecutor
     {

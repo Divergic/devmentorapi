@@ -2,10 +2,6 @@
 {
     public class StorageConfiguration : IStorageConfiguration
     {
-        public string ConnectionString
-        {
-            get;
-            set;
-        }
+        public string ConnectionString { get; set; }
     }
 }

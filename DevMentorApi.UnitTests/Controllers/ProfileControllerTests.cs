@@ -49,7 +49,7 @@
         }
 
         [Fact]
-        public async Task GetReturnsProfileForSpecifiedAccountIdTest()
+        public async Task GetReturnsProfileForSpecifiedIdTest()
         {
             var account = Model.Create<Account>();
             var profile = Model.Create<Profile>();
@@ -88,7 +88,7 @@
         public async Task PutProvidesProfileToManagerTest()
         {
             var account = Model.Create<Account>();
-            var expected = Model.Create<Profile>().Set(x => x.AccountId = account.Id);
+            var expected = Model.Create<Profile>().Set(x => x.Id = account.Id);
             var user = ClaimsIdentityFactory.BuildPrincipal(account);
 
             var manager = Substitute.For<IProfileManager>();
