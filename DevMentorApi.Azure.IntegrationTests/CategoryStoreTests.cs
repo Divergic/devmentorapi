@@ -117,7 +117,7 @@
         [Fact]
         public async Task GetAllCategoriesReturnsEmptyWhenTableNotFoundTest()
         {
-            // Retrieve storage Category from connection-string
+            // Retrieve storage account from connection-string
             var storageAccount = CloudStorageAccount.Parse(Config.Storage.ConnectionString);
 
             // Create the table client
@@ -137,7 +137,7 @@
         [Fact]
         public async Task StoreCategoryCreatesTableAndWritesCategoryWhenTableNotFoundTest()
         {
-            // Retrieve storage Category from connection-string
+            // Retrieve storage account from connection-string
             var storageAccount = CloudStorageAccount.Parse(Config.Storage.ConnectionString);
 
             // Create the table client

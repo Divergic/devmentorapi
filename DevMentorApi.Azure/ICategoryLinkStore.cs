@@ -12,6 +12,12 @@
             string categoryName,
             CancellationToken cancellationToken);
 
+        Task StoreCategoryLink(
+            CategoryGroup categoryGroup,
+            string categoryName,
+            CategoryLinkChange change,
+            CancellationToken cancellationToken);
+
         Task StoreCategoryLinks(
             CategoryGroup categoryGroup,
             string categoryName,

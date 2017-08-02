@@ -90,7 +90,7 @@ namespace DevMentorApi.Azure.IntegrationTests
         [Fact]
         public async Task StoreProfileCreatesTableAndWritesProfileWhenTableNotFoundTest()
         {
-            // Retrieve storage Profile from connection-string
+            // Retrieve storage account from connection-string
             var storageAccount = CloudStorageAccount.Parse(Config.Storage.ConnectionString);
 
             // Create the table client

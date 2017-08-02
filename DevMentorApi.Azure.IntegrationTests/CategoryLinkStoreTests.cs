@@ -63,6 +63,116 @@
             action.ShouldThrow<ArgumentException>();
         }
 
+        [Fact]
+        public async Task StoreCategoryLinkAddsCategoryLinkToStorageTest()
+        {
+            const CategoryGroup Group = CategoryGroup.Gender;
+            var categoryName = Guid.NewGuid().ToString();
+            var change = Model.Create<CategoryLinkChange>().Set(x => x.ChangeType = CategoryLinkChangeType.Add);
+
+            var sut = new CategoryLinkStore(Config.Storage);
+
+            await sut.StoreCategoryLink(Group, categoryName, change, CancellationToken.None).ConfigureAwait(false);
+
+            var links = await sut.GetCategoryLinks(Group, categoryName, CancellationToken.None).ConfigureAwait(false);
+
+            var actual = links.Single();
+
+            actual.CategoryGroup.Should().Be(Group);
+            actual.CategoryName.Should().Be(categoryName.ToUpperInvariant());
+            actual.ProfileId.Should().Be(change.ProfileId);
+        }
+
+        [Fact]
+        public async Task StoreCategoryLinkCreatesTableAndAddsCategoryLinkWhenTableNotFoundTest()
+        {
+            // Retrieve storage account from connection-string
+            var storageAccount = CloudStorageAccount.Parse(Config.Storage.ConnectionString);
+
+            // Create the table client
+            var client = storageAccount.CreateCloudTableClient();
+
+            var table = client.GetTableReference("CategoryLinks");
+
+            await table.DeleteIfExistsAsync();
+
+            const CategoryGroup Group = CategoryGroup.Gender;
+            var categoryName = Guid.NewGuid().ToString();
+            var change = Model.Create<CategoryLinkChange>().Set(x => x.ChangeType = CategoryLinkChangeType.Add);
+
+            var sut = new CategoryLinkStore(Config.Storage);
+
+            await sut.StoreCategoryLink(Group, categoryName, change, CancellationToken.None).ConfigureAwait(false);
+
+            var links = await sut.GetCategoryLinks(Group, categoryName, CancellationToken.None).ConfigureAwait(false);
+
+            var actual = links.Single();
+
+            actual.CategoryGroup.Should().Be(Group);
+            actual.CategoryName.Should().Be(categoryName.ToUpperInvariant());
+            actual.ProfileId.Should().Be(change.ProfileId);
+        }
+
+        [Fact]
+        public async Task StoreCategoryLinkIgnoresRemoveWhenCategoryLinkNotFoundTest()
+        {
+            const CategoryGroup Group = CategoryGroup.Gender;
+            var categoryName = Guid.NewGuid().ToString();
+            var change = Model.Create<CategoryLinkChange>().Set(x => x.ChangeType = CategoryLinkChangeType.Remove);
+
+            var sut = new CategoryLinkStore(Config.Storage);
+
+            Func<Task> action = async () => await sut
+                .StoreCategoryLink(Group, categoryName, change, CancellationToken.None).ConfigureAwait(false);
+
+            action.ShouldNotThrow();
+        }
+
+        [Fact]
+        public async Task StoreCategoryLinkIgnoresRemoveWhenTableNotFoundTest()
+        {
+            // Retrieve storage account from connection-string
+            var storageAccount = CloudStorageAccount.Parse(Config.Storage.ConnectionString);
+
+            // Create the table client
+            var client = storageAccount.CreateCloudTableClient();
+
+            var table = client.GetTableReference("CategoryLinks");
+
+            await table.DeleteIfExistsAsync();
+
+            const CategoryGroup Group = CategoryGroup.Gender;
+            var categoryName = Guid.NewGuid().ToString();
+            var change = Model.Create<CategoryLinkChange>().Set(x => x.ChangeType = CategoryLinkChangeType.Remove);
+
+            var sut = new CategoryLinkStore(Config.Storage);
+
+            Func<Task> action = async () => await sut
+                .StoreCategoryLink(Group, categoryName, change, CancellationToken.None).ConfigureAwait(false);
+
+            action.ShouldNotThrow();
+        }
+
+        [Fact]
+        public async Task StoreCategoryLinkRemovesCategoryLinkFromStorageTest()
+        {
+            const CategoryGroup Group = CategoryGroup.Gender;
+            var categoryName = Guid.NewGuid().ToString();
+            var change = Model.Create<CategoryLinkChange>().Set(x => x.ChangeType = CategoryLinkChangeType.Add);
+
+            var sut = new CategoryLinkStore(Config.Storage);
+
+            await sut.StoreCategoryLink(Group, categoryName, change, CancellationToken.None).ConfigureAwait(false);
+
+            change.ChangeType = CategoryLinkChangeType.Remove;
+
+            await sut.StoreCategoryLink(Group, categoryName, change, CancellationToken.None).ConfigureAwait(false);
+
+            var actual = await sut.GetCategoryLinks(Group, categoryName, CancellationToken.None).ConfigureAwait(false);
+
+            actual.Should().BeEmpty();
+        }
+
         [Theory]
         [InlineData(10)]
         [InlineData(100)]
@@ -89,7 +199,9 @@
 
             actual.All(x => x.CategoryGroup == Group).Should().BeTrue();
             actual.All(x => x.CategoryName.Equals(categoryName, StringComparison.OrdinalIgnoreCase)).Should().BeTrue();
-            actual.ShouldAllBeEquivalentTo(changes.Where(x => x.ChangeType == CategoryLinkChangeType.Add), opt => opt.ExcludingMissingMembers());
+            actual.ShouldAllBeEquivalentTo(
+                changes.Where(x => x.ChangeType == CategoryLinkChangeType.Add),
+                opt => opt.ExcludingMissingMembers());
         }
 
         [Theory]
@@ -301,6 +413,37 @@
 
             Func<Task> action = async () => await sut
                 .StoreCategoryLinks(CategoryGroup.Gender, categoryName, null, CancellationToken.None)
+                .ConfigureAwait(false);
+
+            action.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("  ")]
+        public void StoreCategoryLinkThrowsExceptionWithInvalidCategoryNameTest(string categoryName)
+        {
+            var change = new CategoryLinkChange();
+
+            var sut = new CategoryLinkStore(Config.Storage);
+
+            Func<Task> action = async () => await sut
+                .StoreCategoryLink(CategoryGroup.Gender, categoryName, change, CancellationToken.None)
+                .ConfigureAwait(false);
+
+            action.ShouldThrow<ArgumentException>();
+        }
+
+        [Fact]
+        public void StoreCategoryLinkThrowsExceptionWithNullChangesTest()
+        {
+            var categoryName = Guid.NewGuid().ToString();
+
+            var sut = new CategoryLinkStore(Config.Storage);
+
+            Func<Task> action = async () => await sut
+                .StoreCategoryLink(CategoryGroup.Gender, categoryName, null, CancellationToken.None)
                 .ConfigureAwait(false);
 
             action.ShouldThrow<ArgumentNullException>();

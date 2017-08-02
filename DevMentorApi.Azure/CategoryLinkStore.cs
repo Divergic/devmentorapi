@@ -29,11 +29,26 @@
                 TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, partitionKey);
             var query = new TableQuery<CategoryLinkAdapter>().Where(partitionKeyFilter);
             var table = GetTable(TableName);
-            
+
             var entries = await table.ExecuteQueryAsync(query, cancellationToken).ConfigureAwait(false);
 
             return from x in entries
                 select x.Value;
+        }
+
+        public Task StoreCategoryLink(
+            CategoryGroup categoryGroup,
+            string categoryName,
+            CategoryLinkChange change,
+            CancellationToken cancellationToken)
+        {
+            Ensure.That(categoryName, nameof(categoryName)).IsNotNullOrWhiteSpace();
+            Ensure.That(change, nameof(change)).IsNotNull();
+
+            var operation = BuildLinkChangeTableOperation(categoryGroup, categoryName, change);
+            var table = GetTable(TableName);
+
+            return ExecuteWithCreateTable(table, operation, cancellationToken);
         }
 
         public async Task StoreCategoryLinks(
@@ -69,11 +84,42 @@
                 // We were provided a changes instance but no changes to be made
                 return;
             }
-            
+
             await ExecuteBatch(table, batch, cancellationToken);
         }
 
-        private async Task ExecuteBatch(CloudTable table, TableBatchOperation batch, CancellationToken cancellationToken)
+        private static TableOperation BuildLinkChangeTableOperation(
+            CategoryGroup categoryGroup,
+            string categoryName,
+            CategoryLinkChange change)
+        {
+            var link = new CategoryLink
+            {
+                CategoryGroup = categoryGroup,
+                CategoryName = categoryName,
+                ProfileId = change.ProfileId
+            };
+            var adapter = new CategoryLinkAdapter(link);
+            TableOperation operation;
+
+            if (change.ChangeType == CategoryLinkChangeType.Add)
+            {
+                operation = TableOperation.InsertOrReplace(adapter);
+            }
+            else
+            {
+                // We don't care about concurrency here because we are removing the item
+                adapter.ETag = "*";
+
+                operation = TableOperation.Delete(adapter);
+            }
+            return operation;
+        }
+
+        private async Task ExecuteBatch(
+            CloudTable table,
+            TableBatchOperation batch,
+            CancellationToken cancellationToken)
         {
             try
             {
@@ -105,34 +151,6 @@
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
             }
-        }
-
-        private static TableOperation BuildLinkChangeTableOperation(
-            CategoryGroup categoryGroup,
-            string categoryName,
-            CategoryLinkChange change)
-        {
-            var link = new CategoryLink
-            {
-                CategoryGroup = categoryGroup,
-                CategoryName = categoryName,
-                ProfileId = change.ProfileId
-            };
-            var adapter = new CategoryLinkAdapter(link);
-            TableOperation operation;
-
-            if (change.ChangeType == CategoryLinkChangeType.Add)
-            {
-                operation = TableOperation.InsertOrReplace(adapter);
-            }
-            else
-            {
-                // We don't care about concurrency here because we are removing the item
-                adapter.ETag = "*";
-
-                operation = TableOperation.Delete(adapter);
-            }
-            return operation;
         }
     }
 }
