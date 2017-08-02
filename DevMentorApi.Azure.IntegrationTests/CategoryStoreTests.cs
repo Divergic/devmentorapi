@@ -79,10 +79,19 @@
             action.ShouldThrow<ArgumentException>();
         }
 
-        [Fact]
-        public async Task GetAllCategoriesReturnsAllStoredCategoriesTest()
+        [Theory]
+        [InlineData(10)]
+        [InlineData(100)]
+        [InlineData(110)]
+        public async Task GetAllCategoriesReturnsCategoriesWithDifferentBatchSizesTest(int itemCount)
         {
+            var builder = Model.BuildStrategy.Clone();
+
+            builder.TypeCreators.OfType<EnumerableTypeCreator>().Single().AutoPopulateCount = itemCount;
+
             var entries = Model.Create<List<Category>>();
+
+            entries.Count.Should().Be(itemCount);
 
             var sut = new CategoryStore(Config.Storage);
 

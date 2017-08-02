@@ -29,7 +29,7 @@
                 TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, partitionKey);
             var query = new TableQuery<CategoryLinkAdapter>().Where(partitionKeyFilter);
             var table = GetTable(TableName);
-
+            
             var entries = await table.ExecuteQueryAsync(query, cancellationToken).ConfigureAwait(false);
 
             return from x in entries
@@ -51,29 +51,17 @@
 
             foreach (var change in changes)
             {
-                var link = new CategoryLink
+                if (batch.Count == 100)
                 {
-                    CategoryGroup = categoryGroup,
-                    CategoryName = categoryName,
-                    ProfileId = change.ProfileId
-                };
-                var adapter = new CategoryLinkAdapter(link);
+                    // Batches can only handle 100 items, need to execute this batch
+                    await ExecuteBatch(table, batch, cancellationToken);
 
-                if (change.ChangeType == CategoryLinkChangeType.Add)
-                {
-                    var operation = TableOperation.InsertOrReplace(adapter);
-
-                    batch.Add(operation);
+                    batch.Clear();
                 }
-                else
-                {
-                    // We don't care about concurrency here because we are removing the item
-                    adapter.ETag = "*";
 
-                    var operation = TableOperation.Delete(adapter);
+                var operation = BuildLinkChangeTableOperation(categoryGroup, categoryName, change);
 
-                    batch.Add(operation);
-                }
+                batch.Add(operation);
             }
 
             if (batch.Count == 0)
@@ -81,12 +69,15 @@
                 // We were provided a changes instance but no changes to be made
                 return;
             }
+            
+            await ExecuteBatch(table, batch, cancellationToken);
+        }
 
-            var context = new OperationContext();
-
+        private async Task ExecuteBatch(CloudTable table, TableBatchOperation batch, CancellationToken cancellationToken)
+        {
             try
             {
-                await table.ExecuteBatchAsync(batch, null, context).ConfigureAwait(false);
+                await table.ExecuteBatchAsync(batch).ConfigureAwait(false);
             }
             catch (StorageException ex)
             {
@@ -106,8 +97,42 @@
                     return;
                 }
 
-                throw;
+                // Most likely this is because we are trying to delete an entity that does not exist
+                // Because this has failed, none of the other potentially valid changes have been actioned in the batch
+                // The only way to recover from this is to retry each item individually and forgo the transaction saving of batching
+                // changes to a storage partition
+                var tasks = batch.Select(x => ExecuteWithCreateTable(table, x, cancellationToken));
+
+                await Task.WhenAll(tasks).ConfigureAwait(false);
             }
+        }
+
+        private static TableOperation BuildLinkChangeTableOperation(
+            CategoryGroup categoryGroup,
+            string categoryName,
+            CategoryLinkChange change)
+        {
+            var link = new CategoryLink
+            {
+                CategoryGroup = categoryGroup,
+                CategoryName = categoryName,
+                ProfileId = change.ProfileId
+            };
+            var adapter = new CategoryLinkAdapter(link);
+            TableOperation operation;
+
+            if (change.ChangeType == CategoryLinkChangeType.Add)
+            {
+                operation = TableOperation.InsertOrReplace(adapter);
+            }
+            else
+            {
+                // We don't care about concurrency here because we are removing the item
+                adapter.ETag = "*";
+
+                operation = TableOperation.Delete(adapter);
+            }
+            return operation;
         }
     }
 }

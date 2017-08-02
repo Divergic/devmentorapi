@@ -63,13 +63,51 @@
             action.ShouldThrow<ArgumentException>();
         }
 
-        [Fact]
-        public async Task StoreCategoryLinksAddsMultipleItemsTest()
+        [Theory]
+        [InlineData(10)]
+        [InlineData(100)]
+        [InlineData(110)]
+        public async Task StoreCategoryLinksAddsMultipleItemsWithDifferentBatchSizesAndMixedChangedTypesTest(
+            int itemCount)
         {
+            var builder = Model.BuildStrategy.Clone();
+
+            builder.TypeCreators.OfType<EnumerableTypeCreator>().Single().AutoPopulateCount = itemCount;
+
+            const CategoryGroup Group = CategoryGroup.Gender;
+            var categoryName = Guid.NewGuid().ToString();
+            var changes = Model.Create<List<CategoryLinkChange>>();
+
+            changes.Count.Should().Be(itemCount);
+
+            var sut = new CategoryLinkStore(Config.Storage);
+
+            await sut.StoreCategoryLinks(Group, categoryName, changes, CancellationToken.None).ConfigureAwait(false);
+
+            var actual = (await sut.GetCategoryLinks(Group, categoryName, CancellationToken.None).ConfigureAwait(false))
+                .ToList();
+
+            actual.All(x => x.CategoryGroup == Group).Should().BeTrue();
+            actual.All(x => x.CategoryName.Equals(categoryName, StringComparison.OrdinalIgnoreCase)).Should().BeTrue();
+            actual.ShouldAllBeEquivalentTo(changes.Where(x => x.ChangeType == CategoryLinkChangeType.Add), opt => opt.ExcludingMissingMembers());
+        }
+
+        [Theory]
+        [InlineData(10)]
+        [InlineData(100)]
+        [InlineData(110)]
+        public async Task StoreCategoryLinksAddsMultipleItemsWithDifferentBatchSizesTest(int itemCount)
+        {
+            var builder = Model.BuildStrategy.Clone();
+
+            builder.TypeCreators.OfType<EnumerableTypeCreator>().Single().AutoPopulateCount = itemCount;
+
             const CategoryGroup Group = CategoryGroup.Gender;
             var categoryName = Guid.NewGuid().ToString();
             var changes = Model.Create<List<CategoryLinkChange>>()
                 .SetEach(x => x.ChangeType = CategoryLinkChangeType.Add);
+
+            changes.Count.Should().Be(itemCount);
 
             var sut = new CategoryLinkStore(Config.Storage);
 
