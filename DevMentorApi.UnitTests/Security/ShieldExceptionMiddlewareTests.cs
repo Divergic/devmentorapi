@@ -3,12 +3,12 @@
     using System;
     using System.Net;
     using System.Threading.Tasks;
+    using DevMentorApi.Core;
+    using DevMentorApi.Security;
     using FluentAssertions;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using NSubstitute;
-    using DevMentorApi.Core;
-    using DevMentorApi.Security;
     using Xunit;
     using Xunit.Abstractions;
 
@@ -33,9 +33,8 @@
 
             await sut.Invoke(context).ConfigureAwait(false);
 
-            await executor.DidNotReceive().Execute(
-                Arg.Any<HttpContext>(),
-                Arg.Any<ObjectResult>()).ConfigureAwait(false);
+            await executor.DidNotReceive().Execute(Arg.Any<HttpContext>(), Arg.Any<ObjectResult>())
+                .ConfigureAwait(false);
         }
 
         [Fact]
@@ -54,9 +53,8 @@
 
             await sut.Invoke(context).ConfigureAwait(false);
 
-            await executor.DidNotReceive().Execute(
-                Arg.Any<HttpContext>(),
-                Arg.Any<ObjectResult>()).ConfigureAwait(false);
+            await executor.DidNotReceive().Execute(Arg.Any<HttpContext>(), Arg.Any<ObjectResult>())
+                .ConfigureAwait(false);
         }
 
         [Fact]
@@ -71,7 +69,9 @@
 
             await sut.Invoke(context).ConfigureAwait(false);
 
-            await executor.Received().Execute(context, Arg.Is<ObjectResult>(x => x.StatusCode == (int)HttpStatusCode.InternalServerError))
+            await executor.Received().Execute(
+                    context,
+                    Arg.Is<ObjectResult>(x => x.StatusCode == (int)HttpStatusCode.InternalServerError))
                 .ConfigureAwait(false);
         }
 

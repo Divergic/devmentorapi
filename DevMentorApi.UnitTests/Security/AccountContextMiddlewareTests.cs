@@ -25,7 +25,7 @@
         }
 
         [Fact]
-        public async Task InvokeAddsAccountIdClaimFromStoreToIdentityTest()
+        public async Task InvokeAddsProfileIdClaimFromStoreToIdentityTest()
         {
             var delegateInvoked = false;
             var logger = _output.BuildLoggerFor<AccountContextMiddleware>();
@@ -57,7 +57,7 @@
 
             await target.Invoke(context, manager, logger).ConfigureAwait(false);
 
-            var expected = principal.Identity.As<ClaimsIdentity>().GetClaimValue<string>(ClaimType.AccountId);
+            var expected = principal.Identity.As<ClaimsIdentity>().GetClaimValue<string>(ClaimType.ProfileId);
 
             expected.Should().Be(account.Id.ToString());
 
@@ -65,14 +65,14 @@
         }
 
         [Fact]
-        public async Task InvokeDoesNotAddAccountIdClaimWhenAlreadyPresentTest()
+        public async Task InvokeDoesNotAddProfileIdClaimWhenAlreadyPresentTest()
         {
             var delegateInvoked = false;
             var logger = _output.BuildLoggerFor<AccountContextMiddleware>();
             var claims = new[]
             {
                 new Claim(ClaimTypes.Name, Guid.NewGuid().ToString()),
-                new Claim(ClaimType.AccountId, Guid.NewGuid().ToString())
+                new Claim(ClaimType.ProfileId, Guid.NewGuid().ToString())
             };
             var identity = new ClaimsIdentity(claims);
             var principal = new ClaimsPrincipal(identity);
@@ -96,7 +96,7 @@
 
             await target.Invoke(context, manager, logger).ConfigureAwait(false);
 
-            var expected = principal.Identity.As<ClaimsIdentity>().Claims.Where(x => x.Type == ClaimType.AccountId);
+            var expected = principal.Identity.As<ClaimsIdentity>().Claims.Where(x => x.Type == ClaimType.ProfileId);
 
             expected.Should().HaveCount(1);
 

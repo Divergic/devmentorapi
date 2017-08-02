@@ -14,7 +14,7 @@
         {
             var sut = new PublicProfile();
 
-            sut.AccountId.Should().BeEmpty();
+            sut.Id.Should().BeEmpty();
             sut.FirstName.Should().BeNull();
             sut.LastName.Should().BeNull();
             sut.Status.Should().Be(ProfileStatus.Unavailable);

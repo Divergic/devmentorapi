@@ -15,22 +15,6 @@
         {
         }
 
-        protected override void WriteValues(IDictionary<string, EntityProperty> properties, OperationContext operationContext)
-        {
-            properties.Remove(nameof(Account.Provider));
-            properties.Remove(nameof(Account.Username));
-
-            base.WriteValues(properties, operationContext);
-        }
-
-        protected override void ReadValues(IDictionary<string, EntityProperty> properties, OperationContext operationContext)
-        {
-            Value.Provider = PartitionKey;
-            Value.Username = RowKey;
-
-            base.ReadValues(properties, operationContext);
-        }
-
         protected override string BuildPartitionKey()
         {
             return Value.Provider;
@@ -39,6 +23,26 @@
         protected override string BuildRowKey()
         {
             return Value.Username;
+        }
+
+        protected override void ReadValues(
+            IDictionary<string, EntityProperty> properties,
+            OperationContext operationContext)
+        {
+            Value.Provider = PartitionKey;
+            Value.Username = RowKey;
+
+            base.ReadValues(properties, operationContext);
+        }
+
+        protected override void WriteValues(
+            IDictionary<string, EntityProperty> properties,
+            OperationContext operationContext)
+        {
+            properties.Remove(nameof(Account.Provider));
+            properties.Remove(nameof(Account.Username));
+
+            base.WriteValues(properties, operationContext);
         }
     }
 }

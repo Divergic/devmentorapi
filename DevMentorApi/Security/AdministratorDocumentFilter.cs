@@ -18,7 +18,6 @@
 
                     if (exclude)
                     {
-
                         swaggerDoc.Paths.Remove("/" + description.RelativePath);
                     }
                 }

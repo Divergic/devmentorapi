@@ -15,7 +15,7 @@
             Ensure.That(profile, nameof(profile)).IsNotNull();
 
             About = profile.About;
-            AccountId = profile.AccountId;
+            Id = profile.Id;
             BirthYear = profile.BirthYear;
             FirstName = profile.FirstName;
             Gender = profile.Gender;
@@ -25,11 +25,10 @@
             TimeZone = profile.TimeZone;
             TwitterUsername = profile.TwitterUsername;
             Website = profile.Website;
+            YearStartedInTech = profile.YearStartedInTech;
         }
 
         public string About { get; set; }
-
-        public Guid AccountId { get; set; }
 
         public int? BirthYear { get; set; }
 
@@ -38,6 +37,8 @@
         public string Gender { get; set; }
 
         public string GitHubUsername { get; set; }
+
+        public Guid Id { get; set; }
 
         public string LastName { get; set; }
 
@@ -48,5 +49,7 @@
         public string TwitterUsername { get; set; }
 
         public string Website { get; set; }
+
+        public int? YearStartedInTech { get; set; }
     }
 }

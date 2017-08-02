@@ -16,7 +16,7 @@
 
             actual.Should().Be(Guid.Empty);
         }
-        
+
         [Fact]
         public void GetClaimValueReturnsDefaultValueWhenIdentityIsNullTest()
         {

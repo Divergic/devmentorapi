@@ -42,7 +42,7 @@
             {
                 return Task.CompletedTask;
             }
-            
+
             var log = _logFactory.CreateLogger(GetType());
 
             var eventId = new EventId(0);

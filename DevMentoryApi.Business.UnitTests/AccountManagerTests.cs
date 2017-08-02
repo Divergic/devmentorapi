@@ -98,9 +98,8 @@ namespace DevMentoryApi.Business.UnitTests
 
                 await profileStore.Received(1).StoreProfile(Arg.Any<Profile>(), tokenSource.Token)
                     .ConfigureAwait(false);
-                await profileStore.Received().StoreProfile(
-                    Arg.Is<Profile>(x => x.AccountId == actual.Id),
-                    tokenSource.Token).ConfigureAwait(false);
+                await profileStore.Received().StoreProfile(Arg.Is<Profile>(x => x.Id == actual.Id), tokenSource.Token)
+                    .ConfigureAwait(false);
                 await profileStore.Received().StoreProfile(
                     Arg.Is<Profile>(x => x.Email == user.Email),
                     tokenSource.Token).ConfigureAwait(false);

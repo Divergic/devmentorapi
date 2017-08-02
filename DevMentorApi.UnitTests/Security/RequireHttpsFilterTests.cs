@@ -2,6 +2,8 @@
 {
     using System.Collections.Generic;
     using System.Net;
+    using DevMentorApi.Core;
+    using DevMentorApi.Security;
     using FluentAssertions;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
@@ -9,8 +11,6 @@
     using Microsoft.AspNetCore.Mvc.Filters;
     using Microsoft.AspNetCore.Routing;
     using NSubstitute;
-    using DevMentorApi.Core;
-    using DevMentorApi.Security;
     using Xunit;
 
     public class RequireHttpsFilterTests

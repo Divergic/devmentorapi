@@ -37,9 +37,9 @@
         [SwaggerResponse((int)HttpStatusCode.NotFound, null, "The profile does not exist.")]
         public async Task<IActionResult> Get(CancellationToken cancellationToken)
         {
-            var accountId = User.Identity.GetClaimValue<Guid>(ClaimType.AccountId);
+            var profileId = User.Identity.GetClaimValue<Guid>(ClaimType.ProfileId);
 
-            var profile = await _manager.GetProfile(accountId, cancellationToken).ConfigureAwait(false);
+            var profile = await _manager.GetProfile(profileId, cancellationToken).ConfigureAwait(false);
 
             if (profile == null)
             {
@@ -65,9 +65,9 @@
                 return new ErrorMessageResult(Resources.Controller_NoBodyDataProvided, HttpStatusCode.BadRequest);
             }
 
-            var accountId = User.Identity.GetClaimValue<Guid>(ClaimType.AccountId);
+            var profileId = User.Identity.GetClaimValue<Guid>(ClaimType.ProfileId);
 
-            if (accountId != model.AccountId)
+            if (profileId != model.Id)
             {
                 return new ForbidResult();
             }

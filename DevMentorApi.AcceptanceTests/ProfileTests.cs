@@ -47,7 +47,7 @@
 
             var actual = await Client.Get<Profile>(address, _logger, identity).ConfigureAwait(false);
 
-            actual.ShouldBeEquivalentTo(profile, opt => opt.Excluding(x => x.AccountId).Excluding(x => x.Status));
+            actual.ShouldBeEquivalentTo(profile, opt => opt.Excluding(x => x.Id).Excluding(x => x.Status));
         }
 
         [Theory]
@@ -71,7 +71,7 @@
 
             var actual = await Client.Get<Profile>(address, _logger, identity).ConfigureAwait(false);
 
-            actual.ShouldBeEquivalentTo(profile, opt => opt.Excluding(x => x.AccountId));
+            actual.ShouldBeEquivalentTo(profile, opt => opt.Excluding(x => x.Id));
         }
 
         [Fact]

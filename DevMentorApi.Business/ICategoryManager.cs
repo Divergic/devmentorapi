@@ -7,8 +7,8 @@
 
     public interface ICategoryManager
     {
-        Task<IEnumerable<Category>> GetCategories(ReadType readType, CancellationToken cancellationToken);
-
         Task CreateCategory(NewCategory newCategory, CancellationToken cancellationToken);
+
+        Task<IEnumerable<Category>> GetCategories(ReadType readType, CancellationToken cancellationToken);
     }
 }

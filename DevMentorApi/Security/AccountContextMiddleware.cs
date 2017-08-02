@@ -44,21 +44,21 @@
 
             if (identity == null)
             {
-                logger.LogDebug("No claims identity found in the HTTP context, skipping setting the AccountId claim");
+                logger.LogDebug("No claims identity found in the HTTP context, skipping setting the Id claim");
 
                 return;
             }
 
             if (identity.IsAuthenticated == false)
             {
-                logger.LogDebug("User is not authenticated, skipping setting the AccountId claim");
+                logger.LogDebug("User is not authenticated, skipping setting the Id claim");
 
                 return;
             }
 
-            if (identity.HasClaim(x => x.Type == ClaimType.AccountId))
+            if (identity.HasClaim(x => x.Type == ClaimType.ProfileId))
             {
-                logger.LogDebug("The identity on the request already has the AccountId claim");
+                logger.LogDebug("The identity on the request already has the Id claim");
 
                 return;
             }
@@ -80,14 +80,14 @@
                 return;
             }
 
-            if (identity.HasClaim(x => x.Type == ClaimType.AccountId))
+            if (identity.HasClaim(x => x.Type == ClaimType.ProfileId))
             {
                 return;
             }
 
-            var accountIdClaim = new Claim(ClaimType.AccountId, account.Id.ToString());
+            var profileIdClaim = new Claim(ClaimType.ProfileId, account.Id.ToString());
 
-            identity.AddClaim(accountIdClaim);
+            identity.AddClaim(profileIdClaim);
         }
     }
 }

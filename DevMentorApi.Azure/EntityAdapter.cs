@@ -29,7 +29,10 @@
             Value = value;
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0",
+        [SuppressMessage(
+            "Microsoft.Design",
+            "CA1062:Validate arguments of public methods",
+            MessageId = "0",
             Justification = "Parameter is validated using CodeGuard.")]
         public void ReadEntity(IDictionary<string, EntityProperty> properties, OperationContext operationContext)
         {
@@ -77,7 +80,10 @@
             }
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0",
+        [SuppressMessage(
+            "Microsoft.Design",
+            "CA1062:Validate arguments of public methods",
+            MessageId = "0",
             Justification = "Parameter is validated using CodeGuard.")]
         protected virtual TypeConverter GetTypeConverter(PropertyInfo propertyInfo)
         {
@@ -88,9 +94,15 @@
             return TypeDescriptor.GetConverter(propertyType);
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0",
+        [SuppressMessage(
+            "Microsoft.Design",
+            "CA1062:Validate arguments of public methods",
+            MessageId = "0",
             Justification = "The parameter is validated using CodeGuard.")]
-        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "1",
+        [SuppressMessage(
+            "Microsoft.Design",
+            "CA1062:Validate arguments of public methods",
+            MessageId = "1",
             Justification = "The parameter is validated using CodeGuard.")]
         protected virtual void ReadAdditionalProperty(PropertyInfo propertyInfo, EntityProperty propertyValue)
         {
@@ -120,9 +132,15 @@
         {
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0",
+        [SuppressMessage(
+            "Microsoft.Design",
+            "CA1062:Validate arguments of public methods",
+            MessageId = "0",
             Justification = "The parameter is validated using CodeGuard.")]
-        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "1",
+        [SuppressMessage(
+            "Microsoft.Design",
+            "CA1062:Validate arguments of public methods",
+            MessageId = "1",
             Justification = "The parameter is validated using CodeGuard.")]
         protected virtual void WriteAdditionalProperty(
             IDictionary<string, EntityProperty> properties,
@@ -189,9 +207,8 @@
             var storageSupportedProperties = TableEntity.WriteUserObject(value, operationContext);
             var objectProperties = value.GetType().GetTypeInfo().GetProperties();
             var infrastructureProperties = typeof(ITableEntity).GetTypeInfo().GetProperties();
-            var missingProperties =
-                objectProperties.Where(
-                    objectProperty => storageSupportedProperties.ContainsKey(objectProperty.Name) == false);
+            var missingProperties = objectProperties.Where(
+                objectProperty => storageSupportedProperties.ContainsKey(objectProperty.Name) == false);
 
             var additionalProperties = missingProperties.Select(
                 x => new AdditionalPropertyMetadata
@@ -288,11 +305,7 @@
             }
         }
 
-        public string ETag
-        {
-            get;
-            set;
-        }
+        public string ETag { get; set; }
 
         public string PartitionKey
         {
@@ -305,11 +318,7 @@
 
                 return _partitionKey;
             }
-
-            set
-            {
-                _partitionKey = value;
-            }
+            set => _partitionKey = value;
         }
 
         public string RowKey
@@ -323,38 +332,18 @@
 
                 return _rowKey;
             }
-
-            set
-            {
-                _rowKey = value;
-            }
+            set => _rowKey = value;
         }
 
-        public DateTimeOffset Timestamp
-        {
-            get;
-            set;
-        }
+        public DateTimeOffset Timestamp { get; set; }
 
-        public T Value
-        {
-            get;
-            private set;
-        }
+        public T Value { get; private set; }
 
         private struct AdditionalPropertyMetadata
         {
-            public bool IsInfrastructureProperty
-            {
-                get;
-                set;
-            }
+            public bool IsInfrastructureProperty { get; set; }
 
-            public PropertyInfo PropertyMetadata
-            {
-                get;
-                set;
-            }
+            public PropertyInfo PropertyMetadata { get; set; }
         }
     }
 }

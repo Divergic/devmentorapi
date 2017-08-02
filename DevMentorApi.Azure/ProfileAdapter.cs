@@ -25,58 +25,26 @@
         {
         }
 
-        public static string BuildPartitionKey(Guid accountId)
+        public static string BuildPartitionKey(Guid profileId)
         {
             // Use the first character of the Guid for the partition key
             // This will provide up to 16 partitions
-            return accountId.ToString().Substring(0, 1);
+            return profileId.ToString().Substring(0, 1);
         }
 
-        public static string BuildRowKey(Guid accountId)
+        public static string BuildRowKey(Guid profileId)
         {
-            return accountId.ToString();
+            return profileId.ToString();
         }
 
         protected override string BuildPartitionKey()
         {
-            return BuildPartitionKey(Value.AccountId);
+            return BuildPartitionKey(Value.Id);
         }
 
         protected override string BuildRowKey()
         {
-            return BuildRowKey(Value.AccountId);
-        }
-
-        protected override void ReadValues(
-            IDictionary<string, EntityProperty> properties,
-            OperationContext operationContext)
-        {
-            Value.AccountId = Guid.Parse(RowKey);
-
-            base.ReadValues(properties, operationContext);
-        }
-
-        protected override void WriteValues(
-            IDictionary<string, EntityProperty> properties,
-            OperationContext operationContext)
-        {
-            properties.Remove(nameof(Profile.AccountId));
-
-            base.WriteValues(properties, operationContext);
-        }
-
-        protected override void WriteAdditionalProperty(IDictionary<string, EntityProperty> properties, PropertyInfo propertyInfo, object propertyValue)
-        {
-            if (IsJsonStorage(propertyInfo))
-            {
-                var data = JsonConvert.SerializeObject(propertyValue, _settings);
-
-                base.WriteAdditionalProperty(properties, propertyInfo, data);
-            }
-            else
-            {
-                base.WriteAdditionalProperty(properties, propertyInfo, propertyValue);
-            }
+            return BuildRowKey(Value.Id);
         }
 
         protected override void ReadAdditionalProperty(PropertyInfo propertyInfo, EntityProperty propertyValue)
@@ -91,6 +59,41 @@
             {
                 base.ReadAdditionalProperty(propertyInfo, propertyValue);
             }
+        }
+
+        protected override void ReadValues(
+            IDictionary<string, EntityProperty> properties,
+            OperationContext operationContext)
+        {
+            Value.Id = Guid.Parse(RowKey);
+
+            base.ReadValues(properties, operationContext);
+        }
+
+        protected override void WriteAdditionalProperty(
+            IDictionary<string, EntityProperty> properties,
+            PropertyInfo propertyInfo,
+            object propertyValue)
+        {
+            if (IsJsonStorage(propertyInfo))
+            {
+                var data = JsonConvert.SerializeObject(propertyValue, _settings);
+
+                base.WriteAdditionalProperty(properties, propertyInfo, data);
+            }
+            else
+            {
+                base.WriteAdditionalProperty(properties, propertyInfo, propertyValue);
+            }
+        }
+
+        protected override void WriteValues(
+            IDictionary<string, EntityProperty> properties,
+            OperationContext operationContext)
+        {
+            properties.Remove(nameof(Profile.Id));
+
+            base.WriteValues(properties, operationContext);
         }
 
         private static bool IsJsonStorage(MemberInfo property)

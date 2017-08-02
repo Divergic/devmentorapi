@@ -14,8 +14,6 @@
 
         public string About { get; set; }
 
-        public Guid AccountId { get; set; }
-
         public DateTimeOffset? BannedAt { get; set; }
 
         public int? BirthYear { get; set; }
@@ -29,6 +27,8 @@
         public string Gender { get; set; }
 
         public string GitHubUsername { get; set; }
+
+        public Guid Id { get; set; }
 
         public ICollection<string> Languages { get; set; }
 
@@ -45,5 +45,8 @@
         public string TwitterUsername { get; set; }
 
         public string Website { get; set; }
+
+        [ValidPastYear(1989)]
+        public int? YearStartedInTech { get; set; }
     }
 }
