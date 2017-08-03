@@ -68,6 +68,12 @@
         {
             Ensure.That(profile, nameof(profile)).IsNotNull();
 
+            // Get the current profile
+            // See if profile data has changed
+            // Check for any changes to skills
+            // Check for any changes to gender
+            // Check for any changes to languages
+
             await _store.StoreProfile(profile, cancellationToken).ConfigureAwait(false);
 
             var cacheKey = BuildCacheKey(profile.Id);
