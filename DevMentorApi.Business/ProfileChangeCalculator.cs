@@ -34,6 +34,12 @@ namespace DevMentorApi.Business
                 result.ProfileChanged = HasProfileChanged(original, updated);
             }
 
+            if (result.ProfileChanged == false)
+            {
+                // Search for changes to skill metadata
+                result.ProfileChanged = HaveSkillsChanged(original.Skills, updated.Skills);
+            }
+
             return result;
         }
 
@@ -60,7 +66,7 @@ namespace DevMentorApi.Business
             foreach (var updatedName in updatedNames)
             {
                 var matchingOriginalName =
-                    updatedNames.FirstOrDefault(x => x.Equals(updatedName, StringComparison.OrdinalIgnoreCase));
+                    originalNames.FirstOrDefault(x => x.Equals(updatedName, StringComparison.OrdinalIgnoreCase));
 
                 if (matchingOriginalName == null)
                 {
@@ -127,8 +133,8 @@ namespace DevMentorApi.Business
 
         private static bool HasProfileChanged(Profile original, Profile updated)
         {
-            Debug.Assert(original != null, "No original provider provided");
-            Debug.Assert(updated != null, "No updated provider provided");
+            Debug.Assert(original != null, "No original profile provided");
+            Debug.Assert(updated != null, "No updated profile provided");
 
             if (HasStringChanged(original.About, updated.About))
             {
@@ -188,6 +194,29 @@ namespace DevMentorApi.Business
             return false;
         }
 
+        private static bool HasSkillChanged(Skill original, Skill updated)
+        {
+            Debug.Assert(original != null, "No original skill provided");
+            Debug.Assert(updated != null, "No updated skill provided");
+
+            if (original.Level != updated.Level)
+            {
+                return true;
+            }
+
+            if (HasIntChanged(original.YearLastUsed, updated.YearLastUsed))
+            {
+                return true;
+            }
+
+            if (HasIntChanged(original.YearStarted, updated.YearStarted))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         private static bool HasStringChanged(
             string original,
             string updated,
@@ -214,6 +243,24 @@ namespace DevMentorApi.Business
             }
 
             return true;
+        }
+
+        private static bool HaveSkillsChanged(ICollection<Skill> originalSkills, ICollection<Skill> updatedSkills)
+        {
+            // At this point, all skill categories match so the number of items and their names are equivalent
+            foreach (var originalSkill in originalSkills)
+            {
+                var updatedSkill =
+                    updatedSkills.First(
+                        x => x.Name.Equals(originalSkill.Name, StringComparison.OrdinalIgnoreCase));
+
+                if (HasSkillChanged(originalSkill, updatedSkill))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }
