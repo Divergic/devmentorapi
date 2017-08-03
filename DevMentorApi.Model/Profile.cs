@@ -6,6 +6,9 @@
 
     public class Profile
     {
+        private ICollection<string> _languages;
+        private ICollection<Skill> _skills;
+
         public Profile()
         {
             Languages = new List<string>();
@@ -30,12 +33,36 @@
 
         public Guid Id { get; set; }
 
-        public ICollection<string> Languages { get; set; }
+        public ICollection<string> Languages
+        {
+            get => _languages;
+            set
+            {
+                if (value == null)
+                {
+                    value = new List<string>();
+                }
+
+                _languages = value;
+            }
+        }
 
         [Required]
         public string LastName { get; set; }
 
-        public ICollection<Skill> Skills { get; set; }
+        public ICollection<Skill> Skills
+        {
+            get => _skills;
+            set
+            {
+                if (value == null)
+                {
+                    value = new List<Skill>();
+                }
+
+                _skills = value;
+            }
+        }
 
         [EnumDataType(typeof(ProfileStatus))]
         public ProfileStatus Status { get; set; }
