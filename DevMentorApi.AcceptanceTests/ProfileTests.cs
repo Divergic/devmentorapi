@@ -81,5 +81,11 @@
 
             await Client.Get(address, _logger, null, HttpStatusCode.Unauthorized).ConfigureAwait(false);
         }
+
+        [Fact]
+        public async Task PutDoesNotAllowOverPostingTheBannedAtValueTest()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

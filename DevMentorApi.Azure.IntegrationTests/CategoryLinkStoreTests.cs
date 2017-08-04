@@ -114,7 +114,7 @@
         }
 
         [Fact]
-        public async Task StoreCategoryLinkIgnoresRemoveWhenCategoryLinkNotFoundTest()
+        public void StoreCategoryLinkIgnoresRemoveWhenCategoryLinkNotFoundTest()
         {
             const CategoryGroup Group = CategoryGroup.Gender;
             var categoryName = Guid.NewGuid().ToString();

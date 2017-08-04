@@ -58,7 +58,7 @@
         [HttpPut]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [SwaggerResponse((int)HttpStatusCode.NoContent)]
-        public async Task<IActionResult> Put([FromBody] Profile model, CancellationToken cancellationToken)
+        public async Task<IActionResult> Put([FromBody] UpdatableProfile model, CancellationToken cancellationToken)
         {
             if (model == null)
             {

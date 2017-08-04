@@ -10,7 +10,7 @@ namespace DevMentorApi.Business
 
     public class ProfileChangeCalculator : IProfileChangeCalculator
     {
-        public ProfileChangeResult CalculateChanges(Profile original, Profile updated)
+        public ProfileChangeResult CalculateChanges(Profile original, UpdatableProfile updated)
         {
             Ensure.That(original, nameof(original)).IsNotNull();
             Ensure.That(updated, nameof(updated)).IsNotNull();
@@ -29,6 +29,10 @@ namespace DevMentorApi.Business
 
             DetermineCategoryChanges(CategoryGroup.Skill, originalSkillNames, updatedSkillNames, result);
 
+            // At this point all category add/remove operations have been determined
+            // Only thing remaining is to try to find a change to the profile data outside of categories
+            // if no category change has been found
+            // If no changes found to categories by now, we just need to know whether the profile itself needs to be sent to storage
             if (result.ProfileChanged == false)
             {
                 result.ProfileChanged = HasProfileChanged(original, updated);
@@ -131,7 +135,7 @@ namespace DevMentorApi.Business
             return true;
         }
 
-        private static bool HasProfileChanged(Profile original, Profile updated)
+        private static bool HasProfileChanged(Profile original, UpdatableProfile updated)
         {
             Debug.Assert(original != null, "No original profile provided");
             Debug.Assert(updated != null, "No updated profile provided");
@@ -250,9 +254,8 @@ namespace DevMentorApi.Business
             // At this point, all skill categories match so the number of items and their names are equivalent
             foreach (var originalSkill in originalSkills)
             {
-                var updatedSkill =
-                    updatedSkills.First(
-                        x => x.Name.Equals(originalSkill.Name, StringComparison.OrdinalIgnoreCase));
+                var updatedSkill = updatedSkills.First(
+                    x => x.Name.Equals(originalSkill.Name, StringComparison.OrdinalIgnoreCase));
 
                 if (HasSkillChanged(originalSkill, updatedSkill))
                 {

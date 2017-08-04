@@ -2,78 +2,35 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.ComponentModel.DataAnnotations;
+    using EnsureThat;
 
-    public class Profile
+    public class Profile : UpdatableProfile
     {
-        private ICollection<string> _languages;
-        private ICollection<Skill> _skills;
-
         public Profile()
         {
-            Languages = new List<string>();
-            Skills = new List<Skill>();
         }
 
-        public string About { get; set; }
+        public Profile(UpdatableProfile profile)
+        {
+            Ensure.That(profile, nameof(profile)).IsNotNull();
+
+            About = profile.About;
+            BirthYear = profile.BirthYear;
+            Email = profile.Email;
+            FirstName = profile.FirstName;
+            Gender = profile.Gender;
+            GitHubUsername = profile.GitHubUsername;
+            Id = profile.Id;
+            Languages = new List<string>(profile.Languages);
+            LastName = profile.LastName;
+            Skills = new List<Skill>(profile.Skills);
+            Status = profile.Status;
+            TimeZone = profile.TimeZone;
+            TwitterUsername = profile.TwitterUsername;
+            Website = profile.Website;
+            YearStartedInTech = profile.YearStartedInTech;
+        }
 
         public DateTimeOffset? BannedAt { get; set; }
-
-        public int? BirthYear { get; set; }
-
-        [Required]
-        public string Email { get; set; }
-
-        [Required]
-        public string FirstName { get; set; }
-
-        public string Gender { get; set; }
-
-        public string GitHubUsername { get; set; }
-
-        public Guid Id { get; set; }
-
-        public ICollection<string> Languages
-        {
-            get => _languages;
-            set
-            {
-                if (value == null)
-                {
-                    value = new List<string>();
-                }
-
-                _languages = value;
-            }
-        }
-
-        [Required]
-        public string LastName { get; set; }
-
-        public ICollection<Skill> Skills
-        {
-            get => _skills;
-            set
-            {
-                if (value == null)
-                {
-                    value = new List<Skill>();
-                }
-
-                _skills = value;
-            }
-        }
-
-        [EnumDataType(typeof(ProfileStatus))]
-        public ProfileStatus Status { get; set; }
-
-        public string TimeZone { get; set; }
-
-        public string TwitterUsername { get; set; }
-
-        public string Website { get; set; }
-
-        [ValidPastYear(1989)]
-        public int? YearStartedInTech { get; set; }
     }
 }

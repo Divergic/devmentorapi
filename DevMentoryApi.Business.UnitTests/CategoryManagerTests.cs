@@ -9,7 +9,6 @@
     using DevMentorApi.Business;
     using DevMentorApi.Model;
     using FluentAssertions;
-    using Microsoft.Extensions.Caching.Memory;
     using ModelBuilder;
     using NSubstitute;
     using Xunit;
@@ -22,10 +21,9 @@
             var expected = Model.Create<NewCategory>();
 
             var store = Substitute.For<ICategoryStore>();
-            var cache = Substitute.For<IMemoryCache>();
-            var config = Substitute.For<ICacheConfig>();
+            var cache = Substitute.For<ICacheManager>();
 
-            var sut = new CategoryManager(store, cache, config);
+            var sut = new CategoryManager(store, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -44,7 +42,7 @@
                 await store.Received().StoreCategory(Arg.Is<Category>(x => x.Visible), tokenSource.Token)
                     .ConfigureAwait(false);
 
-                cache.Received().Remove("Categories");
+                cache.Received().RemoveCategories();
             }
         }
 
@@ -52,10 +50,9 @@
         public void CreateCategoryThrowsExceptionWithNullCategoryTest()
         {
             var store = Substitute.For<ICategoryStore>();
-            var cache = Substitute.For<IMemoryCache>();
-            var config = Substitute.For<ICacheConfig>();
+            var cache = Substitute.For<ICacheManager>();
 
-            var sut = new CategoryManager(store, cache, config);
+            var sut = new CategoryManager(store, cache);
 
             Func<Task> action = async () => await sut.CreateCategory(null, CancellationToken.None)
                 .ConfigureAwait(false);
@@ -67,27 +64,20 @@
         public async Task GetCategoriesCachesCategoryReturnedFromStoreTest()
         {
             var expected = Model.Create<List<Category>>();
-            var cacheExpiry = TimeSpan.FromMinutes(23);
-            const string CacheKey = "Categories";
 
             var store = Substitute.For<ICategoryStore>();
-            var cache = Substitute.For<IMemoryCache>();
-            var config = Substitute.For<ICacheConfig>();
-            var cacheEntry = Substitute.For<ICacheEntry>();
+            var cache = Substitute.For<ICacheManager>();
 
-            config.CategoriesExpiration.Returns(cacheExpiry);
-            cache.CreateEntry(CacheKey).Returns(cacheEntry);
-
-            var sut = new CategoryManager(store, cache, config);
+            var sut = new CategoryManager(store, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
+                cache.GetCategories().Returns((ICollection<Category>)null);
                 store.GetAllCategories(tokenSource.Token).Returns(expected);
 
-                var actual = await sut.GetCategories(ReadType.All, tokenSource.Token).ConfigureAwait(false);
+                await sut.GetCategories(ReadType.All, tokenSource.Token).ConfigureAwait(false);
 
-                cacheEntry.Value.Should().Be(actual);
-                cacheEntry.SlidingExpiration.Should().Be(cacheExpiry);
+                cache.Received().StoreCategories(Verify.That<ICollection<Category>>(x => x.ShouldAllBeEquivalentTo(expected)));
             }
         }
 
@@ -95,23 +85,13 @@
         public async Task GetCategoriesReturnsCachedCategoriesTest()
         {
             var expected = Model.Create<List<Category>>();
-            const string CacheKey = "Categories";
 
             var store = Substitute.For<ICategoryStore>();
-            var cache = Substitute.For<IMemoryCache>();
-            var config = Substitute.For<ICacheConfig>();
+            var cache = Substitute.For<ICacheManager>();
 
-            object value;
+            cache.GetCategories().Returns(expected);
 
-            cache.TryGetValue(CacheKey, out value).Returns(
-                x =>
-                {
-                    x[1] = expected;
-
-                    return true;
-                });
-
-            var sut = new CategoryManager(store, cache, config);
+            var sut = new CategoryManager(store, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -125,22 +105,16 @@
         public async Task GetCategoriesReturnsCategoriesFromStoreWhenNotInCacheTest()
         {
             var expected = Model.Create<List<Category>>();
-            var cacheExpiry = TimeSpan.FromMinutes(23);
-            const string CacheKey = "Categories";
 
             var store = Substitute.For<ICategoryStore>();
-            var cache = Substitute.For<IMemoryCache>();
-            var config = Substitute.For<ICacheConfig>();
-            var cacheEntry = Substitute.For<ICacheEntry>();
-
-            config.CategoriesExpiration.Returns(cacheExpiry);
-            cache.CreateEntry(CacheKey).Returns(cacheEntry);
+            var cache = Substitute.For<ICacheManager>();
 
             using (var tokenSource = new CancellationTokenSource())
             {
+                cache.GetCategories().Returns((ICollection<Category>)null);
                 store.GetAllCategories(tokenSource.Token).Returns(expected);
 
-                var sut = new CategoryManager(store, cache, config);
+                var sut = new CategoryManager(store, cache);
 
                 var actual = await sut.GetCategories(ReadType.All, tokenSource.Token).ConfigureAwait(false);
 
@@ -152,19 +126,18 @@
         public async Task GetCategoriesReturnsEmptyListWhenCategoriesNotFoundTest()
         {
             var store = Substitute.For<ICategoryStore>();
-            var cache = Substitute.For<IMemoryCache>();
-            var config = Substitute.For<ICacheConfig>();
+            var cache = Substitute.For<ICacheManager>();
 
-            var sut = new CategoryManager(store, cache, config);
+            var sut = new CategoryManager(store, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
+                cache.GetCategories().Returns((ICollection<Category>)null);
                 store.GetAllCategories(tokenSource.Token).Returns((IEnumerable<Category>)null);
 
                 var actual = await sut.GetCategories(ReadType.All, tokenSource.Token).ConfigureAwait(false);
 
                 actual.Should().BeEmpty();
-                cache.DidNotReceive().CreateEntry(Arg.Any<object>());
             }
         }
 
@@ -172,24 +145,14 @@
         public async Task GetCategoriesReturnsVisibleCategoriesFromCacheWhenVisibleOnlyRequestedTest()
         {
             var categories = Model.Create<List<Category>>();
-            var expected = categories.Where(x => x.Visible);
-            const string CacheKey = "Categories";
+            var expected = categories.Where(x => x.Visible).ToList();
 
             var store = Substitute.For<ICategoryStore>();
-            var cache = Substitute.For<IMemoryCache>();
-            var config = Substitute.For<ICacheConfig>();
+            var cache = Substitute.For<ICacheManager>();
 
-            object value;
+            cache.GetCategories().Returns(expected);
 
-            cache.TryGetValue(CacheKey, out value).Returns(
-                x =>
-                {
-                    x[1] = categories;
-
-                    return true;
-                });
-
-            var sut = new CategoryManager(store, cache, config);
+            var sut = new CategoryManager(store, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -204,21 +167,15 @@
         {
             var categories = Model.Create<List<Category>>();
             var expected = categories.Where(x => x.Visible);
-            var cacheExpiry = TimeSpan.FromMinutes(23);
-            const string CacheKey = "Categories";
 
             var store = Substitute.For<ICategoryStore>();
-            var cache = Substitute.For<IMemoryCache>();
-            var config = Substitute.For<ICacheConfig>();
-            var cacheEntry = Substitute.For<ICacheEntry>();
+            var cache = Substitute.For<ICacheManager>();
 
-            config.CategoriesExpiration.Returns(cacheExpiry);
-            cache.CreateEntry(CacheKey).Returns(cacheEntry);
-
-            var sut = new CategoryManager(store, cache, config);
+            var sut = new CategoryManager(store, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
+                cache.GetCategories().Returns((ICollection<Category>)null);
                 store.GetAllCategories(tokenSource.Token).Returns(categories);
 
                 var actual = await sut.GetCategories(ReadType.VisibleOnly, tokenSource.Token).ConfigureAwait(false);
@@ -231,9 +188,8 @@
         public void ThrowsExceptionWhenCreatedWithNullCacheTest()
         {
             var store = Substitute.For<ICategoryStore>();
-            var config = Substitute.For<ICacheConfig>();
 
-            Action action = () => new CategoryManager(store, null, config);
+            Action action = () => new CategoryManager(store, null);
 
             action.ShouldThrow<ArgumentNullException>();
         }
@@ -241,21 +197,9 @@
         [Fact]
         public void ThrowsExceptionWhenCreatedWithNullCategoryStoreTest()
         {
-            var cache = Substitute.For<IMemoryCache>();
-            var config = Substitute.For<ICacheConfig>();
+            var cache = Substitute.For<ICacheManager>();
 
-            Action action = () => new CategoryManager(null, cache, config);
-
-            action.ShouldThrow<ArgumentNullException>();
-        }
-
-        [Fact]
-        public void ThrowsExceptionWhenCreatedWithNullConfigTest()
-        {
-            var store = Substitute.For<ICategoryStore>();
-            var cache = Substitute.For<IMemoryCache>();
-
-            Action action = () => new CategoryManager(store, cache, null);
+            Action action = () => new CategoryManager(null, cache);
 
             action.ShouldThrow<ArgumentNullException>();
         }

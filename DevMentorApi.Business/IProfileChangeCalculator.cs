@@ -4,6 +4,6 @@
 
     public interface IProfileChangeCalculator
     {
-        ProfileChangeResult CalculateChanges(Profile original, Profile updated);
+        ProfileChangeResult CalculateChanges(Profile original, UpdatableProfile updated);
     }
 }

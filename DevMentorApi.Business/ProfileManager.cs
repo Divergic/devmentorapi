@@ -6,23 +6,29 @@
     using DevMentorApi.Azure;
     using DevMentorApi.Model;
     using EnsureThat;
-    using Microsoft.Extensions.Caching.Memory;
 
     public class ProfileManager : IProfileManager
     {
-        private readonly IMemoryCache _cache;
-        private readonly ICacheConfig _config;
+        private readonly ICacheManager _cache;
+        private readonly IProfileChangeCalculator _calculator;
+        private readonly IProfileChangeProcessor _processor;
         private readonly IProfileStore _store;
 
-        public ProfileManager(IProfileStore store, IMemoryCache cache, ICacheConfig config)
+        public ProfileManager(
+            IProfileStore store,
+            IProfileChangeCalculator calculator,
+            IProfileChangeProcessor processor,
+            ICacheManager cache)
         {
             Ensure.That(store, nameof(store)).IsNotNull();
+            Ensure.That(calculator, nameof(calculator)).IsNotNull();
+            Ensure.That(processor, nameof(processor)).IsNotNull();
             Ensure.That(cache, nameof(cache)).IsNotNull();
-            Ensure.That(config, nameof(config)).IsNotNull();
 
             _store = store;
+            _calculator = calculator;
+            _processor = processor;
             _cache = cache;
-            _config = config;
         }
 
         public async Task BanProfile(Guid id, DateTimeOffset bannedAt, CancellationToken cancellationToken)
@@ -34,20 +40,16 @@
             // Update the cache of profiles for this profile
             // In the short term, we will just update the profile and rely on the public search to filter out banned profiles
             // TODO: Update all item links (and link caches) to removed the banned profile, then remove the banned profile from cache
-            var cacheKey = BuildCacheKey(id);
-
-            StoreProfileInCache(cacheKey, profile);
+            _cache.StoreProfile(profile);
         }
 
         public async Task<Profile> GetProfile(Guid id, CancellationToken cancellationToken)
         {
             Ensure.That(id, nameof(id)).IsNotEmpty();
 
-            Profile profile;
+            var profile = _cache.GetProfile(id);
 
-            var cacheKey = BuildCacheKey(id);
-
-            if (_cache.TryGetValue(cacheKey, out profile))
+            if (profile != null)
             {
                 return profile;
             }
@@ -59,44 +61,36 @@
                 return null;
             }
 
-            StoreProfileInCache(cacheKey, profile);
+            _cache.StoreProfile(profile);
 
             return profile;
         }
 
-        public async Task UpdateProfile(Profile profile, CancellationToken cancellationToken)
+        public async Task UpdateProfile(UpdatableProfile profile, CancellationToken cancellationToken)
         {
             Ensure.That(profile, nameof(profile)).IsNotNull();
 
-            // Get the current profile
-            // See if profile data has changed
-            // Check for any changes to skills
-            // Check for any changes to gender
-            // Check for any changes to languages
+            var original = await _store.GetProfile(profile.Id, cancellationToken).ConfigureAwait(false);
 
-            await _store.StoreProfile(profile, cancellationToken).ConfigureAwait(false);
+            var updated = new Profile(profile);
 
-            var cacheKey = BuildCacheKey(profile.Id);
+            // Retain the banned value
+            updated.BannedAt = original.BannedAt;
 
-            StoreProfileInCache(cacheKey, profile);
-        }
-
-        private static string BuildCacheKey(Guid profileId)
-        {
-            // The cache key has a prefix to partition this type of object just in case there is a key collision with another object type
-            var cacheKey = "Profile|" + profileId;
-            return cacheKey;
-        }
-
-        private void StoreProfileInCache(string cacheKey, Profile profile)
-        {
-            var options = new MemoryCacheEntryOptions
+            if (original.BannedAt != null)
             {
-                SlidingExpiration = _config.ProfileExpiration
-            };
+                // We don't calculate any changes to category links for a banned profile
+                await _store.StoreProfile(updated, cancellationToken).ConfigureAwait(false);
 
-            // Cache this account for lookup later
-            _cache.Set(cacheKey, profile, options);
+                return;
+            }
+
+            var changes = _calculator.CalculateChanges(original, profile);
+
+            if (changes.ProfileChanged)
+            {
+                await _processor.Execute(updated, changes, cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 }

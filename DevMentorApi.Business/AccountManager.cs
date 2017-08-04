@@ -6,42 +6,31 @@
     using DevMentorApi.Azure;
     using DevMentorApi.Model;
     using EnsureThat;
-    using Microsoft.Extensions.Caching.Memory;
 
     public class AccountManager : IAccountManager
     {
         private readonly IAccountStore _accountStore;
-        private readonly IMemoryCache _cache;
-        private readonly ICacheConfig _config;
+        private readonly ICacheManager _cache;
         private readonly IProfileStore _profileStore;
 
-        public AccountManager(
-            IAccountStore accountStore,
-            IProfileStore profileStore,
-            IMemoryCache cache,
-            ICacheConfig config)
+        public AccountManager(IAccountStore accountStore, IProfileStore profileStore, ICacheManager cache)
         {
             Ensure.That(accountStore, nameof(accountStore)).IsNotNull();
             Ensure.That(profileStore, nameof(profileStore)).IsNotNull();
             Ensure.That(cache, nameof(cache)).IsNotNull();
-            Ensure.That(config, nameof(config)).IsNotNull();
 
             _accountStore = accountStore;
             _profileStore = profileStore;
             _cache = cache;
-            _config = config;
         }
 
         public async Task<Account> GetAccount(User user, CancellationToken cancellationToken)
         {
             Ensure.That(user, nameof(user)).IsNotNull();
 
-            Account account;
+            var account = _cache.GetAccount(user.Username);
 
-            // The cache key has a prefix to partition this type of object just in case there is a key collision with another object type
-            var cacheKey = "Account|" + user.Username;
-
-            if (_cache.TryGetValue(cacheKey, out account))
+            if (account != null)
             {
                 return account;
             }
@@ -75,16 +64,14 @@
                 // Run the tasks together to save time
                 await Task.WhenAll(accountTask, profileTask).ConfigureAwait(false);
 
+                var profile = profileTask.Result;
+
+                _cache.StoreProfile(profile);
+
                 account = accountTask.Result;
             }
 
-            var options = new MemoryCacheEntryOptions
-            {
-                SlidingExpiration = _config.AccountExpiration
-            };
-
-            // Cache this account for lookup later
-            _cache.Set(cacheKey, account, options);
+            _cache.StoreAccount(account);
 
             return account;
         }
@@ -107,7 +94,7 @@
             return account;
         }
 
-        private Task CreateProfile(Guid profileId, User user, CancellationToken cancellationToken)
+        private async Task<Profile> CreateProfile(Guid profileId, User user, CancellationToken cancellationToken)
         {
             var profile = new Profile
             {
@@ -117,7 +104,9 @@
                 LastName = user.LastName
             };
 
-            return _profileStore.StoreProfile(profile, cancellationToken);
+            await _profileStore.StoreProfile(profile, cancellationToken).ConfigureAwait(false);
+
+            return profile;
         }
     }
 }

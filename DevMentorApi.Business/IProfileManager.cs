@@ -11,6 +11,6 @@
 
         Task<Profile> GetProfile(Guid id, CancellationToken cancellationToken);
 
-        Task UpdateProfile(Profile profile, CancellationToken cancellationToken);
+        Task UpdateProfile(UpdatableProfile profile, CancellationToken cancellationToken);
     }
 }

@@ -88,7 +88,7 @@
         public async Task PutProvidesProfileToManagerTest()
         {
             var account = Model.Create<Account>();
-            var expected = Model.Create<Profile>().Set(x => x.Id = account.Id);
+            var expected = Model.Create<UpdatableProfile>().Set(x => x.Id = account.Id);
             var user = ClaimsIdentityFactory.BuildPrincipal(account);
 
             var manager = Substitute.For<IProfileManager>();
@@ -134,7 +134,7 @@
         public async Task PutReturnsForbiddenWhenUserDoesNotOwnProfileTest()
         {
             var account = Model.Create<Account>();
-            var expected = Model.Create<Profile>();
+            var expected = Model.Create<UpdatableProfile>();
             var user = ClaimsIdentityFactory.BuildPrincipal(account);
 
             var manager = Substitute.For<IProfileManager>();
