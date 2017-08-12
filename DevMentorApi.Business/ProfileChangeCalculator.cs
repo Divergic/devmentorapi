@@ -14,7 +14,6 @@ namespace DevMentorApi.Business
         {
             Ensure.That(original, nameof(original)).IsNotNull();
             Ensure.That(updated, nameof(updated)).IsNotNull();
-            Ensure.That(original.Id == updated.Id, nameof(Profile.Id)).IsTrue();
 
             var result = new ProfileChangeResult();
 
@@ -30,8 +29,15 @@ namespace DevMentorApi.Business
             DetermineCategoryChanges(CategoryGroup.Skill, originalSkillNames, updatedSkillNames, result);
 
             // At this point all category add/remove operations have been determined
+            // If the profile is banned then we don't want to create any links to categories
+            if (original.BannedAt.HasValue)
+            {
+                // Either the profile hasn't changed yet or it has and we have category changes to process
+                // Wiping out the category changes has the outcome we want by leaving ProfileChanged as is and not allowing any category changes
+                result.CategoryChanges.Clear();
+            }
+
             // Only thing remaining is to try to find a change to the profile data outside of categories
-            // if no category change has been found
             // If no changes found to categories by now, we just need to know whether the profile itself needs to be sent to storage
             if (result.ProfileChanged == false)
             {
@@ -40,6 +46,7 @@ namespace DevMentorApi.Business
 
             if (result.ProfileChanged == false)
             {
+                // There haven't been any skills added or removed, but there could be changed to the skill information
                 // Search for changes to skill metadata
                 result.ProfileChanged = HaveSkillsChanged(original.Skills, updated.Skills);
             }

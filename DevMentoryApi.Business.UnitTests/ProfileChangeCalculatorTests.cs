@@ -24,7 +24,7 @@
         [Fact]
         public void CalculateChangesAddsNewLanguageTest()
         {
-            var original = Model.Create<Profile>();
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null);
             var updated = original.Clone();
             var language = Guid.NewGuid().ToString();
 
@@ -47,7 +47,7 @@
         [Fact]
         public void CalculateChangesAddsNewSkillTest()
         {
-            var original = Model.Create<Profile>();
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null);
             var updated = original.Clone();
             var skill = Model.Create<Skill>();
 
@@ -86,8 +86,15 @@
         }
 
         [Theory]
+        [InlineData(ProfileStatus.Hidden, ProfileStatus.Hidden, false)]
+        [InlineData(ProfileStatus.Available, ProfileStatus.Available, false)]
         [InlineData(ProfileStatus.Unavailable, ProfileStatus.Unavailable, false)]
+        [InlineData(ProfileStatus.Hidden, ProfileStatus.Available, true)]
+        [InlineData(ProfileStatus.Hidden, ProfileStatus.Unavailable, true)]
+        [InlineData(ProfileStatus.Available, ProfileStatus.Hidden, true)]
+        [InlineData(ProfileStatus.Available, ProfileStatus.Unavailable, true)]
         [InlineData(ProfileStatus.Unavailable, ProfileStatus.Available, true)]
+        [InlineData(ProfileStatus.Unavailable, ProfileStatus.Hidden, true)]
         public void CalculateChangesCorrectlyIdentifiesChangesToStatusTest(
             ProfileStatus originalValue,
             ProfileStatus updatedValue,
@@ -151,7 +158,7 @@
         {
             _output.WriteLine("{0}: [{1}], [{2}]", scenario, originalValue ?? "null", updatedValue ?? "null");
 
-            var original = Model.Create<Profile>().Set(x => x.Gender = originalValue);
+            var original = Model.Create<Profile>().Set(x => x.Gender = originalValue).Set(x => x.BannedAt = null);
             var updated = original.Clone().Set(x => x.Gender = updatedValue);
 
             var sut = new ProfileChangeCalculator();
@@ -193,7 +200,7 @@
         [Fact]
         public void CalculateChangesIgnoresLanguageDifferentByCaseOnlyTest()
         {
-            var original = Model.Create<Profile>();
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null);
             var updated = original.Clone();
             var language = Guid.NewGuid().ToString();
 
@@ -211,7 +218,7 @@
         [Fact]
         public void CalculateChangesIgnoresSkillNameDifferentByCaseOnlyTest()
         {
-            var original = Model.Create<Profile>();
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null);
             var updated = original.Clone();
             var oldSkill = Model.Create<Skill>().Set(x => x.Name = x.Name.ToLowerInvariant());
             var newSkill = oldSkill.Clone().Set(x => x.Name = oldSkill.Name.ToUpperInvariant());
@@ -230,7 +237,7 @@
         [Fact]
         public void CalculateChangesRemovesOldLanguageTest()
         {
-            var original = Model.Create<Profile>();
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null);
             var updated = original.Clone();
             var language = Guid.NewGuid().ToString();
 
@@ -253,7 +260,7 @@
         [Fact]
         public void CalculateChangesRemovesOldSkillTest()
         {
-            var original = Model.Create<Profile>();
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null);
             var updated = original.Clone();
             var skill = Model.Create<Skill>();
 
@@ -276,7 +283,7 @@
         [Fact]
         public void CalculateChangesReturnsNoChangesWhenProfilesMatchTest()
         {
-            var original = Model.Create<Profile>();
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null);
             var updated = original.Clone();
 
             var sut = new ProfileChangeCalculator();
@@ -287,15 +294,32 @@
             actual.CategoryChanges.Should().BeEmpty();
         }
 
+        [Fact]
+        public void CalculateChangesSetsProfileAsChangedButWithoutCategoryChangesWhenProfileIsBannedTest()
+        {
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = DateTimeOffset.UtcNow);
+            var updated = original.Clone();
+            var skill = Model.Create<Skill>();
+
+            updated.Skills.Add(skill);
+
+            var sut = new ProfileChangeCalculator();
+
+            var actual = sut.CalculateChanges(original, updated);
+
+            actual.ProfileChanged.Should().BeTrue();
+            actual.CategoryChanges.Should().HaveCount(0);
+        }
+
         [Theory]
         [InlineData(SkillLevel.Beginner, SkillLevel.Beginner, false)]
         [InlineData(SkillLevel.Beginner, SkillLevel.Expert, true)]
-        public void CalculateChangesSetsProfileAsChangedWithoutCategoryChangeWhenSkillLevelChangesTest(
+        public void CalculateChangesSetsProfileAsChangedWithCategoryChangeWhenSkillLevelChangesTest(
             SkillLevel originalLevel,
             SkillLevel updatedLevel,
             bool expected)
         {
-            var original = Model.Create<Profile>();
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null);
             var updated = original.Clone();
             var originalSkill = Model.Create<Skill>().Set(x => x.Level = originalLevel);
             var updatedSkill = originalSkill.Clone().Set(x => x.Level = updatedLevel);
@@ -324,7 +348,7 @@
             int? updatedValue,
             bool expected)
         {
-            var original = Model.Create<Profile>();
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null);
             var updated = original.Clone();
             var originalSkill = Model.Create<Skill>().Set(x => x.YearLastUsed = originalValue);
             var updatedSkill = originalSkill.Clone().Set(x => x.YearLastUsed = updatedValue);
@@ -351,7 +375,7 @@
             int? updatedValue,
             bool expected)
         {
-            var original = Model.Create<Profile>();
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null);
             var updated = original.Clone();
             var originalSkill = Model.Create<Skill>().Set(x => x.YearStarted = originalValue);
             var updatedSkill = originalSkill.Clone().Set(x => x.YearStarted = updatedValue);
@@ -365,19 +389,6 @@
 
             actual.ProfileChanged.Should().Be(expected);
             actual.CategoryChanges.Should().HaveCount(0);
-        }
-
-        [Fact]
-        public void CalculateChangesThrowsExceptionWhenProfileIsNotMatchingTest()
-        {
-            var original = Model.Create<Profile>();
-            var updated = Model.Create<Profile>();
-
-            var sut = new ProfileChangeCalculator();
-
-            Action action = () => sut.CalculateChanges(original, updated);
-
-            action.ShouldThrow<ArgumentException>();
         }
 
         [Fact]
@@ -395,7 +406,7 @@
         [Fact]
         public void CalculateChangesThrowsExceptionWithNullUpdatedProfileTest()
         {
-            var original = Model.Create<Profile>();
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null);
 
             var sut = new ProfileChangeCalculator();
 
@@ -412,7 +423,7 @@
             string description)
         {
             // Return all the test evaluation scenarios for this property
-            var original = Model.Create<Profile>();
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null);
             var updated = original.Clone();
 
             property.SetValue(original, originalValue);
@@ -431,6 +442,7 @@
         }
 
         private static object[] BuildStringPropertyTestScenario(
+            Profile template,
             PropertyInfo property,
             string originalValue,
             string updatedValue,
@@ -438,7 +450,7 @@
             string description)
         {
             // Return all the test evaluation scenarios for this property
-            var original = Model.Create<Profile>();
+            var original = template.Clone().Set(x => x.BannedAt = null);
             var updated = original.Clone();
 
             property.SetValue(original, originalValue);
@@ -458,6 +470,7 @@
 
         private static IEnumerable<object[]> IntPropertiesDataSource()
         {
+            var scenarios = new List<object[]>();
             var properties = from x in typeof(Profile).GetProperties()
                 where x.PropertyType == typeof(int?)
                 select x;
@@ -466,140 +479,180 @@
             {
                 var value = Environment.TickCount;
 
-                yield return BuildIntPropertyTestScenario(property, null, null, false, "values are both null");
-                yield return BuildIntPropertyTestScenario(property, value, value, false, "values are same");
-                yield return BuildIntPropertyTestScenario(
-                    property,
-                    Environment.TickCount,
-                    Environment.TickCount + 1,
-                    true,
-                    "values are different");
-                yield return BuildIntPropertyTestScenario(property, null, value, true, "values changing from null");
-                yield return BuildIntPropertyTestScenario(property, value, null, true, "values changing to null");
+                scenarios.Add(BuildIntPropertyTestScenario(property, null, null, false, "values are both null"));
+                scenarios.Add(BuildIntPropertyTestScenario(property, value, value, false, "values are same"));
+                scenarios.Add(
+                    BuildIntPropertyTestScenario(
+                        property,
+                        Environment.TickCount,
+                        Environment.TickCount + 1,
+                        true,
+                        "values are different"));
+                scenarios.Add(BuildIntPropertyTestScenario(property, null, value, true, "values changing from null"));
+                scenarios.Add(BuildIntPropertyTestScenario(property, value, null, true, "values changing to null"));
             }
+
+            return scenarios;
         }
 
         private static IEnumerable<object[]> StringPropertiesDataSource()
         {
-            var properties = from x in typeof(Profile).GetProperties()
+            var template = Model.Create<Profile>();
+            var scenarios = new List<object[]>();
+            var properties = (from x in typeof(Profile).GetProperties()
                 where x.PropertyType == typeof(string) && x.Name != nameof(Profile.Gender)
-                select x;
+                select x).ToList();
 
             foreach (var property in properties)
             {
                 var value = Guid.NewGuid().ToString();
 
-                yield return BuildStringPropertyTestScenario(property, value, value, false, "values are same");
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(template, property, value, value, false, "values are same"));
 
-                yield return BuildStringPropertyTestScenario(property, null, null, false, "values are both null");
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(template, property, null, null, false, "values are both null"));
 
-                yield return BuildStringPropertyTestScenario(
-                    property,
-                    string.Empty,
-                    string.Empty,
-                    false,
-                    "values are both empty");
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(
+                        template,
+                        property,
+                        string.Empty,
+                        string.Empty,
+                        false,
+                        "values are both empty"));
 
-                yield return BuildStringPropertyTestScenario(property, " ", " ", false, "values are both whitespace");
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(template, property, " ", " ", false, "values are both whitespace"));
 
-                yield return BuildStringPropertyTestScenario(
-                    property,
-                    null,
-                    string.Empty,
-                    false,
-                    "values are null and empty");
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(
+                        template,
+                        property,
+                        null,
+                        string.Empty,
+                        false,
+                        "values are null and empty"));
 
-                yield return BuildStringPropertyTestScenario(
-                    property,
-                    null,
-                    " ",
-                    false,
-                    "values are null and whitespace");
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(
+                        template,
+                        property,
+                        null,
+                        " ",
+                        false,
+                        "values are null and whitespace"));
 
-                yield return BuildStringPropertyTestScenario(
-                    property,
-                    string.Empty,
-                    null,
-                    false,
-                    "values are empty and null");
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(
+                        template,
+                        property,
+                        string.Empty,
+                        null,
+                        false,
+                        "values are empty and null"));
 
-                yield return BuildStringPropertyTestScenario(
-                    property,
-                    " ",
-                    null,
-                    false,
-                    "values are whitespace and null");
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(
+                        template,
+                        property,
+                        " ",
+                        null,
+                        false,
+                        "values are whitespace and null"));
 
-                yield return BuildStringPropertyTestScenario(
-                    property,
-                    " ",
-                    string.Empty,
-                    false,
-                    "values are whitespace and empty");
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(
+                        template,
+                        property,
+                        " ",
+                        string.Empty,
+                        false,
+                        "values are whitespace and empty"));
 
-                yield return BuildStringPropertyTestScenario(
-                    property,
-                    string.Empty,
-                    " ",
-                    false,
-                    "values are empty and whitespace");
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(
+                        template,
+                        property,
+                        string.Empty,
+                        " ",
+                        false,
+                        "values are empty and whitespace"));
 
-                yield return BuildStringPropertyTestScenario(
-                    property,
-                    Guid.NewGuid().ToString(),
-                    Guid.NewGuid().ToString(),
-                    true,
-                    "values are different");
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(
+                        template,
+                        property,
+                        Guid.NewGuid().ToString(),
+                        Guid.NewGuid().ToString(),
+                        true,
+                        "values are different"));
 
-                yield return BuildStringPropertyTestScenario(
-                    property,
-                    value.ToLowerInvariant(),
-                    value.ToUpperInvariant(),
-                    true,
-                    "values are same but with different case");
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(
+                        template,
+                        property,
+                        value.ToLowerInvariant(),
+                        value.ToUpperInvariant(),
+                        true,
+                        "values are same but with different case"));
 
-                yield return BuildStringPropertyTestScenario(
-                    property,
-                    null,
-                    value.ToUpperInvariant(),
-                    true,
-                    "value changed from null");
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(
+                        template,
+                        property,
+                        null,
+                        value.ToUpperInvariant(),
+                        true,
+                        "value changed from null"));
 
-                yield return BuildStringPropertyTestScenario(
-                    property,
-                    value.ToUpperInvariant(),
-                    null,
-                    true,
-                    "value changed to null");
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(
+                        template,
+                        property,
+                        value.ToUpperInvariant(),
+                        null,
+                        true,
+                        "value changed to null"));
 
-                yield return BuildStringPropertyTestScenario(
-                    property,
-                    string.Empty,
-                    value.ToUpperInvariant(),
-                    true,
-                    "value changed from empty");
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(
+                        template,
+                        property,
+                        string.Empty,
+                        value.ToUpperInvariant(),
+                        true,
+                        "value changed from empty"));
 
-                yield return BuildStringPropertyTestScenario(
-                    property,
-                    value.ToUpperInvariant(),
-                    string.Empty,
-                    true,
-                    "value changed to empty");
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(
+                        template,
+                        property,
+                        value.ToUpperInvariant(),
+                        string.Empty,
+                        true,
+                        "value changed to empty"));
 
-                yield return BuildStringPropertyTestScenario(
-                    property,
-                    " ",
-                    value.ToUpperInvariant(),
-                    true,
-                    "value changed from whitespace");
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(
+                        template,
+                        property,
+                        " ",
+                        value.ToUpperInvariant(),
+                        true,
+                        "value changed from whitespace"));
 
-                yield return BuildStringPropertyTestScenario(
-                    property,
-                    value.ToUpperInvariant(),
-                    " ",
-                    true,
-                    "value changed to whitespace");
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(
+                        template,
+                        property,
+                        value.ToUpperInvariant(),
+                        " ",
+                        true,
+                        "value changed to whitespace"));
             }
+
+            return scenarios;
         }
     }
 }

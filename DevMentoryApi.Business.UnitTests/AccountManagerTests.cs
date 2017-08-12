@@ -113,6 +113,9 @@ namespace DevMentoryApi.Business.UnitTests
                 await profileStore.Received().StoreProfile(
                     Arg.Is<Profile>(x => x.LastName == user.LastName),
                     tokenSource.Token).ConfigureAwait(false);
+                await profileStore.Received().StoreProfile(
+                    Arg.Is<Profile>(x => x.Status == ProfileStatus.Hidden),
+                    tokenSource.Token).ConfigureAwait(false);
             }
         }
 

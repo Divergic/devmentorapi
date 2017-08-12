@@ -20,7 +20,6 @@
             FirstName = profile.FirstName;
             Gender = profile.Gender;
             GitHubUsername = profile.GitHubUsername;
-            Id = profile.Id;
             Languages = new List<string>(profile.Languages);
             LastName = profile.LastName;
             Skills = new List<Skill>(profile.Skills);
@@ -32,5 +31,7 @@
         }
 
         public DateTimeOffset? BannedAt { get; set; }
+
+        public Guid Id { get; set; }
     }
 }

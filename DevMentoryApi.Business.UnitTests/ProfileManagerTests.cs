@@ -208,7 +208,7 @@
         public async Task UpdateProfileCalculatesAndProcessesChangesForUpdatedProfileNotBannedTest()
         {
             var expected = Model.Create<UpdatableProfile>();
-            var profile = Model.Create<Profile>().Set(x => x.Id = expected.Id).Set(x => x.BannedAt = null);
+            var profile = Model.Create<Profile>().Set(x => x.BannedAt = null);
             var changeResult = Model.Create<ProfileChangeResult>().Set(x => x.ProfileChanged = true);
 
             var store = Substitute.For<IProfileStore>();
@@ -220,10 +220,10 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                store.GetProfile(expected.Id, tokenSource.Token).Returns(profile);
+                store.GetProfile(profile.Id, tokenSource.Token).Returns(profile);
                 calculator.CalculateChanges(profile, expected).Returns(changeResult);
 
-                await sut.UpdateProfile(expected, tokenSource.Token).ConfigureAwait(false);
+                await sut.UpdateProfile(profile.Id, expected, tokenSource.Token).ConfigureAwait(false);
 
                 await processor.Received().Execute(
                     Verify.That<Profile>(x => x.ShouldBeEquivalentTo(expected, opt => opt.ExcludingMissingMembers())),
@@ -236,7 +236,7 @@
         public async Task UpdateProfileDoesNotProcessProfileChangesWhenNoChangeFoundTest()
         {
             var expected = Model.Create<UpdatableProfile>();
-            var profile = Model.Create<Profile>().Set(x => x.Id = expected.Id).Set(x => x.BannedAt = null);
+            var profile = Model.Create<Profile>().Set(x => x.BannedAt = null);
             var changeResult = Model.Create<ProfileChangeResult>().Set(x => x.ProfileChanged = false);
 
             var store = Substitute.For<IProfileStore>();
@@ -248,10 +248,10 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                store.GetProfile(expected.Id, tokenSource.Token).Returns(profile);
+                store.GetProfile(profile.Id, tokenSource.Token).Returns(profile);
                 calculator.CalculateChanges(profile, expected).Returns(changeResult);
 
-                await sut.UpdateProfile(expected, tokenSource.Token).ConfigureAwait(false);
+                await sut.UpdateProfile(profile.Id, expected, tokenSource.Token).ConfigureAwait(false);
 
                 await processor.DidNotReceive().Execute(
                     Arg.Any<Profile>(),
@@ -264,8 +264,7 @@
         public async Task UpdateProfileStoresProfileWithOriginalProfileBannedValueTest()
         {
             var expected = Model.Create<UpdatableProfile>();
-            var profile = Model.Create<Profile>().Set(x => x.Id = expected.Id)
-                .Set(x => x.BannedAt = DateTimeOffset.UtcNow);
+            var profile = Model.Create<Profile>().Set(x => x.BannedAt = DateTimeOffset.UtcNow);
 
             var store = Substitute.For<IProfileStore>();
             var calculator = Substitute.For<IProfileChangeCalculator>();
@@ -276,9 +275,9 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                store.GetProfile(expected.Id, tokenSource.Token).Returns(profile);
+                store.GetProfile(profile.Id, tokenSource.Token).Returns(profile);
 
-                await sut.UpdateProfile(expected, tokenSource.Token).ConfigureAwait(false);
+                await sut.UpdateProfile(profile.Id, expected, tokenSource.Token).ConfigureAwait(false);
 
                 await store.Received().StoreProfile(
                     Arg.Is<Profile>(x => x.BannedAt == profile.BannedAt),
@@ -288,8 +287,11 @@
         }
 
         [Fact]
-        public void UpdateProfileThrowsExceptionWithNullProfileTest()
+        public void UpdateProfileThrowsExceptionWithEmptyProfileIdTest()
         {
+            var profileId = Guid.Empty;
+            var profile = Model.Create<UpdatableProfile>();
+
             var store = Substitute.For<IProfileStore>();
             var calculator = Substitute.For<IProfileChangeCalculator>();
             var processor = Substitute.For<IProfileChangeProcessor>();
@@ -297,7 +299,25 @@
 
             var sut = new ProfileManager(store, calculator, processor, cache);
 
-            Func<Task> action = async () => await sut.UpdateProfile(null, CancellationToken.None).ConfigureAwait(false);
+            Func<Task> action = async () => await sut.UpdateProfile(profileId, profile, CancellationToken.None)
+                .ConfigureAwait(false);
+
+            action.ShouldThrow<ArgumentException>();
+        }
+
+        [Fact]
+        public void UpdateProfileThrowsExceptionWithNullProfileTest()
+        {
+            var profileId = Guid.NewGuid();
+            var store = Substitute.For<IProfileStore>();
+            var calculator = Substitute.For<IProfileChangeCalculator>();
+            var processor = Substitute.For<IProfileChangeProcessor>();
+            var cache = Substitute.For<ICacheManager>();
+
+            var sut = new ProfileManager(store, calculator, processor, cache);
+
+            Func<Task> action = async () => await sut.UpdateProfile(profileId, null, CancellationToken.None)
+                .ConfigureAwait(false);
 
             action.ShouldThrow<ArgumentNullException>();
         }

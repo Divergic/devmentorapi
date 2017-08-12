@@ -66,16 +66,18 @@
             return profile;
         }
 
-        public async Task UpdateProfile(UpdatableProfile profile, CancellationToken cancellationToken)
+        public async Task UpdateProfile(Guid profileId, UpdatableProfile profile, CancellationToken cancellationToken)
         {
+            Ensure.That(profileId, nameof(profileId)).IsNotEmpty();
             Ensure.That(profile, nameof(profile)).IsNotNull();
 
-            var original = await _store.GetProfile(profile.Id, cancellationToken).ConfigureAwait(false);
+            var original = await _store.GetProfile(profileId, cancellationToken).ConfigureAwait(false);
 
-            var updated = new Profile(profile);
-
-            // Retain the banned value
-            updated.BannedAt = original.BannedAt;
+            var updated = new Profile(profile)
+            {
+                Id = original.Id,
+                BannedAt = original.BannedAt
+            };
 
             if (original.BannedAt != null)
             {

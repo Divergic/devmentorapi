@@ -2,6 +2,7 @@
 {
     using System;
     using System.ComponentModel.DataAnnotations;
+    using DevMentorApi.Model.Properties;
     using EnsureThat;
 
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter)]
@@ -16,6 +17,8 @@
 
             _minYear = minYear;
             _allowNull = allowNull;
+            ErrorMessageResourceName = nameof(Resources.InvalidYearInRangeFormat);
+            ErrorMessageResourceType = typeof(Resources);
         }
 
         public override bool IsValid(object value)

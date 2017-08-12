@@ -69,7 +69,7 @@
                 if (batch.Count == 100)
                 {
                     // Batches can only handle 100 items, need to execute this batch
-                    await ExecuteBatch(table, batch, cancellationToken);
+                    await ExecuteBatch(table, batch, cancellationToken).ConfigureAwait(false);
 
                     batch.Clear();
                 }
@@ -85,7 +85,7 @@
                 return;
             }
 
-            await ExecuteBatch(table, batch, cancellationToken);
+            await ExecuteBatch(table, batch, cancellationToken).ConfigureAwait(false);
         }
 
         private static TableOperation BuildLinkChangeTableOperation(

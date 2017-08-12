@@ -6,9 +6,10 @@
     using System.Threading.Tasks;
     using DevMentorApi.Business;
     using DevMentorApi.Core;
-    using DevMentorApi.Model;
     using DevMentorApi.Properties;
+    using DevMentorApi.ViewModels;
     using EnsureThat;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -26,18 +27,25 @@
         /// <summary>
         ///     Gets the profile by its identifier.
         /// </summary>
+        /// <param name="profileId">
+        ///     The profile identifier.
+        /// </param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>
         ///     The profile.
         /// </returns>
-        [Route("profile")]
+        [Route("profiles/{profileId:guid}")]
         [HttpGet]
-        [ProducesResponseType(typeof(Profile), (int)HttpStatusCode.OK)]
-        [SwaggerResponse((int)HttpStatusCode.OK, typeof(Profile))]
+        [AllowAnonymous]
+        [ProducesResponseType(typeof(PublicProfile), (int)HttpStatusCode.OK)]
+        [SwaggerResponse((int)HttpStatusCode.OK, typeof(PublicProfile))]
         [SwaggerResponse((int)HttpStatusCode.NotFound, null, "The profile does not exist.")]
-        public async Task<IActionResult> Get(CancellationToken cancellationToken)
+        public async Task<IActionResult> Get(Guid profileId, CancellationToken cancellationToken)
         {
-            var profileId = User.Identity.GetClaimValue<Guid>(ClaimType.ProfileId);
+            if (profileId == Guid.Empty)
+            {
+                return new ErrorMessageResult(Resources.NotFound, HttpStatusCode.NotFound);
+            }
 
             var profile = await _manager.GetProfile(profileId, cancellationToken).ConfigureAwait(false);
 
@@ -46,35 +54,9 @@
                 return new ErrorMessageResult(Resources.NotFound, HttpStatusCode.NotFound);
             }
 
-            return new OkObjectResult(profile);
-        }
+            var publicProfile = new PublicProfile(profile);
 
-        /// <summary>
-        ///     Updates the profile.
-        /// </summary>
-        /// <param name="model">The updated profile.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        [Route("profile")]
-        [HttpPut]
-        [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        [SwaggerResponse((int)HttpStatusCode.NoContent)]
-        public async Task<IActionResult> Put([FromBody] UpdatableProfile model, CancellationToken cancellationToken)
-        {
-            if (model == null)
-            {
-                return new ErrorMessageResult(Resources.Controller_NoBodyDataProvided, HttpStatusCode.BadRequest);
-            }
-
-            var profileId = User.Identity.GetClaimValue<Guid>(ClaimType.ProfileId);
-
-            if (profileId != model.Id)
-            {
-                return new ForbidResult();
-            }
-
-            await _manager.UpdateProfile(model, cancellationToken).ConfigureAwait(false);
-
-            return new NoContentResult();
+            return new OkObjectResult(publicProfile);
         }
     }
 }

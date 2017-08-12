@@ -17,7 +17,7 @@
             return identity;
         }
 
-        public static ClaimsIdentity Build(Account account = null, Profile profile = null)
+        public static ClaimsIdentity Build(Account account = null, UpdatableProfile profile = null)
         {
             var claims = new List<Claim>();
 

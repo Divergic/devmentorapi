@@ -11,6 +11,7 @@
         public string Name { get; set; }
 
         [ValidPastYear(1989)]
+        [GreaterOrEqualTo(nameof(YearStarted))]
         public int? YearLastUsed { get; set; }
 
         [ValidPastYear(1989)]

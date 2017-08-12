@@ -41,8 +41,8 @@
             if (changes.CategoryChanges.Count > 0)
             {
                 // Get the current categories
-                var categories =
-                    (await _categoryStore.GetAllCategories(cancellationToken).ConfigureAwait(false)).ToList();
+                var categories = (await _categoryStore.GetAllCategories(cancellationToken).ConfigureAwait(false))
+                    .FastToList();
 
                 var categoryTasks = new List<Task>();
 
@@ -81,7 +81,13 @@
                         category.LinkCount--;
                     }
 
-                    var categoryTask = StoreCategoryChange(profile, categoryChange, category, cancellationToken);
+                    var change = new CategoryLinkChange
+                    {
+                        ChangeType = categoryChange.ChangeType,
+                        ProfileId = profile.Id
+                    };
+
+                    var categoryTask = StoreCategoryChange(category, change, cancellationToken);
 
                     categoryTasks.Add(categoryTask);
                 }
@@ -103,23 +109,13 @@
         }
 
         private async Task StoreCategoryChange(
-            Profile profile,
-            CategoryChange categoryChange,
             Category category,
+            CategoryLinkChange linkChange,
             CancellationToken cancellationToken)
         {
-            var change = new CategoryLinkChange
-            {
-                ChangeType = categoryChange.ChangeType,
-                ProfileId = profile.Id
-            };
-
             // Store the link update
-            await _linkStore.StoreCategoryLink(
-                categoryChange.CategoryGroup,
-                categoryChange.CategoryName,
-                change,
-                cancellationToken).ConfigureAwait(false);
+            await _linkStore.StoreCategoryLink(category.Group, category.Name, linkChange, cancellationToken)
+                .ConfigureAwait(false);
 
             // TODO: Invalidate the link category cache
 

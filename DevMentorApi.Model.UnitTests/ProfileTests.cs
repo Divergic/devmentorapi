@@ -24,7 +24,7 @@
 
             sut.Languages.Should().NotBeNull();
             sut.Skills.Should().NotBeNull();
-            sut.Status.Should().Be(ProfileStatus.Unavailable);
+            sut.Status.Should().Be(ProfileStatus.Hidden);
         }
 
         [Fact]

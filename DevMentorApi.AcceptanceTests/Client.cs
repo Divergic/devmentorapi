@@ -15,14 +15,14 @@
     {
         private static readonly HttpClient _client = new HttpClient();
 
-        public static async Task Get(
+        public static Task Get(
             Uri address,
             ILogger logger = null,
             ClaimsIdentity identity = null,
             HttpStatusCode expectedCode = HttpStatusCode.OK,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            await GetInternal(address, logger, identity, expectedCode, cancellationToken);
+            return GetInternal(address, logger, identity, expectedCode, cancellationToken);
         }
 
         public static async Task<T> Get<T>(
@@ -32,7 +32,7 @@
             HttpStatusCode expectedCode = HttpStatusCode.OK,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            var content = await GetInternal(address, logger, identity, expectedCode, cancellationToken);
+            var content = await GetInternal(address, logger, identity, expectedCode, cancellationToken).ConfigureAwait(false);
 
             var value = JsonConvert.DeserializeObject<T>(content);
 
@@ -46,7 +46,7 @@
             CancellationToken cancellationToken = default(CancellationToken))
         {
             var request = new HttpRequestMessage(HttpMethod.Head, address);
-            var response = await _client.SendAsync(request, cancellationToken);
+            var response = await _client.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
             logger?.LogInformation(
                 "{0}: {1} - {2}",
@@ -57,7 +57,7 @@
             response.StatusCode.Should().Be(expectedCode);
         }
 
-        public static async Task Post(
+        public static Task Post(
             Uri address,
             ILogger logger = null,
             object model = null,
@@ -65,7 +65,14 @@
             HttpStatusCode expectedCode = HttpStatusCode.Created,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            await PostInternal(address, logger, model, identity, expectedCode, cancellationToken);
+            return ExecuteBodyInternal(
+                address,
+                HttpMethod.Post,
+                logger,
+                model,
+                identity,
+                expectedCode,
+                cancellationToken);
         }
 
         public static async Task<T> Post<T>(
@@ -76,57 +83,70 @@
             HttpStatusCode expectedCode = HttpStatusCode.Created,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            var content = await PostInternal(address, logger, model, identity, expectedCode, cancellationToken);
+            var content = await ExecuteBodyInternal(
+                address,
+                HttpMethod.Post,
+                logger,
+                model,
+                identity,
+                expectedCode,
+                cancellationToken).ConfigureAwait(false);
 
             var value = JsonConvert.DeserializeObject<T>(content);
 
             return value;
         }
 
-        private static async Task<string> GetInternal(
+        public static Task Put(
             Uri address,
-            ILogger logger,
-            ClaimsIdentity identity,
-            HttpStatusCode expectedCode,
-            CancellationToken cancellationToken)
+            ILogger logger = null,
+            object model = null,
+            ClaimsIdentity identity = null,
+            HttpStatusCode expectedCode = HttpStatusCode.OK,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, address);
-
-            if (identity != null)
-            {
-                var token = TokenFactory.GenerateToken(identity);
-
-                logger?.LogInformation("Bearer: {0}", token);
-
-                request.Headers.Add("Authorization", "Bearer " + token);
-            }
-
-            var response = await _client.SendAsync(request, cancellationToken).ConfigureAwait(false);
-
-            logger?.LogInformation(
-                "{0}: {1} - {2}",
-                Config.WebsiteAddress.MakeRelativeUri(address),
-                response.StatusCode,
-                response.ReasonPhrase);
-
-            var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-            logger?.LogInformation(content);
-
-            response.StatusCode.Should().Be(expectedCode);
-
-            return content;
+            return ExecuteBodyInternal(
+                address,
+                HttpMethod.Put,
+                logger,
+                model,
+                identity,
+                expectedCode,
+                cancellationToken);
         }
 
-        private static async Task<string> PostInternal(
+        public static async Task<T> Put<T>(
             Uri address,
+            ILogger logger = null,
+            object model = null,
+            ClaimsIdentity identity = null,
+            HttpStatusCode expectedCode = HttpStatusCode.OK,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var content = await ExecuteBodyInternal(
+                address,
+                HttpMethod.Put,
+                logger,
+                model,
+                identity,
+                expectedCode,
+                cancellationToken).ConfigureAwait(false);
+
+            var value = JsonConvert.DeserializeObject<T>(content);
+
+            return value;
+        }
+
+        private static async Task<string> ExecuteBodyInternal(
+            Uri address,
+            HttpMethod method,
             ILogger logger,
             object model,
             ClaimsIdentity identity,
             HttpStatusCode expectedCode,
             CancellationToken cancellationToken)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, address);
+            var request = new HttpRequestMessage(method, address);
 
             if (identity != null)
             {
@@ -148,6 +168,41 @@
                 request.Content = new StringContent(postData, Encoding.UTF8, "application/json");
 
                 logger?.LogInformation("Post data: {0}", postData);
+            }
+
+            var response = await _client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+
+            logger?.LogInformation(
+                "{0}: {1} - {2}",
+                Config.WebsiteAddress.MakeRelativeUri(address),
+                response.StatusCode,
+                response.ReasonPhrase);
+
+            var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+            logger?.LogInformation(content);
+
+            response.StatusCode.Should().Be(expectedCode);
+
+            return content;
+        }
+
+        private static async Task<string> GetInternal(
+            Uri address,
+            ILogger logger,
+            ClaimsIdentity identity,
+            HttpStatusCode expectedCode,
+            CancellationToken cancellationToken)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, address);
+
+            if (identity != null)
+            {
+                var token = TokenFactory.GenerateToken(identity);
+
+                logger?.LogInformation("Bearer: {0}", token);
+
+                request.Headers.Add("Authorization", "Bearer " + token);
             }
 
             var response = await _client.SendAsync(request, cancellationToken).ConfigureAwait(false);

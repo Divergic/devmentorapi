@@ -20,6 +20,7 @@ namespace DevMentorApi.Model
         public int? BirthYear { get; set; }
 
         [Required]
+        [EmailAddress]
         public string Email { get; set; }
 
         [Required]
@@ -28,8 +29,6 @@ namespace DevMentorApi.Model
         public string Gender { get; set; }
 
         public string GitHubUsername { get; set; }
-
-        public Guid Id { get; set; }
 
         public ICollection<string> Languages
         {
