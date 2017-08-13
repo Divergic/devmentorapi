@@ -144,7 +144,8 @@
         [Fact]
         public async Task GetReturnsPublicCategoriesWhenUserNotAuthenticatedTest()
         {
-            var principal = new ClaimsPrincipal();
+            var identity = new ClaimsIdentity();
+            var principal = new ClaimsPrincipal(identity);
             var categories = Model.Create<List<Category>>();
 
             var manager = Substitute.For<ICategoryManager>();

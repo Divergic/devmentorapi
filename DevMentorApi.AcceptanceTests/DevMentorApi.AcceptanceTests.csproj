@@ -12,11 +12,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="fluentassertions" Version="4.19.2" />
+    <PackageReference Include="fluentassertions" Version="4.19.3" />
     <PackageReference Include="jose-jwt" Version="2.4.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="1.1.2" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="1.1.2" />
-    <PackageReference Include="ModelBuilder" Version="3.1.0" />
+    <PackageReference Include="ModelBuilder" Version="3.2.0" />
     <PackageReference Include="Neovolve.UnitTest" Version="0.1.0-ci0007" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0" />
     <PackageReference Include="xunit" Version="2.2.0" />

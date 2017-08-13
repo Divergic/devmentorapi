@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Net;
     using System.Net.Http;
+    using DevMentorApi.Core;
     using FluentAssertions;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
@@ -11,7 +12,6 @@
     using Microsoft.AspNetCore.Mvc.Filters;
     using Microsoft.AspNetCore.Routing;
     using NSubstitute;
-    using DevMentorApi.Core;
     using Xunit;
 
     public class ValidateModelAttributeTests

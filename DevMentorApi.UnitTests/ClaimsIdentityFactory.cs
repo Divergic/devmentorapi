@@ -25,36 +25,36 @@
             return new ClaimsPrincipal(identities);
         }
 
-        public static ClaimsIdentity SetAccountId(this ClaimsIdentity identity, Guid accountId)
+        public static ClaimsIdentity SetProfileId(this ClaimsIdentity identity, Guid profileId)
         {
             Ensure.That(identity, nameof(identity)).IsNotNull();
 
-            if (identity.HasClaim(x => x.Type == ClaimType.AccountId))
+            if (identity.HasClaim(x => x.Type == ClaimType.ProfileId))
             {
-                var claim = identity.Claims.Single(x => x.Type == ClaimType.AccountId);
+                var claim = identity.Claims.Single(x => x.Type == ClaimType.ProfileId);
 
                 identity.RemoveClaim(claim);
             }
 
-            identity.AddClaim(new Claim(ClaimType.AccountId, accountId.ToString()));
+            identity.AddClaim(new Claim(ClaimType.ProfileId, profileId.ToString()));
 
             return identity;
         }
 
-        public static ClaimsPrincipal SetAccountId(this ClaimsPrincipal principal, Guid accountId)
+        public static ClaimsPrincipal SetProfileId(this ClaimsPrincipal principal, Guid profileId)
         {
             Ensure.That(principal, nameof(principal)).IsNotNull();
 
             var identity = principal.Identities.First();
 
-            if (identity.HasClaim(x => x.Type == ClaimType.AccountId))
+            if (identity.HasClaim(x => x.Type == ClaimType.ProfileId))
             {
-                var claim = identity.Claims.Single(x => x.Type == ClaimType.AccountId);
+                var claim = identity.Claims.Single(x => x.Type == ClaimType.ProfileId);
 
                 identity.RemoveClaim(claim);
             }
 
-            identity.AddClaim(new Claim(ClaimType.AccountId, accountId.ToString()));
+            identity.AddClaim(new Claim(ClaimType.ProfileId, profileId.ToString()));
 
             return principal;
         }
@@ -68,7 +68,7 @@
 
             IList<Claim> identities = new List<Claim>
             {
-                new Claim(ClaimType.AccountId, account.Id.ToString()),
+                new Claim(ClaimType.ProfileId, account.Id.ToString()),
                 new Claim(ClaimTypes.NameIdentifier, account.Username)
             };
 

@@ -4,12 +4,14 @@
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
-    using DevMentorApi.Business;
-    using DevMentorApi.Core;
-    using DevMentorApi.Model;
-    using DevMentorApi.Properties;
+    using Business;
+    using Core;
     using EnsureThat;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
+    using Model;
+    using Properties;
+    using Security;
     using Swashbuckle.AspNetCore.SwaggerGen;
 
     public class ProfileController : Controller
@@ -24,22 +26,62 @@
         }
 
         /// <summary>
-        ///     Gets the profile by its identifier.
+        ///     Bans the profile by its identifier.
         /// </summary>
+        /// <param name="profileId">
+        ///     The profile identifier.
+        /// </param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>
         ///     The profile.
         /// </returns>
-        [Route("profile")]
-        [HttpGet]
-        [ProducesResponseType(typeof(Profile), (int)HttpStatusCode.OK)]
-        [SwaggerResponse((int)HttpStatusCode.OK, typeof(Profile))]
-        [SwaggerResponse((int)HttpStatusCode.NotFound, null, "The profile does not exist.")]
-        public async Task<IActionResult> Get(CancellationToken cancellationToken)
+        [Route("profiles/{profileId:guid}")]
+        [HttpDelete]
+        [Authorize(Policy = Role.Administrator)]
+        [SwaggerResponse((int) HttpStatusCode.NoContent)]
+        public async Task<IActionResult> Delete(Guid profileId, CancellationToken cancellationToken)
         {
-            var accountId = User.Identity.GetClaimValue<Guid>(ClaimType.AccountId);
+            if (profileId == Guid.Empty)
+            {
+                return new ErrorMessageResult(Resources.NotFound, HttpStatusCode.NotFound);
+            }
 
-            var profile = await _manager.GetProfile(accountId, cancellationToken).ConfigureAwait(false);
+            var bannedAt = DateTimeOffset.UtcNow;
+
+            var profile = await _manager.BanProfile(profileId, bannedAt, cancellationToken).ConfigureAwait(false);
+
+            if (profile == null)
+            {
+                return new ErrorMessageResult(Resources.NotFound, HttpStatusCode.NotFound);
+            }
+
+            return new NoContentResult();
+        }
+
+        /// <summary>
+        ///     Gets the profile by its identifier.
+        /// </summary>
+        /// <param name="profileId">
+        ///     The profile identifier.
+        /// </param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>
+        ///     The profile.
+        /// </returns>
+        [Route("profiles/{profileId:guid}")]
+        [HttpGet]
+        [AllowAnonymous]
+        [ProducesResponseType(typeof(PublicProfile), (int) HttpStatusCode.OK)]
+        [SwaggerResponse((int) HttpStatusCode.OK, typeof(PublicProfile))]
+        [SwaggerResponse((int) HttpStatusCode.NotFound, null, "The profile does not exist.")]
+        public async Task<IActionResult> Get(Guid profileId, CancellationToken cancellationToken)
+        {
+            if (profileId == Guid.Empty)
+            {
+                return new ErrorMessageResult(Resources.NotFound, HttpStatusCode.NotFound);
+            }
+
+            var profile = await _manager.GetPublicProfile(profileId, cancellationToken).ConfigureAwait(false);
 
             if (profile == null)
             {

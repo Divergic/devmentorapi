@@ -12,12 +12,14 @@
             StatusCode = (int)statusCode;
         }
 
-        public ErrorObjectResult(object error, HttpStatusCode statusCode = HttpStatusCode.InternalServerError) : base(DetermineErrorObject(error))
+        public ErrorObjectResult(object error, HttpStatusCode statusCode = HttpStatusCode.InternalServerError) : base(
+            DetermineErrorObject(error))
         {
             StatusCode = (int)statusCode;
         }
 
-        public ErrorObjectResult(string message, HttpStatusCode statusCode = HttpStatusCode.InternalServerError) : base(BuildErrorObject(message))
+        public ErrorObjectResult(string message, HttpStatusCode statusCode = HttpStatusCode.InternalServerError) : base(
+            BuildErrorObject(message))
         {
             StatusCode = (int)statusCode;
         }

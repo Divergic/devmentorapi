@@ -4,6 +4,7 @@
     using System.IO;
     using System.Net;
     using System.Threading.Tasks;
+    using DevMentorApi.Core;
     using FluentAssertions;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
@@ -12,7 +13,6 @@
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using NSubstitute;
-    using DevMentorApi.Core;
     using Xunit;
 
     public class ResultExecutorTests

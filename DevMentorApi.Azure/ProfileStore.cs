@@ -16,14 +16,14 @@
         }
 
         public async Task<Profile> BanProfile(
-            Guid accountId,
+            Guid profileId,
             DateTimeOffset bannedAt,
             CancellationToken cancellationToken)
         {
-            Ensure.That(accountId, nameof(accountId)).IsNotEmpty();
+            Ensure.That(profileId, nameof(profileId)).IsNotEmpty();
 
-            var partitionKey = ProfileAdapter.BuildPartitionKey(accountId);
-            var rowKey = ProfileAdapter.BuildRowKey(accountId);
+            var partitionKey = ProfileAdapter.BuildPartitionKey(profileId);
+            var rowKey = ProfileAdapter.BuildRowKey(profileId);
 
             var operation = TableOperation.Retrieve<ProfileAdapter>(partitionKey, rowKey);
             var table = GetTable(TableName);
@@ -32,7 +32,7 @@
 
             if (result.HttpStatusCode == 404)
             {
-                throw new EntityNotFoundException();
+                return null;
             }
 
             var entity = (ProfileAdapter)result.Result;
@@ -46,12 +46,12 @@
             return entity.Value;
         }
 
-        public async Task<Profile> GetProfile(Guid accountId, CancellationToken cancellationToken)
+        public async Task<Profile> GetProfile(Guid profileId, CancellationToken cancellationToken)
         {
-            Ensure.That(accountId, nameof(accountId)).IsNotEmpty();
+            Ensure.That(profileId, nameof(profileId)).IsNotEmpty();
 
-            var partitionKey = ProfileAdapter.BuildPartitionKey(accountId);
-            var rowKey = ProfileAdapter.BuildRowKey(accountId);
+            var partitionKey = ProfileAdapter.BuildPartitionKey(profileId);
+            var rowKey = ProfileAdapter.BuildRowKey(profileId);
             var operation = TableOperation.Retrieve<ProfileAdapter>(partitionKey, rowKey);
             var table = GetTable(TableName);
 

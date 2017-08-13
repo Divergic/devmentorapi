@@ -18,13 +18,21 @@
             _configuration = configuration;
         }
 
-        protected async Task ExecuteWithCreateTable(
+        protected Task ExecuteWithCreateTable(
             string tableName,
             TableOperation operation,
             CancellationToken cancellationToken)
         {
             var table = GetTable(tableName);
 
+            return ExecuteWithCreateTable(table, operation, cancellationToken);
+        }
+
+        protected async Task ExecuteWithCreateTable(
+            CloudTable table,
+            TableOperation operation,
+            CancellationToken cancellationToken)
+        {
             try
             {
                 await table.ExecuteAsync(operation).ConfigureAwait(false);
@@ -42,10 +50,19 @@
                     return;
                 }
 
-                // The table doesn't exist yet, retry
-                await table.CreateIfNotExistsAsync(null, null, cancellationToken).ConfigureAwait(false);
+                // Check if this 404 is because of the table not existing
+                if (ex.RequestInformation.ExtendedErrorInformation.ErrorCode == "TableNotFound")
+                {
+                    // The table doesn't exist yet, retry
+                    await table.CreateIfNotExistsAsync(null, null, cancellationToken).ConfigureAwait(false);
 
-                await table.ExecuteAsync(operation).ConfigureAwait(false);
+                    await table.ExecuteAsync(operation).ConfigureAwait(false);
+
+                    return;
+                }
+
+                // This is an unknown failure scenario
+                throw;
             }
         }
 

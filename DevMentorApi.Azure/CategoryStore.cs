@@ -28,6 +28,10 @@ namespace DevMentorApi.Azure
             };
 
             var adapter = new CategoryAdapter(category);
+
+            // We can't overwrite the existing one because the existing one might have been reviewed by an admin
+            // with a public cache that is out of date such that a user editing a profile is trying to create a new category
+            // This was InsertOrReplace then we would lose the reviewed category information
             var operation = TableOperation.Insert(adapter);
 
             try

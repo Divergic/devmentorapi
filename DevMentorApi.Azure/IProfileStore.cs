@@ -7,9 +7,10 @@
 
     public interface IProfileStore
     {
-        Task<Profile> BanProfile(Guid accountId, DateTimeOffset bannedAt, CancellationToken cancellationToken);
+        Task<Profile> BanProfile(Guid profileId, DateTimeOffset bannedAt, CancellationToken cancellationToken);
 
-        Task<Profile> GetProfile(Guid accountId, CancellationToken cancellationToken);
+        Task<Profile> GetProfile(Guid profileId, CancellationToken cancellationToken);
+
         Task StoreProfile(Profile profile, CancellationToken cancellationToken);
     }
 }

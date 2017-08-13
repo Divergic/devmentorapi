@@ -79,10 +79,19 @@
             action.ShouldThrow<ArgumentException>();
         }
 
-        [Fact]
-        public async Task GetAllCategoriesReturnsAllStoredCategoriesTest()
+        [Theory]
+        [InlineData(10)]
+        [InlineData(100)]
+        [InlineData(110)]
+        public async Task GetAllCategoriesReturnsCategoriesWithDifferentBatchSizesTest(int itemCount)
         {
+            var builder = Model.BuildStrategy.Clone();
+
+            builder.TypeCreators.OfType<EnumerableTypeCreator>().Single().AutoPopulateCount = itemCount;
+
             var entries = Model.Create<List<Category>>();
+
+            entries.Count.Should().Be(itemCount);
 
             var sut = new CategoryStore(Config.Storage);
 
@@ -108,7 +117,7 @@
         [Fact]
         public async Task GetAllCategoriesReturnsEmptyWhenTableNotFoundTest()
         {
-            // Retrieve storage Category from connection-string
+            // Retrieve storage account from connection-string
             var storageAccount = CloudStorageAccount.Parse(Config.Storage.ConnectionString);
 
             // Create the table client
@@ -128,7 +137,7 @@
         [Fact]
         public async Task StoreCategoryCreatesTableAndWritesCategoryWhenTableNotFoundTest()
         {
-            // Retrieve storage Category from connection-string
+            // Retrieve storage account from connection-string
             var storageAccount = CloudStorageAccount.Parse(Config.Storage.ConnectionString);
 
             // Create the table client

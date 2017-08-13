@@ -2,9 +2,6 @@
 {
     public interface IStorageConfiguration
     {
-        string ConnectionString
-        {
-            get;
-        }
+        string ConnectionString { get; }
     }
 }

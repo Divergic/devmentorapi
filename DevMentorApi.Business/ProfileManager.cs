@@ -3,83 +3,131 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using DevMentorApi.Azure;
-    using DevMentorApi.Model;
+    using Azure;
     using EnsureThat;
-    using Microsoft.Extensions.Caching.Memory;
+    using Model;
 
     public class ProfileManager : IProfileManager
     {
-        private readonly IMemoryCache _cache;
-        private readonly ICacheConfig _config;
+        private readonly ICacheManager _cache;
+        private readonly IProfileChangeCalculator _calculator;
+        private readonly IProfileChangeProcessor _processor;
         private readonly IProfileStore _store;
 
-        public ProfileManager(IProfileStore store, IMemoryCache cache, ICacheConfig config)
+        public ProfileManager(
+            IProfileStore store,
+            IProfileChangeCalculator calculator,
+            IProfileChangeProcessor processor,
+            ICacheManager cache)
         {
             Ensure.That(store, nameof(store)).IsNotNull();
+            Ensure.That(calculator, nameof(calculator)).IsNotNull();
+            Ensure.That(processor, nameof(processor)).IsNotNull();
             Ensure.That(cache, nameof(cache)).IsNotNull();
-            Ensure.That(config, nameof(config)).IsNotNull();
 
             _store = store;
+            _calculator = calculator;
+            _processor = processor;
             _cache = cache;
-            _config = config;
         }
 
-        public async Task BanProfile(Guid accountId, DateTimeOffset bannedAt, CancellationToken cancellationToken)
+        public async Task<Profile> BanProfile(Guid id, DateTimeOffset bannedAt, CancellationToken cancellationToken)
         {
-            Ensure.That(accountId, nameof(accountId)).IsNotEmpty();
+            Ensure.That(id, nameof(id)).IsNotEmpty();
 
-            var profile = await _store.BanProfile(accountId, bannedAt, cancellationToken).ConfigureAwait(false);
-
-            // Update the cache of profiles for this profile
-            // In the short term, we will just update the profile and rely on the public search to filter out banned profiles
-            // TODO: Update all item links (and link caches) to removed the banned profile, then remove the banned profile from cache
-            var cacheKey = BuildCacheKey(accountId);
-
-            StoreProfileInCache(cacheKey, profile);
-        }
-
-        public async Task<Profile> GetProfile(Guid accountId, CancellationToken cancellationToken)
-        {
-            Ensure.That(accountId, nameof(accountId)).IsNotEmpty();
-
-            Profile profile;
-
-            var cacheKey = BuildCacheKey(accountId);
-
-            if (_cache.TryGetValue(cacheKey, out profile))
-            {
-                return profile;
-            }
-
-            profile = await _store.GetProfile(accountId, cancellationToken).ConfigureAwait(false);
+            var profile = await _store.BanProfile(id, bannedAt, cancellationToken).ConfigureAwait(false);
 
             if (profile == null)
             {
                 return null;
             }
 
-            StoreProfileInCache(cacheKey, profile);
+            // Update the cache of profiles for this profile
+            _cache.StoreProfile(profile);
 
+            // TODO: Update all item links (and link caches) to removed the banned profile, then remove the banned profile from cache
             return profile;
         }
 
-        private void StoreProfileInCache(string cacheKey, Profile profile)
+        public Task<Profile> GetProfile(Guid id, CancellationToken cancellationToken)
         {
-            var options = new MemoryCacheEntryOptions
-            {
-                SlidingExpiration = _config.ProfileExpiration
-            };
+            Ensure.That(id, nameof(id)).IsNotEmpty();
 
-            // Cache this account for lookup later
-            _cache.Set(cacheKey, profile, options);
+            return FindProfile(id, cancellationToken);
         }
 
-        private static string BuildCacheKey(Guid accountId)
+        public async Task<PublicProfile> GetPublicProfile(Guid id, CancellationToken cancellationToken)
         {
-            // The cache key has a prefix to partition this type of object just in case there is a key collision with another object type
-            var cacheKey = "Profile|" + accountId;
-            return cacheKey;
+            Ensure.That(id, nameof(id)).IsNotEmpty();
+
+            var profile = await FindProfile(id, cancellationToken).ConfigureAwait(false);
+
+            if (profile == null)
+            {
+                return null;
+            }
+
+            if (profile.Status == ProfileStatus.Hidden)
+            {
+                return null;
+            }
+
+            if (profile.BannedAt != null)
+            {
+                return null;
+            }
+
+            return new PublicProfile(profile);
+        }
+
+        public async Task UpdateProfile(Guid profileId, UpdatableProfile profile, CancellationToken cancellationToken)
+        {
+            Ensure.That(profileId, nameof(profileId)).IsNotEmpty();
+            Ensure.That(profile, nameof(profile)).IsNotNull();
+
+            var original = await _store.GetProfile(profileId, cancellationToken).ConfigureAwait(false);
+
+            var updated = new Profile(profile)
+            {
+                Id = original.Id,
+                BannedAt = original.BannedAt
+            };
+
+            if (original.BannedAt != null)
+            {
+                // We don't calculate any changes to category links for a banned profile
+                await _store.StoreProfile(updated, cancellationToken).ConfigureAwait(false);
+
+                return;
+            }
+
+            var changes = _calculator.CalculateChanges(original, profile);
+
+            if (changes.ProfileChanged)
+            {
+                await _processor.Execute(updated, changes, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        private async Task<Profile> FindProfile(Guid id, CancellationToken cancellationToken)
+        {
+            var profile = _cache.GetProfile(id);
+
+            if (profile != null)
+            {
+                return profile;
+            }
+
+            profile = await _store.GetProfile(id, cancellationToken).ConfigureAwait(false);
+
+            if (profile == null)
+            {
+                return null;
+            }
+
+            _cache.StoreProfile(profile);
+
+            return profile;
         }
     }
 }

@@ -3,11 +3,11 @@
     using System;
     using System.Net;
     using System.Threading.Tasks;
+    using DevMentorApi.Core;
+    using DevMentorApi.Properties;
     using EnsureThat;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Logging;
-    using DevMentorApi.Core;
-    using DevMentorApi.Properties;
 
     public class ShieldExceptionMiddleware
     {

@@ -7,24 +7,19 @@ namespace DevMentorApi.Business
     using DevMentorApi.Azure;
     using DevMentorApi.Model;
     using EnsureThat;
-    using Microsoft.Extensions.Caching.Memory;
 
     public class CategoryManager : ICategoryManager
     {
-        private const string CacheKey = "Categories";
-        private readonly IMemoryCache _cache;
-        private readonly ICacheConfig _config;
+        private readonly ICacheManager _cache;
         private readonly ICategoryStore _store;
 
-        public CategoryManager(ICategoryStore store, IMemoryCache cache, ICacheConfig config)
+        public CategoryManager(ICategoryStore store, ICacheManager cache)
         {
             Ensure.That(store, nameof(store)).IsNotNull();
             Ensure.That(cache, nameof(cache)).IsNotNull();
-            Ensure.That(config, nameof(config)).IsNotNull();
 
             _store = store;
             _cache = cache;
-            _config = config;
         }
 
         public async Task CreateCategory(NewCategory newCategory, CancellationToken cancellationToken)
@@ -42,7 +37,7 @@ namespace DevMentorApi.Business
 
             await _store.StoreCategory(category, cancellationToken).ConfigureAwait(false);
 
-            _cache.Remove(CacheKey);
+            _cache.RemoveCategories();
         }
 
         public async Task<IEnumerable<Category>> GetCategories(ReadType readType, CancellationToken cancellationToken)
@@ -61,9 +56,9 @@ namespace DevMentorApi.Business
 
         private async Task<IEnumerable<Category>> GetCategoriesInternal(CancellationToken cancellationToken)
         {
-            IEnumerable<Category> categories;
+            var categories = _cache.GetCategories();
 
-            if (_cache.TryGetValue(CacheKey, out categories))
+            if (categories != null)
             {
                 return categories;
             }
@@ -75,17 +70,11 @@ namespace DevMentorApi.Business
                 return new List<Category>();
             }
 
-            var storedItems = results.ToList();
+            categories = results.ToList();
 
-            var options = new MemoryCacheEntryOptions
-            {
-                SlidingExpiration = _config.CategoriesExpiration
-            };
+            _cache.StoreCategories(categories);
 
-            // Cache this account for lookup later
-            _cache.Set(CacheKey, storedItems, options);
-
-            return storedItems;
+            return categories;
         }
     }
 }
