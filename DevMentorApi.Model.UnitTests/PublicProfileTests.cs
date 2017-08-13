@@ -1,9 +1,8 @@
-﻿namespace DevMentorApi.UnitTests.ViewModels
+﻿namespace DevMentorApi.Model.UnitTests
 {
     using System;
-    using DevMentorApi.Model;
-    using DevMentorApi.ViewModels;
     using FluentAssertions;
+    using Model;
     using ModelBuilder;
     using Xunit;
 

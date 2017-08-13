@@ -11,6 +11,7 @@
     using EnsureThat;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
+    using Model;
     using Swashbuckle.AspNetCore.SwaggerGen;
 
     public class ProfileController : Controller
@@ -47,16 +48,14 @@
                 return new ErrorMessageResult(Resources.NotFound, HttpStatusCode.NotFound);
             }
 
-            var profile = await _manager.GetProfile(profileId, cancellationToken).ConfigureAwait(false);
+            var profile = await _manager.GetPublicProfile(profileId, cancellationToken).ConfigureAwait(false);
 
             if (profile == null)
             {
                 return new ErrorMessageResult(Resources.NotFound, HttpStatusCode.NotFound);
             }
-
-            var publicProfile = new PublicProfile(profile);
-
-            return new OkObjectResult(publicProfile);
+            
+            return new OkObjectResult(profile);
         }
     }
 }

@@ -73,7 +73,7 @@
         [Fact]
         public async Task GetReturnsProfileForSpecifiedIdTest()
         {
-            var profile = Model.Create<Profile>();
+            var profile = Model.Create<PublicProfile>();
 
             var manager = Substitute.For<IProfileManager>();
             var httpContext = Substitute.For<HttpContext>();
@@ -85,7 +85,7 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                manager.GetProfile(profile.Id, tokenSource.Token).Returns(profile);
+                manager.GetPublicProfile(profile.Id, tokenSource.Token).Returns(profile);
 
                 using (var target = new ProfileController(manager))
                 {
@@ -97,7 +97,7 @@
 
                     var result = actual.As<OkObjectResult>();
 
-                    result.Value.ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+                    result.Value.Should().Be(profile);
                 }
             }
         }

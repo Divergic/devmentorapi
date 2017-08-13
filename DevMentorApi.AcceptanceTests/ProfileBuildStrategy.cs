@@ -15,6 +15,7 @@
 
             compiler.AddExecuteOrderRule<Skill>(x => x.YearStarted, 30000);
             compiler.AddExecuteOrderRule<Skill>(x => x.YearLastUsed, 20000);
+            compiler.AddCreationRule<Profile>(x => x.Status, 5000, ProfileStatus.Available);
 
             compiler.AddValueGenerator<YearInPastValueGenerator>();
 

@@ -4,11 +4,11 @@
     using System.Collections.Generic;
     using System.Net;
     using System.Threading.Tasks;
-    using DevMentorApi.Model;
-    using DevMentorApi.ViewModels;
     using FluentAssertions;
     using Microsoft.Extensions.Logging;
+    using Model;
     using ModelBuilder;
+    using ViewModels;
     using Xunit;
     using Xunit.Abstractions;
 
@@ -26,7 +26,7 @@
         [Fact]
         public async Task GetForNewUserCreatesProfileAsHiddenTest()
         {
-            var profile = Model.Create<Profile>().Set(x => x.BannedAt = null);
+            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>().Set(x => x.BannedAt = null);
             var identity = ClaimsIdentityFactory.Build(null, profile);
             var address = ApiLocation.Profile;
 
@@ -77,11 +77,39 @@
         }
 
         [Fact]
+        public async Task GetReturnsExistingProfileTest()
+        {
+            var account = Model.Using<ProfileBuildStrategy>().Create<Account>();
+            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save(_logger, account)
+                .ConfigureAwait(false);
+            var identity = ClaimsIdentityFactory.Build(account, profile);
+            var address = ApiLocation.Profile;
+
+            var actual = await Client.Get<Profile>(address, _logger, identity).ConfigureAwait(false);
+
+            actual.ShouldBeEquivalentTo(profile, opt => opt.Excluding(x => x.Id));
+        }
+
+        [Fact]
         public async Task GetReturnsForbiddenForAnonymousUserTest()
         {
             var address = ApiLocation.Profile;
 
             await Client.Get(address, _logger, null, HttpStatusCode.Unauthorized).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task GetReturnsHiddenProfileTest()
+        {
+            var account = Model.Using<ProfileBuildStrategy>().Create<Account>();
+            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>()
+                .Set(x => x.Status = ProfileStatus.Hidden).Save(_logger, account).ConfigureAwait(false);
+            var identity = ClaimsIdentityFactory.Build(account, profile);
+            var address = ApiLocation.Profile;
+
+            var actual = await Client.Get<Profile>(address, _logger, identity).ConfigureAwait(false);
+
+            actual.ShouldBeEquivalentTo(profile, opt => opt.Excluding(x => x.Id));
         }
 
         [Theory]
@@ -185,7 +213,7 @@
         public async Task PutReturnsBadRequestForInvalidProfileStatusTest()
         {
             var expected = Model.Using<ProfileBuildStrategy>().Create<UpdatableProfile>()
-                .Set(x => x.Status = (ProfileStatus)int.MaxValue);
+                .Set(x => x.Status = (ProfileStatus) int.MaxValue);
             var user = ClaimsIdentityFactory.Build(null, expected);
 
             await Client.Put(ApiLocation.Profile, _logger, expected, user, HttpStatusCode.BadRequest)
@@ -197,7 +225,7 @@
         {
             var expected = Model.Using<ProfileBuildStrategy>().Create<UpdatableProfile>();
             var skill = Model.Using<ProfileBuildStrategy>().Create<Skill>()
-                .Set(x => x.Level = (SkillLevel)int.MaxValue);
+                .Set(x => x.Level = (SkillLevel) int.MaxValue);
 
             expected.Skills.Add(skill);
 

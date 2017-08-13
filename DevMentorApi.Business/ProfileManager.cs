@@ -3,9 +3,9 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using DevMentorApi.Azure;
-    using DevMentorApi.Model;
+    using Azure;
     using EnsureThat;
+    using Model;
 
     public class ProfileManager : IProfileManager
     {
@@ -43,27 +43,30 @@
             _cache.StoreProfile(profile);
         }
 
-        public async Task<Profile> GetProfile(Guid id, CancellationToken cancellationToken)
+        public Task<Profile> GetProfile(Guid id, CancellationToken cancellationToken)
         {
             Ensure.That(id, nameof(id)).IsNotEmpty();
 
-            var profile = _cache.GetProfile(id);
+            return FindProfile(id, cancellationToken);
+        }
 
-            if (profile != null)
-            {
-                return profile;
-            }
+        public async Task<PublicProfile> GetPublicProfile(Guid id, CancellationToken cancellationToken)
+        {
+            Ensure.That(id, nameof(id)).IsNotEmpty();
 
-            profile = await _store.GetProfile(id, cancellationToken).ConfigureAwait(false);
+            var profile = await FindProfile(id, cancellationToken).ConfigureAwait(false);
 
             if (profile == null)
             {
                 return null;
             }
 
-            _cache.StoreProfile(profile);
+            if (profile.Status == ProfileStatus.Hidden)
+            {
+                return null;
+            }
 
-            return profile;
+            return new PublicProfile(profile);
         }
 
         public async Task UpdateProfile(Guid profileId, UpdatableProfile profile, CancellationToken cancellationToken)
@@ -93,6 +96,27 @@
             {
                 await _processor.Execute(updated, changes, cancellationToken).ConfigureAwait(false);
             }
+        }
+
+        private async Task<Profile> FindProfile(Guid id, CancellationToken cancellationToken)
+        {
+            var profile = _cache.GetProfile(id);
+
+            if (profile != null)
+            {
+                return profile;
+            }
+
+            profile = await _store.GetProfile(id, cancellationToken).ConfigureAwait(false);
+
+            if (profile == null)
+            {
+                return null;
+            }
+
+            _cache.StoreProfile(profile);
+
+            return profile;
         }
     }
 }

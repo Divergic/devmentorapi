@@ -1,7 +1,6 @@
-﻿namespace DevMentorApi.ViewModels
+﻿namespace DevMentorApi.Model
 {
     using System;
-    using DevMentorApi.Model;
     using EnsureThat;
 
     public class PublicProfile

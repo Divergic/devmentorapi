@@ -152,6 +152,7 @@
             {
                 var token = TokenFactory.GenerateToken(identity);
 
+                logger?.LogInformation("Identity: {0}", identity.Name);
                 logger?.LogInformation("Bearer: {0}", token);
 
                 request.Headers.Add("Authorization", "Bearer " + token);
@@ -200,6 +201,7 @@
             {
                 var token = TokenFactory.GenerateToken(identity);
 
+                logger?.LogInformation("Identity: {0}", identity.Name);
                 logger?.LogInformation("Bearer: {0}", token);
 
                 request.Headers.Add("Authorization", "Bearer " + token);
