@@ -31,16 +31,22 @@
             _cache = cache;
         }
 
-        public async Task BanProfile(Guid id, DateTimeOffset bannedAt, CancellationToken cancellationToken)
+        public async Task<Profile> BanProfile(Guid id, DateTimeOffset bannedAt, CancellationToken cancellationToken)
         {
             Ensure.That(id, nameof(id)).IsNotEmpty();
 
             var profile = await _store.BanProfile(id, bannedAt, cancellationToken).ConfigureAwait(false);
 
+            if (profile == null)
+            {
+                return null;
+            }
+
             // Update the cache of profiles for this profile
-            // In the short term, we will just update the profile and rely on the public search to filter out banned profiles
-            // TODO: Update all item links (and link caches) to removed the banned profile, then remove the banned profile from cache
             _cache.StoreProfile(profile);
+
+            // TODO: Update all item links (and link caches) to removed the banned profile, then remove the banned profile from cache
+            return profile;
         }
 
         public Task<Profile> GetProfile(Guid id, CancellationToken cancellationToken)
@@ -62,6 +68,11 @@
             }
 
             if (profile.Status == ProfileStatus.Hidden)
+            {
+                return null;
+            }
+
+            if (profile.BannedAt != null)
             {
                 return null;
             }

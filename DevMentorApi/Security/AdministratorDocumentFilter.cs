@@ -16,9 +16,40 @@
                 {
                     var exclude = IsExcluded(description);
 
-                    if (exclude)
+                    if (exclude == false)
                     {
-                        swaggerDoc.Paths.Remove("/" + description.RelativePath);
+                        continue;
+                    }
+
+                    var doc = swaggerDoc.Paths["/" + description.RelativePath];
+
+                    if (description.HttpMethod == "GET")
+                    {
+                        doc.Get = null;
+                    }
+                    else if (description.HttpMethod == "DELETE")
+                    {
+                        doc.Delete = null;
+                    }
+                    else if (description.HttpMethod == "HEAD")
+                    {
+                        doc.Head = null;
+                    }
+                    else if (description.HttpMethod == "OPTIONS")
+                    {
+                        doc.Options = null;
+                    }
+                    else if (description.HttpMethod == "PATCH")
+                    {
+                        doc.Patch = null;
+                    }
+                    else if (description.HttpMethod == "POST")
+                    {
+                        doc.Post = null;
+                    }
+                    else if (description.HttpMethod == "PUT")
+                    {
+                        doc.Put = null;
                     }
                 }
             }

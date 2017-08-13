@@ -15,6 +15,37 @@
     {
         private static readonly HttpClient _client = new HttpClient();
 
+        public static async Task Delete(
+            Uri address,
+            ILogger logger = null,
+            ClaimsIdentity identity = null,
+            HttpStatusCode expectedCode = HttpStatusCode.NoContent,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var request = new HttpRequestMessage(HttpMethod.Delete, address);
+
+            if (identity != null)
+            {
+                var token = TokenFactory.GenerateToken(identity);
+
+                logger?.LogInformation("Identity: {0}", identity.Name);
+                logger?.LogInformation("Bearer: {0}", token);
+
+                request.Headers.Add("Authorization", "Bearer " + token);
+            }
+
+            var response = await _client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+
+            logger?.LogInformation(
+                "{0} {1}: {2} - {3}",
+                request.Method,
+                Config.WebsiteAddress.MakeRelativeUri(address),
+                response.StatusCode,
+                response.ReasonPhrase);
+
+            response.StatusCode.Should().Be(expectedCode);
+        }
+
         public static Task Get(
             Uri address,
             ILogger logger = null,
@@ -32,7 +63,8 @@
             HttpStatusCode expectedCode = HttpStatusCode.OK,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            var content = await GetInternal(address, logger, identity, expectedCode, cancellationToken).ConfigureAwait(false);
+            var content = await GetInternal(address, logger, identity, expectedCode, cancellationToken)
+                .ConfigureAwait(false);
 
             var value = JsonConvert.DeserializeObject<T>(content);
 
@@ -49,7 +81,8 @@
             var response = await _client.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
             logger?.LogInformation(
-                "{0}: {1} - {2}",
+                "{0} {1}: {2} - {3}",
+                request.Method,
                 Config.WebsiteAddress.MakeRelativeUri(address),
                 response.StatusCode,
                 response.ReasonPhrase);
@@ -174,7 +207,8 @@
             var response = await _client.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
             logger?.LogInformation(
-                "{0}: {1} - {2}",
+                "{0} {1}: {2} - {3}",
+                request.Method,
                 Config.WebsiteAddress.MakeRelativeUri(address),
                 response.StatusCode,
                 response.ReasonPhrase);
@@ -210,7 +244,8 @@
             var response = await _client.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
             logger?.LogInformation(
-                "{0}: {1} - {2}",
+                "{0} {1}: {2} - {3}",
+                request.Method,
                 Config.WebsiteAddress.MakeRelativeUri(address),
                 response.StatusCode,
                 response.ReasonPhrase);

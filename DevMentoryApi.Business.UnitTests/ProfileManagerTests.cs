@@ -16,6 +16,29 @@
         [Fact]
         public async Task BanProfileCallsStoreWithBanInformationTest()
         {
+            var profile = Model.Create<Profile>();
+            var bannedAt = DateTimeOffset.UtcNow.AddDays(-2);
+
+            var store = Substitute.For<IProfileStore>();
+            var calculator = Substitute.For<IProfileChangeCalculator>();
+            var processor = Substitute.For<IProfileChangeProcessor>();
+            var cache = Substitute.For<ICacheManager>();
+
+            var sut = new ProfileManager(store, calculator, processor, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                store.BanProfile(profile.Id, Arg.Any<DateTimeOffset>(), tokenSource.Token).Returns(profile);
+
+                await sut.BanProfile(profile.Id, bannedAt, tokenSource.Token).ConfigureAwait(false);
+
+                await store.Received().BanProfile(profile.Id, bannedAt, tokenSource.Token).ConfigureAwait(false);
+            }
+        }
+
+        [Fact]
+        public async Task BanProfileReturnsNullWhenProfileNotInStoreTest()
+        {
             var profileId = Guid.NewGuid();
             var bannedAt = DateTimeOffset.UtcNow.AddDays(-2);
 
@@ -28,9 +51,10 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                await sut.BanProfile(profileId, bannedAt, tokenSource.Token).ConfigureAwait(false);
+                var actual = await sut.BanProfile(profileId, bannedAt, tokenSource.Token).ConfigureAwait(false);
 
-                await store.Received().BanProfile(profileId, bannedAt, tokenSource.Token).ConfigureAwait(false);
+                actual.Should().BeNull();
+                cache.DidNotReceive().StoreProfile(Arg.Any<Profile>());
             }
         }
 
@@ -98,6 +122,54 @@
         }
 
         [Fact]
+        public async Task GetProfileReturnsBannedProfileFromCachedTest()
+        {
+            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Available)
+                .Set(x => x.BannedAt = DateTimeOffset.UtcNow);
+
+            var profileStore = Substitute.For<IProfileStore>();
+            var cache = Substitute.For<ICacheManager>();
+            var calculator = Substitute.For<IProfileChangeCalculator>();
+            var processor = Substitute.For<IProfileChangeProcessor>();
+
+            var sut = new ProfileManager(profileStore, calculator, processor, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                cache.GetProfile(expected.Id).Returns(expected);
+
+                var actual = await sut.GetProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
+
+                actual.ShouldBeEquivalentTo(expected, opt => opt.ExcludingMissingMembers());
+                cache.DidNotReceive().StoreProfile(Arg.Any<Profile>());
+            }
+        }
+
+        [Fact]
+        public async Task GetProfileReturnsBannedProfileFromStoreTest()
+        {
+            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Available)
+                .Set(x => x.BannedAt = DateTimeOffset.UtcNow);
+
+            var profileStore = Substitute.For<IProfileStore>();
+            var cache = Substitute.For<ICacheManager>();
+            var calculator = Substitute.For<IProfileChangeCalculator>();
+            var processor = Substitute.For<IProfileChangeProcessor>();
+
+            var sut = new ProfileManager(profileStore, calculator, processor, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                profileStore.GetProfile(expected.Id, tokenSource.Token).Returns(expected);
+
+                var actual = await sut.GetProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
+
+                actual.ShouldBeEquivalentTo(expected, opt => opt.ExcludingMissingMembers());
+                cache.Received().StoreProfile(expected);
+            }
+        }
+
+        [Fact]
         public async Task GetProfileReturnsCachedProfileTest()
         {
             var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Unavailable);
@@ -122,7 +194,8 @@
         [Fact]
         public async Task GetProfileReturnsHiddenProfileFromCachedTest()
         {
-            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Hidden);
+            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Hidden)
+                .Set(x => x.BannedAt = null);
 
             var profileStore = Substitute.For<IProfileStore>();
             var cache = Substitute.For<ICacheManager>();
@@ -145,7 +218,8 @@
         [Fact]
         public async Task GetProfileReturnsHiddenProfileFromStoreTest()
         {
-            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Hidden);
+            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Hidden)
+                .Set(x => x.BannedAt = null);
 
             var profileStore = Substitute.For<IProfileStore>();
             var cache = Substitute.For<ICacheManager>();
@@ -205,7 +279,8 @@
         [Fact]
         public async Task GetPublicProfileCachesHiddenProfileReturnedFromStoreTest()
         {
-            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Hidden);
+            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Hidden)
+                .Set(x => x.BannedAt = null);
 
             var profileStore = Substitute.For<IProfileStore>();
             var cache = Substitute.For<ICacheManager>();
@@ -229,7 +304,8 @@
         [Fact]
         public async Task GetPublicProfileCachesProfileReturnedFromStoreTest()
         {
-            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Unavailable);
+            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Unavailable)
+                .Set(x => x.BannedAt = null);
 
             var profileStore = Substitute.For<IProfileStore>();
             var cache = Substitute.For<ICacheManager>();
@@ -252,7 +328,8 @@
         [Fact]
         public async Task GetPublicProfileReturnsCachedProfileTest()
         {
-            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Unavailable);
+            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Unavailable)
+                .Set(x => x.BannedAt = null);
 
             var profileStore = Substitute.For<IProfileStore>();
             var cache = Substitute.For<ICacheManager>();
@@ -272,9 +349,34 @@
         }
 
         [Fact]
+        public async Task GetPublicProfileReturnsNullWhenCachedProfileIsBannedTest()
+        {
+            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Available)
+                .Set(x => x.BannedAt = DateTimeOffset.UtcNow);
+
+            var profileStore = Substitute.For<IProfileStore>();
+            var cache = Substitute.For<ICacheManager>();
+            var calculator = Substitute.For<IProfileChangeCalculator>();
+            var processor = Substitute.For<IProfileChangeProcessor>();
+
+            var sut = new ProfileManager(profileStore, calculator, processor, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                cache.GetProfile(expected.Id).Returns(expected);
+
+                var actual = await sut.GetPublicProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
+
+                actual.Should().BeNull();
+                cache.DidNotReceive().StoreProfile(Arg.Any<Profile>());
+            }
+        }
+
+        [Fact]
         public async Task GetPublicProfileReturnsNullWhenCachedProfileIsHiddenTest()
         {
-            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Hidden);
+            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Hidden)
+                .Set(x => x.BannedAt = null);
 
             var profileStore = Substitute.For<IProfileStore>();
             var cache = Substitute.For<ICacheManager>();
@@ -312,6 +414,29 @@
 
                 actual.Should().BeNull();
                 cache.DidNotReceive().StoreProfile(Arg.Any<Profile>());
+            }
+        }
+
+        [Fact]
+        public async Task GetPublicProfileReturnsNullWhenStoreProfileIsBannedTest()
+        {
+            var expected = Model.Create<Profile>().Set(x => x.BannedAt = DateTimeOffset.UtcNow);
+
+            var profileStore = Substitute.For<IProfileStore>();
+            var cache = Substitute.For<ICacheManager>();
+            var calculator = Substitute.For<IProfileChangeCalculator>();
+            var processor = Substitute.For<IProfileChangeProcessor>();
+
+            var sut = new ProfileManager(profileStore, calculator, processor, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                profileStore.GetProfile(expected.Id, tokenSource.Token).Returns(expected);
+
+                var actual = await sut.GetPublicProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
+
+                actual.Should().BeNull();
+                cache.Received().StoreProfile(expected);
             }
         }
 

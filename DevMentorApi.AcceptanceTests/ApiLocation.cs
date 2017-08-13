@@ -4,7 +4,7 @@
 
     public static class ApiLocation
     {
-        public static Uri PublicProfileFor(Guid profileId)
+        public static Uri ProfileFor(Guid profileId)
         {
             return new Uri(Config.WebsiteAddress, "/profiles/" + profileId);
         }
@@ -13,6 +13,6 @@
 
         public static Uri Ping => new Uri(Config.WebsiteAddress, "/ping");
 
-        public static Uri Profile => new Uri(Config.WebsiteAddress, "/profile");
+        public static Uri UserProfile => new Uri(Config.WebsiteAddress, "/profile");
     }
 }

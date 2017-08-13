@@ -32,7 +32,7 @@
 
             if (result.HttpStatusCode == 404)
             {
-                throw new EntityNotFoundException();
+                return null;
             }
 
             var entity = (ProfileAdapter)result.Result;

@@ -6,7 +6,7 @@
     /// <summary>
     ///     The Ping endpoint is used to determine whether the API is available without causing a performance impact.
     /// </summary>
-    [Route("[controller]")]
+    [Route("ping")]
     [AllowAnonymous]
     public class PingController : Controller
     {

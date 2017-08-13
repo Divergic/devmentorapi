@@ -3,21 +3,105 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using DevMentorApi.Business;
+    using Business;
     using DevMentorApi.Controllers;
     using DevMentorApi.Core;
-    using DevMentorApi.Model;
     using FluentAssertions;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Controllers;
     using Microsoft.AspNetCore.Routing;
+    using Model;
     using ModelBuilder;
     using NSubstitute;
     using Xunit;
 
     public class ProfileControllerTests
     {
+        [Fact]
+        public async Task DeleteBansProfileTest()
+        {
+            var profile = Model.Create<Profile>();
+
+            var manager = Substitute.For<IProfileManager>();
+            var httpContext = Substitute.For<HttpContext>();
+
+            var routerData = new RouteData();
+            var actionDescriptor = new ControllerActionDescriptor();
+            var actionContext = new ActionContext(httpContext, routerData, actionDescriptor);
+            var controllerContext = new ControllerContext(actionContext);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                using (var target = new ProfileController(manager))
+                {
+                    target.ControllerContext = controllerContext;
+
+                    manager.BanProfile(profile.Id, Arg.Any<DateTimeOffset>(), tokenSource.Token).Returns(profile);
+
+                    var actual = await target.Delete(profile.Id, tokenSource.Token).ConfigureAwait(false);
+
+                    actual.Should().BeOfType<NoContentResult>();
+
+                    await manager.Received().BanProfile(profile.Id,
+                        Verify.That<DateTimeOffset>(x => x.Should().BeCloseTo(DateTimeOffset.UtcNow, 1000)),
+                        tokenSource.Token).ConfigureAwait(false);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task DeleteReturnsNotFoundWhenManagerReturnsNullTest()
+        {
+            var id = Guid.NewGuid();
+
+            var manager = Substitute.For<IProfileManager>();
+            var httpContext = Substitute.For<HttpContext>();
+
+            var routerData = new RouteData();
+            var actionDescriptor = new ControllerActionDescriptor();
+            var actionContext = new ActionContext(httpContext, routerData, actionDescriptor);
+            var controllerContext = new ControllerContext(actionContext);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                using (var target = new ProfileController(manager))
+                {
+                    target.ControllerContext = controllerContext;
+
+                    var actual = await target.Delete(id, tokenSource.Token).ConfigureAwait(false);
+
+                    actual.Should().BeOfType<ErrorMessageResult>();
+                }
+            }
+        }
+
+        [Fact]
+        public async Task DeleteReturnsNotFoundWithEmptyIdTest()
+        {
+            var id = Guid.Empty;
+
+            var manager = Substitute.For<IProfileManager>();
+            var httpContext = Substitute.For<HttpContext>();
+
+            var routerData = new RouteData();
+            var actionDescriptor = new ControllerActionDescriptor();
+            var actionContext = new ActionContext(httpContext, routerData, actionDescriptor);
+            var controllerContext = new ControllerContext(actionContext);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                using (var target = new ProfileController(manager))
+                {
+                    target.ControllerContext = controllerContext;
+
+                    var actual = await target.Delete(id, tokenSource.Token).ConfigureAwait(false);
+
+                    actual.Should().BeOfType<ErrorMessageResult>();
+                }
+            }
+        }
+
         [Fact]
         public async Task GetReturnsNotFoundWhenManagerReturnsNullTest()
         {

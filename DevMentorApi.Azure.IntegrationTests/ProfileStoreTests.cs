@@ -3,9 +3,9 @@ namespace DevMentorApi.Azure.IntegrationTests
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using DevMentorApi.Model;
     using FluentAssertions;
     using Microsoft.WindowsAzure.Storage;
+    using Model;
     using ModelBuilder;
     using NSubstitute;
     using Xunit;
@@ -13,14 +13,14 @@ namespace DevMentorApi.Azure.IntegrationTests
     public class ProfileStoreTests
     {
         [Fact]
-        public void BanProfileThrowsExceptionWhenProfileNotFoundTest()
+        public async Task BanProfileReturnsNullWhenProfileNotFoundTest()
         {
             var sut = new ProfileStore(Config.Storage);
 
-            Func<Task> action = async () => await sut
-                .BanProfile(Guid.NewGuid(), DateTimeOffset.UtcNow, CancellationToken.None).ConfigureAwait(false);
+            var actual = await sut.BanProfile(Guid.NewGuid(), DateTimeOffset.UtcNow, CancellationToken.None)
+                .ConfigureAwait(false);
 
-            action.ShouldThrow<EntityNotFoundException>();
+            actual.Should().BeNull();
         }
 
         [Fact]

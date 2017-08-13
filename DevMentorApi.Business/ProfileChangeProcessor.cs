@@ -87,7 +87,15 @@
                         ProfileId = profile.Id
                     };
 
-                    var categoryTask = StoreCategoryChange(category, change, cancellationToken);
+                    // Store the link update
+                    var categoryLinkTask = _linkStore.StoreCategoryLink(category.Group, category.Name, change, cancellationToken);
+
+                    categoryTasks.Add(categoryLinkTask);
+
+                    // TODO: Invalidate the link category cache
+
+                    // Update the category data
+                    var categoryTask = _categoryStore.StoreCategory(category, cancellationToken);
 
                     categoryTasks.Add(categoryTask);
                 }
@@ -106,21 +114,6 @@
 
                 _cache.StoreProfile(profile);
             }
-        }
-
-        private async Task StoreCategoryChange(
-            Category category,
-            CategoryLinkChange linkChange,
-            CancellationToken cancellationToken)
-        {
-            // Store the link update
-            await _linkStore.StoreCategoryLink(category.Group, category.Name, linkChange, cancellationToken)
-                .ConfigureAwait(false);
-
-            // TODO: Invalidate the link category cache
-
-            // Update the category data
-            await _categoryStore.StoreCategory(category, cancellationToken).ConfigureAwait(false);
         }
     }
 }

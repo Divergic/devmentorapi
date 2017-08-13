@@ -61,7 +61,7 @@
 
             actual.Should().Contain(x => x.Group == expected.Group && x.Name == expected.Name);
 
-            // TODO: Prove that hidden tasks are not returned to the user
+            // TODO: Prove that hidden categories are not returned to the user
         }
 
         [Fact]
@@ -125,7 +125,7 @@
 
             await Client.Post(address, _logger, model, identity).ConfigureAwait(false);
         }
-
+        
         [Fact]
         public async Task PostReturnsForbiddenWhenUserNotAdministratorTest()
         {
