@@ -22,6 +22,17 @@
         }
 
         [Fact]
+        public async Task GetDoesNotReturnProfileEmailTest()
+        {
+            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save().ConfigureAwait(false);
+            var address = ApiLocation.ProfileFor(profile.Id);
+
+            var actual = await Client.Get<Profile>(address, _logger).ConfigureAwait(false);
+
+            actual.Email.Should().BeNull();
+        }
+
+        [Fact]
         public async Task GetReturnsNotFoundForBannedProfileTest()
         {
             var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>()
