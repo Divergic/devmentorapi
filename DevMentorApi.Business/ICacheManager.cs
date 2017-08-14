@@ -2,7 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
-    using DevMentorApi.Model;
+    using Model;
 
     public interface ICacheManager
     {
@@ -10,7 +10,11 @@
 
         ICollection<Category> GetCategories();
 
+        ICollection<Guid> GetCategoryLinks(ProfileResultFilter filter);
+
         Profile GetProfile(Guid id);
+
+        ICollection<ProfileResult> GetProfileResults();
 
         void RemoveCategories();
 
@@ -18,6 +22,10 @@
 
         void StoreCategories(ICollection<Category> categories);
 
+        void StoreCategoryLinks(ProfileResultFilter filter, ICollection<Guid> links);
+
         void StoreProfile(Profile profile);
+
+        void StoreProfileResults(ICollection<ProfileResult> results);
     }
 }

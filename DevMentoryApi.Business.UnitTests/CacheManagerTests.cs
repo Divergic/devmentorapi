@@ -120,6 +120,111 @@
         }
 
         [Fact]
+        public void GetCategoryLinksReturnsCachedCategoryLinksTest()
+        {
+            var filter = Model.Create<ProfileResultFilter>();
+            var expected = Model.Create<List<Category>>();
+            var cacheKey = "CategoryLinks|" + filter.CategoryGroup + "|" + filter.CategoryName;
+
+            var cache = Substitute.For<IMemoryCache>();
+            var config = Substitute.For<ICacheConfig>();
+
+            object value;
+
+            cache.TryGetValue(cacheKey, out value).Returns(
+                x =>
+                {
+                    x[1] = expected;
+
+                    return true;
+                });
+
+            var sut = new CacheManager(cache, config);
+
+            var actual = sut.GetCategoryLinks(filter);
+
+            actual.ShouldBeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void GetCategoryLinksReturnsNullWhenCachedCategoryLinksNotFoundTest()
+        {
+            var filter = Model.Create<ProfileResultFilter>();
+            var cacheKey = "CategoryLinks|" + filter.CategoryGroup + "|" + filter.CategoryName;
+
+            var cache = Substitute.For<IMemoryCache>();
+            var config = Substitute.For<ICacheConfig>();
+
+            object value;
+
+            cache.TryGetValue(cacheKey, out value).Returns(x => false);
+
+            var sut = new CacheManager(cache, config);
+
+            var actual = sut.GetCategoryLinks(filter);
+
+            actual.Should().BeNull();
+        }
+
+        [Fact]
+        public void GetCategoryLinksThrowsExceptionWithNullFilterTest()
+        {
+            var cache = Substitute.For<IMemoryCache>();
+            var config = Substitute.For<ICacheConfig>();
+
+            var sut = new CacheManager(cache, config);
+
+            Action action = () => sut.GetCategoryLinks(null);
+
+            action.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Fact]
+        public void GetProfileResultsReturnsCachedProfileResultsTest()
+        {
+            var expected = Model.Create<List<ProfileResult>>();
+            const string CacheKey = "ProfileResults";
+
+            var cache = Substitute.For<IMemoryCache>();
+            var config = Substitute.For<ICacheConfig>();
+
+            object value;
+
+            cache.TryGetValue(CacheKey, out value).Returns(
+                x =>
+                {
+                    x[1] = expected;
+
+                    return true;
+                });
+
+            var sut = new CacheManager(cache, config);
+
+            var actual = sut.GetProfileResults();
+
+            actual.ShouldBeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void GetProfileResultsReturnsNullWhenCachedProfileResultsNotFoundTest()
+        {
+            const string CacheKey = "ProfileResults";
+
+            var cache = Substitute.For<IMemoryCache>();
+            var config = Substitute.For<ICacheConfig>();
+
+            object value;
+
+            cache.TryGetValue(CacheKey, out value).Returns(x => false);
+
+            var sut = new CacheManager(cache, config);
+
+            var actual = sut.GetProfileResults();
+
+            actual.Should().BeNull();
+        }
+
+        [Fact]
         public void GetProfileReturnsCachedProfileTest()
         {
             var expected = Model.Create<Profile>();
@@ -258,6 +363,92 @@
             var sut = new CacheManager(cache, config);
 
             sut.StoreCategories(expected);
+
+            cacheEntry.Value.Should().Be(expected);
+            cacheEntry.SlidingExpiration.Should().Be(cacheExpiry);
+        }
+
+        [Fact]
+        public void StoreCategoryLinksThrowsExceptionWithNullCategoryLinksTest()
+        {
+            var filter = Model.Create<ProfileResultFilter>();
+            var cache = Substitute.For<IMemoryCache>();
+            var config = Substitute.For<ICacheConfig>();
+
+            var sut = new CacheManager(cache, config);
+
+            Action action = () => sut.StoreCategoryLinks(filter, null);
+
+            action.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Fact]
+        public void StoreCategoryLinksThrowsExceptionWithNullFilterTest()
+        {
+            var links = Model.Create<List<Guid>>();
+            var cache = Substitute.For<IMemoryCache>();
+            var config = Substitute.For<ICacheConfig>();
+
+            var sut = new CacheManager(cache, config);
+
+            Action action = () => sut.StoreCategoryLinks(null, links);
+
+            action.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Fact]
+        public void StoreCategoryLinksWritesCategoryLinksToCacheTest()
+        {
+            var expected = Model.Create<List<Guid>>();
+            var cacheExpiry = TimeSpan.FromMinutes(23);
+            var filter = Model.Create<ProfileResultFilter>();
+            var cacheKey = "CategoryLinks|" + filter.CategoryGroup + "|" + filter.CategoryName;
+
+            var cache = Substitute.For<IMemoryCache>();
+            var config = Substitute.For<ICacheConfig>();
+            var cacheEntry = Substitute.For<ICacheEntry>();
+
+            config.CategoryLinksExpiration.Returns(cacheExpiry);
+            cache.CreateEntry(cacheKey).Returns(cacheEntry);
+
+            var sut = new CacheManager(cache, config);
+
+            sut.StoreCategoryLinks(filter, expected);
+
+            cacheEntry.Value.Should().Be(expected);
+            cacheEntry.SlidingExpiration.Should().Be(cacheExpiry);
+        }
+
+        [Fact]
+        public void StoreProfileResultsThrowsExceptionWithNullProfileResultsTest()
+        {
+            var cache = Substitute.For<IMemoryCache>();
+            var config = Substitute.For<ICacheConfig>();
+
+            var sut = new CacheManager(cache, config);
+
+            Action action = () => sut.StoreProfileResults(null);
+
+            action.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Fact]
+        public void StoreProfileResultsWritesProfileResultsToCacheTest()
+        {
+            var expected = Model.Create<List<ProfileResult>>();
+            var cacheExpiry = TimeSpan.FromMinutes(23);
+            const string CacheKey = "ProfileResults";
+
+            var cache = Substitute.For<IMemoryCache>();
+            var config = Substitute.For<ICacheConfig>();
+            var cacheEntry = Substitute.For<ICacheEntry>();
+
+            config.ProfileResultsExpiration.Returns(cacheExpiry);
+            cache.CreateEntry(CacheKey).Returns(cacheEntry);
+
+            var sut = new CacheManager(cache, config);
+
+            sut.StoreProfileResults(expected);
 
             cacheEntry.Value.Should().Be(expected);
             cacheEntry.SlidingExpiration.Should().Be(cacheExpiry);

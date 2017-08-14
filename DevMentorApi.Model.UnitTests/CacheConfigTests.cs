@@ -38,6 +38,21 @@
         [Theory]
         [InlineData(0, 300)]
         [InlineData(120, 120)]
+        public void CategoryLinksExpirationReturnsConfigurationValueOrDefaultTest(int configValue, int expected)
+        {
+            var sut = new CacheConfig
+            {
+                CategoryLinksExpirationInSeconds = configValue
+            };
+
+            var actual = sut.CategoryLinksExpiration.TotalSeconds;
+
+            actual.Should().Be(expected);
+        }
+
+        [Theory]
+        [InlineData(0, 300)]
+        [InlineData(120, 120)]
         public void ProfileExpirationReturnsConfigurationValueOrDefaultTest(int configValue, int expected)
         {
             var sut = new CacheConfig
@@ -46,6 +61,21 @@
             };
 
             var actual = sut.ProfileExpiration.TotalSeconds;
+
+            actual.Should().Be(expected);
+        }
+
+        [Theory]
+        [InlineData(0, 300)]
+        [InlineData(120, 120)]
+        public void ProfileResultsExpirationReturnsConfigurationValueOrDefaultTest(int configValue, int expected)
+        {
+            var sut = new CacheConfig
+            {
+                ProfileResultsExpirationInSeconds = configValue
+            };
+
+            var actual = sut.ProfileResultsExpiration.TotalSeconds;
 
             actual.Should().Be(expected);
         }
