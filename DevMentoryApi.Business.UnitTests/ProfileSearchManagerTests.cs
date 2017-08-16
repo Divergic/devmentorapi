@@ -16,6 +16,81 @@
     public class ProfileSearchManagerTests
     {
         [Fact]
+        public async Task GetProfileResultsCachesCategoryLinksTest()
+        {
+            var expected = Model.Create<List<ProfileResult>>();
+            var filters = new List<ProfileResultFilter>
+            {
+                Model.Create<ProfileResultFilter>()
+            };
+            var categoryLinks = Model.Create<List<CategoryLink>>();
+
+            var profileStore = Substitute.For<IProfileStore>();
+            var linkStore = Substitute.For<ICategoryLinkStore>();
+            var cache = Substitute.For<ICacheManager>();
+
+            var sut = new ProfileSearchManager(profileStore, linkStore, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                cache.GetProfileResults().Returns(expected);
+                cache.GetCategoryLinks(Arg.Any<ProfileResultFilter>()).Returns((ICollection<Guid>) null);
+                linkStore.GetCategoryLinks(filters[0].CategoryGroup, filters[0].CategoryName, tokenSource.Token)
+                    .Returns(categoryLinks);
+
+                await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false);
+
+                cache.Received().StoreCategoryLinks(filters[0],
+                    Verify.That<ICollection<Guid>>(
+                        x => x.ShouldBeEquivalentTo(categoryLinks.Select(y => y.ProfileId))));
+            }
+        }
+
+        [Fact]
+        public async Task GetProfileResultsDoesNotReturnProfilesMatchingOnlySomeFiltersTest()
+        {
+            var expected = Model.Create<List<ProfileResult>>();
+            var filters = new List<ProfileResultFilter>
+            {
+                Model.Create<ProfileResultFilter>(),
+                Model.Create<ProfileResultFilter>()
+            };
+            var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
+            {
+                x.CategoryGroup = filters[0].CategoryGroup;
+                x.CategoryName = filters[0].CategoryName;
+            });
+            var secondCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
+            {
+                x.CategoryGroup = filters[1].CategoryGroup;
+                x.CategoryName = filters[1].CategoryName;
+            });
+
+            firstCategoryLinks[7].ProfileId = expected[3].Id;
+            firstCategoryLinks[3].ProfileId = expected[5].Id;
+            secondCategoryLinks[2].ProfileId = expected[3].Id;
+
+            var profileStore = Substitute.For<IProfileStore>();
+            var linkStore = Substitute.For<ICategoryLinkStore>();
+            var cache = Substitute.For<ICacheManager>();
+
+            var sut = new ProfileSearchManager(profileStore, linkStore, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                cache.GetProfileResults().Returns(expected);
+                cache.GetCategoryLinks(filters[0]).Returns(firstCategoryLinks.Select(y => y.ProfileId).ToList());
+                cache.GetCategoryLinks(filters[1]).Returns(secondCategoryLinks.Select(y => y.ProfileId).ToList());
+
+                var actual = (await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false)).ToList();
+
+                actual.Should().HaveCount(1);
+                actual.Should().Contain(expected[3]);
+                actual.Should().NotContain(expected[5]);
+            }
+        }
+
+        [Fact]
         public async Task GetProfileResultsReturnsAllCachedResultsWhenFiltersIsEmptyTest()
         {
             var expected = Model.Create<List<ProfileResult>>();
@@ -122,6 +197,445 @@
         }
 
         [Fact]
+        public async Task GetProfileResultsReturnsEmptyWhenFirstFilterFindsNoMatchesTest()
+        {
+            var expected = Model.Create<List<ProfileResult>>();
+            var filters = new List<ProfileResultFilter>
+            {
+                Model.Create<ProfileResultFilter>(),
+                Model.Create<ProfileResultFilter>()
+            };
+            var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
+            {
+                x.CategoryGroup = filters[0].CategoryGroup;
+                x.CategoryName = filters[0].CategoryName;
+            });
+            var secondCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
+            {
+                x.CategoryGroup = filters[1].CategoryGroup;
+                x.CategoryName = filters[1].CategoryName;
+            });
+
+            secondCategoryLinks[2].ProfileId = expected[3].Id;
+            secondCategoryLinks[8].ProfileId = expected[5].Id;
+
+            var profileStore = Substitute.For<IProfileStore>();
+            var linkStore = Substitute.For<ICategoryLinkStore>();
+            var cache = Substitute.For<ICacheManager>();
+
+            var sut = new ProfileSearchManager(profileStore, linkStore, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                cache.GetProfileResults().Returns(expected);
+                cache.GetCategoryLinks(filters[0]).Returns(firstCategoryLinks.Select(y => y.ProfileId).ToList());
+                cache.GetCategoryLinks(filters[1]).Returns(secondCategoryLinks.Select(y => y.ProfileId).ToList());
+
+                var actual = (await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false)).ToList();
+
+                actual.Should().BeEmpty();
+            }
+        }
+
+        [Fact]
+        public async Task GetProfileResultsReturnsEmptyWhenLastCategoryLinksHasNoMatchesTest()
+        {
+            var expected = Model.Create<List<ProfileResult>>();
+            var filters = new List<ProfileResultFilter>
+            {
+                Model.Create<ProfileResultFilter>(),
+                Model.Create<ProfileResultFilter>(),
+                Model.Create<ProfileResultFilter>(),
+                Model.Create<ProfileResultFilter>()
+            };
+            var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
+            {
+                x.CategoryGroup = filters[0].CategoryGroup;
+                x.CategoryName = filters[0].CategoryName;
+            });
+            var secondCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
+            {
+                x.CategoryGroup = filters[1].CategoryGroup;
+                x.CategoryName = filters[1].CategoryName;
+            });
+            var thirdCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
+            {
+                x.CategoryGroup = filters[2].CategoryGroup;
+                x.CategoryName = filters[2].CategoryName;
+            });
+            var fourthCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
+            {
+                x.CategoryGroup = filters[3].CategoryGroup;
+                x.CategoryName = filters[3].CategoryName;
+            });
+
+            firstCategoryLinks[7].ProfileId = expected[3].Id;
+            firstCategoryLinks[3].ProfileId = expected[5].Id;
+            secondCategoryLinks[2].ProfileId = expected[3].Id;
+            secondCategoryLinks[8].ProfileId = expected[5].Id;
+            thirdCategoryLinks[1].ProfileId = expected[3].Id;
+            thirdCategoryLinks[9].ProfileId = expected[5].Id;
+
+            var profileStore = Substitute.For<IProfileStore>();
+            var linkStore = Substitute.For<ICategoryLinkStore>();
+            var cache = Substitute.For<ICacheManager>();
+
+            var sut = new ProfileSearchManager(profileStore, linkStore, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                cache.GetProfileResults().Returns(expected);
+                cache.GetCategoryLinks(filters[0]).Returns(firstCategoryLinks.Select(y => y.ProfileId).ToList());
+                cache.GetCategoryLinks(filters[1]).Returns(secondCategoryLinks.Select(y => y.ProfileId).ToList());
+                cache.GetCategoryLinks(filters[2]).Returns(thirdCategoryLinks.Select(y => y.ProfileId).ToList());
+                cache.GetCategoryLinks(filters[3]).Returns(fourthCategoryLinks.Select(y => y.ProfileId).ToList());
+
+                var actual = (await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false)).ToList();
+
+                actual.Should().BeEmpty();
+            }
+        }
+
+        [Fact]
+        public async Task GetProfileResultsReturnsEmptyWhenNoProfilesMatchFiltersTest()
+        {
+            var expected = Model.Create<List<ProfileResult>>();
+            var filters = new List<ProfileResultFilter>
+            {
+                Model.Create<ProfileResultFilter>()
+            };
+            var categoryLinks = Model.Create<List<CategoryLink>>();
+
+            var profileStore = Substitute.For<IProfileStore>();
+            var linkStore = Substitute.For<ICategoryLinkStore>();
+            var cache = Substitute.For<ICacheManager>();
+
+            var sut = new ProfileSearchManager(profileStore, linkStore, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                cache.GetProfileResults().Returns(expected);
+                cache.GetCategoryLinks(Arg.Any<ProfileResultFilter>()).Returns((ICollection<Guid>) null);
+                linkStore.GetCategoryLinks(filters[0].CategoryGroup, filters[0].CategoryName, tokenSource.Token)
+                    .Returns(categoryLinks);
+
+                var actual = await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false);
+
+                actual.Should().BeEmpty();
+            }
+        }
+
+        [Fact]
+        public async Task GetProfileResultsReturnsEmptyWhenOnlyFilterHasNoLinksTest()
+        {
+            var expected = Model.Create<List<ProfileResult>>();
+            var filters = new List<ProfileResultFilter>
+            {
+                Model.Create<ProfileResultFilter>()
+            };
+            var categoryLinks = new List<CategoryLink>();
+
+            var profileStore = Substitute.For<IProfileStore>();
+            var linkStore = Substitute.For<ICategoryLinkStore>();
+            var cache = Substitute.For<ICacheManager>();
+
+            var sut = new ProfileSearchManager(profileStore, linkStore, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                cache.GetProfileResults().Returns(expected);
+                cache.GetCategoryLinks(filters[0]).Returns(categoryLinks.Select(y => y.ProfileId).ToList());
+
+                var actual = (await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false)).ToList();
+
+                actual.Should().BeEmpty();
+            }
+        }
+
+        [Fact]
+        public async Task GetProfileResultsReturnsEmptyWhenSecondFilterFindsNoMatchesTest()
+        {
+            var expected = Model.Create<List<ProfileResult>>();
+            var filters = new List<ProfileResultFilter>
+            {
+                Model.Create<ProfileResultFilter>(),
+                Model.Create<ProfileResultFilter>()
+            };
+            var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
+            {
+                x.CategoryGroup = filters[0].CategoryGroup;
+                x.CategoryName = filters[0].CategoryName;
+            });
+            var secondCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
+            {
+                x.CategoryGroup = filters[1].CategoryGroup;
+                x.CategoryName = filters[1].CategoryName;
+            });
+
+            firstCategoryLinks[7].ProfileId = expected[3].Id;
+            firstCategoryLinks[3].ProfileId = expected[5].Id;
+
+            var profileStore = Substitute.For<IProfileStore>();
+            var linkStore = Substitute.For<ICategoryLinkStore>();
+            var cache = Substitute.For<ICacheManager>();
+
+            var sut = new ProfileSearchManager(profileStore, linkStore, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                cache.GetProfileResults().Returns(expected);
+                cache.GetCategoryLinks(filters[0]).Returns(firstCategoryLinks.Select(y => y.ProfileId).ToList());
+                cache.GetCategoryLinks(filters[1]).Returns(secondCategoryLinks.Select(y => y.ProfileId).ToList());
+
+                var actual = (await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false)).ToList();
+
+                actual.Should().BeEmpty();
+            }
+        }
+
+        [Fact]
+        public async Task GetProfileResultsReturnsEmptyWhenSecondLastCategoryLinksHasNoMatchesTest()
+        {
+            var expected = Model.Create<List<ProfileResult>>();
+            var filters = new List<ProfileResultFilter>
+            {
+                Model.Create<ProfileResultFilter>(),
+                Model.Create<ProfileResultFilter>(),
+                Model.Create<ProfileResultFilter>(),
+                Model.Create<ProfileResultFilter>()
+            };
+            var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
+            {
+                x.CategoryGroup = filters[0].CategoryGroup;
+                x.CategoryName = filters[0].CategoryName;
+            });
+            var secondCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
+            {
+                x.CategoryGroup = filters[1].CategoryGroup;
+                x.CategoryName = filters[1].CategoryName;
+            });
+            var thirdCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
+            {
+                x.CategoryGroup = filters[2].CategoryGroup;
+                x.CategoryName = filters[2].CategoryName;
+            });
+            var fourthCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
+            {
+                x.CategoryGroup = filters[3].CategoryGroup;
+                x.CategoryName = filters[3].CategoryName;
+            });
+
+            firstCategoryLinks[7].ProfileId = expected[3].Id;
+            firstCategoryLinks[3].ProfileId = expected[5].Id;
+            secondCategoryLinks[2].ProfileId = expected[3].Id;
+            secondCategoryLinks[8].ProfileId = expected[5].Id;
+            fourthCategoryLinks[8].ProfileId = expected[3].Id;
+            fourthCategoryLinks[2].ProfileId = expected[5].Id;
+
+            var profileStore = Substitute.For<IProfileStore>();
+            var linkStore = Substitute.For<ICategoryLinkStore>();
+            var cache = Substitute.For<ICacheManager>();
+
+            var sut = new ProfileSearchManager(profileStore, linkStore, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                cache.GetProfileResults().Returns(expected);
+                cache.GetCategoryLinks(filters[0]).Returns(firstCategoryLinks.Select(y => y.ProfileId).ToList());
+                cache.GetCategoryLinks(filters[1]).Returns(secondCategoryLinks.Select(y => y.ProfileId).ToList());
+                cache.GetCategoryLinks(filters[2]).Returns(thirdCategoryLinks.Select(y => y.ProfileId).ToList());
+                cache.GetCategoryLinks(filters[3]).Returns(fourthCategoryLinks.Select(y => y.ProfileId).ToList());
+
+                var actual = (await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false)).ToList();
+
+                actual.Should().BeEmpty();
+            }
+        }
+
+        [Fact]
+        public async Task GetProfileResultsReturnsIgnoresFiltersWithEmptyListsTest()
+        {
+            var expected = Model.Create<List<ProfileResult>>();
+            var filters = new List<ProfileResultFilter>
+            {
+                Model.Create<ProfileResultFilter>(),
+                Model.Create<ProfileResultFilter>()
+            };
+            var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
+            {
+                x.CategoryGroup = filters[0].CategoryGroup;
+                x.CategoryName = filters[0].CategoryName;
+            });
+            var secondCategoryLinks = new List<CategoryLink>();
+
+            firstCategoryLinks[7].ProfileId = expected[3].Id;
+            firstCategoryLinks[3].ProfileId = expected[5].Id;
+
+            var profileStore = Substitute.For<IProfileStore>();
+            var linkStore = Substitute.For<ICategoryLinkStore>();
+            var cache = Substitute.For<ICacheManager>();
+
+            var sut = new ProfileSearchManager(profileStore, linkStore, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                cache.GetProfileResults().Returns(expected);
+                cache.GetCategoryLinks(filters[0]).Returns(firstCategoryLinks.Select(y => y.ProfileId).ToList());
+                cache.GetCategoryLinks(filters[1]).Returns(secondCategoryLinks.Select(y => y.ProfileId).ToList());
+
+                var actual = (await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false)).ToList();
+
+                actual.Should().HaveCount(2);
+                actual.Should().Contain(expected[3]);
+                actual.Should().Contain(expected[5]);
+            }
+        }
+
+        [Fact]
+        public async Task GetProfileResultsReturnsProfilesMatchingAllFiltersTest()
+        {
+            var expected = Model.Create<List<ProfileResult>>();
+            var filters = new List<ProfileResultFilter>
+            {
+                Model.Create<ProfileResultFilter>(),
+                Model.Create<ProfileResultFilter>()
+            };
+            var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
+            {
+                x.CategoryGroup = filters[0].CategoryGroup;
+                x.CategoryName = filters[0].CategoryName;
+            });
+            var secondCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
+            {
+                x.CategoryGroup = filters[1].CategoryGroup;
+                x.CategoryName = filters[1].CategoryName;
+            });
+
+            firstCategoryLinks[7].ProfileId = expected[3].Id;
+            firstCategoryLinks[3].ProfileId = expected[5].Id;
+            secondCategoryLinks[2].ProfileId = expected[3].Id;
+            secondCategoryLinks[8].ProfileId = expected[5].Id;
+
+            var profileStore = Substitute.For<IProfileStore>();
+            var linkStore = Substitute.For<ICategoryLinkStore>();
+            var cache = Substitute.For<ICacheManager>();
+
+            var sut = new ProfileSearchManager(profileStore, linkStore, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                cache.GetProfileResults().Returns(expected);
+                cache.GetCategoryLinks(filters[0]).Returns(firstCategoryLinks.Select(y => y.ProfileId).ToList());
+                cache.GetCategoryLinks(filters[1]).Returns(secondCategoryLinks.Select(y => y.ProfileId).ToList());
+
+                var actual = (await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false)).ToList();
+
+                actual.Should().HaveCount(2);
+                actual.Should().Contain(expected[3]);
+                actual.Should().Contain(expected[5]);
+            }
+        }
+
+        [Fact]
+        public async Task GetProfileResultsReturnsProfilesMatchingMoreThanTwoFiltersTest()
+        {
+            var expected = Model.Create<List<ProfileResult>>();
+            var filters = new List<ProfileResultFilter>
+            {
+                Model.Create<ProfileResultFilter>(),
+                Model.Create<ProfileResultFilter>(),
+                Model.Create<ProfileResultFilter>(),
+                Model.Create<ProfileResultFilter>()
+            };
+            var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
+            {
+                x.CategoryGroup = filters[0].CategoryGroup;
+                x.CategoryName = filters[0].CategoryName;
+            });
+            var secondCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
+            {
+                x.CategoryGroup = filters[1].CategoryGroup;
+                x.CategoryName = filters[1].CategoryName;
+            });
+            var thirdCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
+            {
+                x.CategoryGroup = filters[2].CategoryGroup;
+                x.CategoryName = filters[2].CategoryName;
+            });
+            var fourthCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
+            {
+                x.CategoryGroup = filters[3].CategoryGroup;
+                x.CategoryName = filters[3].CategoryName;
+            });
+
+            firstCategoryLinks[7].ProfileId = expected[3].Id;
+            firstCategoryLinks[3].ProfileId = expected[5].Id;
+            secondCategoryLinks[2].ProfileId = expected[3].Id;
+            secondCategoryLinks[8].ProfileId = expected[5].Id;
+            thirdCategoryLinks[1].ProfileId = expected[3].Id;
+            thirdCategoryLinks[9].ProfileId = expected[5].Id;
+            fourthCategoryLinks[8].ProfileId = expected[3].Id;
+            fourthCategoryLinks[2].ProfileId = expected[5].Id;
+
+            var profileStore = Substitute.For<IProfileStore>();
+            var linkStore = Substitute.For<ICategoryLinkStore>();
+            var cache = Substitute.For<ICacheManager>();
+
+            var sut = new ProfileSearchManager(profileStore, linkStore, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                cache.GetProfileResults().Returns(expected);
+                cache.GetCategoryLinks(filters[0]).Returns(firstCategoryLinks.Select(y => y.ProfileId).ToList());
+                cache.GetCategoryLinks(filters[1]).Returns(secondCategoryLinks.Select(y => y.ProfileId).ToList());
+                cache.GetCategoryLinks(filters[2]).Returns(thirdCategoryLinks.Select(y => y.ProfileId).ToList());
+                cache.GetCategoryLinks(filters[3]).Returns(fourthCategoryLinks.Select(y => y.ProfileId).ToList());
+
+                var actual = (await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false)).ToList();
+
+                actual.Should().HaveCount(2);
+                actual.Should().Contain(expected[3]);
+                actual.Should().Contain(expected[5]);
+            }
+        }
+
+        [Fact]
+        public async Task GetProfileResultsReturnsProfilesMatchingSingleFilterTest()
+        {
+            var expected = Model.Create<List<ProfileResult>>();
+            var filters = new List<ProfileResultFilter>
+            {
+                Model.Create<ProfileResultFilter>()
+            };
+            var categoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
+            {
+                x.CategoryGroup = filters[0].CategoryGroup;
+                x.CategoryName = filters[0].CategoryName;
+            });
+
+            categoryLinks[7].ProfileId = expected[3].Id;
+            categoryLinks[3].ProfileId = expected[5].Id;
+
+            var profileStore = Substitute.For<IProfileStore>();
+            var linkStore = Substitute.For<ICategoryLinkStore>();
+            var cache = Substitute.For<ICacheManager>();
+
+            var sut = new ProfileSearchManager(profileStore, linkStore, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                cache.GetProfileResults().Returns(expected);
+                cache.GetCategoryLinks(filters[0]).Returns(categoryLinks.Select(y => y.ProfileId).ToList());
+
+                var actual = (await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false)).ToList();
+
+                actual.Should().HaveCount(2);
+                actual.Should().Contain(expected[3]);
+                actual.Should().Contain(expected[5]);
+            }
+        }
+
+        [Fact]
         public async Task GetProfileResultsReturnsResultsWithExpectedSortOrderTest()
         {
             var source = Model.Create<List<ProfileResult>>();
@@ -149,6 +663,42 @@
                 cache.Received()
                     .StoreProfileResults(
                         Verify.That<ICollection<ProfileResult>>(x => x.Should().ContainInOrder(expected)));
+            }
+        }
+
+        [Fact]
+        public async Task GetProfileResultsReusesCachedCategoryLinksTest()
+        {
+            var expected = Model.Create<List<ProfileResult>>();
+            var filters = new List<ProfileResultFilter>
+            {
+                Model.Create<ProfileResultFilter>()
+            };
+            var categoryLinks = Model.Create<List<CategoryLink>>();
+
+            var profileStore = Substitute.For<IProfileStore>();
+            var linkStore = Substitute.For<ICategoryLinkStore>();
+            var cache = Substitute.For<ICacheManager>();
+
+            var sut = new ProfileSearchManager(profileStore, linkStore, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                cache.GetProfileResults().Returns(expected);
+                cache.GetCategoryLinks(Arg.Any<ProfileResultFilter>())
+                    .Returns(null, categoryLinks.Select(y => y.ProfileId).ToList());
+                linkStore.GetCategoryLinks(filters[0].CategoryGroup, filters[0].CategoryName, tokenSource.Token)
+                    .Returns(categoryLinks);
+
+                await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false);
+                await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false);
+
+                await linkStore.Received(1).GetCategoryLinks(filters[0].CategoryGroup, filters[0].CategoryName,
+                    tokenSource.Token).ConfigureAwait(false);
+                cache.Received(1).StoreCategoryLinks(filters[0],
+                    Verify.That<ICollection<Guid>>(
+                        x => x.ShouldBeEquivalentTo(categoryLinks.Select(y => y.ProfileId))));
+                cache.Received(2).GetCategoryLinks(filters[0]);
             }
         }
 
