@@ -95,6 +95,9 @@
 
                     config.Filters.Add(new AuthorizeFilter("AuthenticatedUser"));
                     config.Filters.Add(new ValidateModelAttribute());
+
+                    // add custom binder to beginning of collection
+                    config.ModelBinderProviders.Insert(0, new ProfileFilterModelBinderProvider());
                 }).AddJsonOptions(
                 options =>
                 {

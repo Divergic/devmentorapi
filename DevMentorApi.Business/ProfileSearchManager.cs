@@ -5,9 +5,9 @@ namespace DevMentorApi.Business
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Azure;
+    using DevMentorApi.Azure;
+    using DevMentorApi.Model;
     using EnsureThat;
-    using Model;
 
     public class ProfileSearchManager : IProfileSearchManager
     {
@@ -26,7 +26,8 @@ namespace DevMentorApi.Business
             _cache = cache;
         }
 
-        public async Task<IEnumerable<ProfileResult>> GetProfileResults(ICollection<ProfileResultFilter> filters,
+        public async Task<IEnumerable<ProfileResult>> GetProfileResults(
+            IEnumerable<ProfileResultFilter> filters,
             CancellationToken cancellationToken)
         {
             var results = await LoadResults(cancellationToken).ConfigureAwait(false);
@@ -36,21 +37,23 @@ namespace DevMentorApi.Business
                 return results;
             }
 
-            if (filters.Count == 0)
+            var filterSet = filters.ToList();
+
+            if (filterSet.Count == 0)
             {
                 return results;
             }
 
             // Load the category links for each filter
-            var matchingProfiles = await FilterProfiles(filters, cancellationToken).ConfigureAwait(false);
+            var matchingProfiles = await FilterProfiles(filterSet, cancellationToken).ConfigureAwait(false);
 
             return from x in results
-                join y in matchingProfiles
-                on x.Id equals y
+                join y in matchingProfiles on x.Id equals y
                 select x;
         }
 
-        private async Task<IEnumerable<Guid>> FilterProfiles(ICollection<ProfileResultFilter> filters,
+        private async Task<IEnumerable<Guid>> FilterProfiles(
+            ICollection<ProfileResultFilter> filters,
             CancellationToken cancellationToken)
         {
             var tasks = new List<Task<ICollection<Guid>>>();
@@ -70,7 +73,7 @@ namespace DevMentorApi.Business
             // This is probably because of stale cache data presented to the website where it looked like categories had profiles when they don't
             // In this scenario we won't apply those filters by ignoring them
             var profileLinksWithContent = profileLinkTasks.Where(x => x.Count > 0).ToList();
-            
+
             if (profileLinksWithContent.Count == 0)
             {
                 // One or many filters have been selected but none of them came back with links to profiles
@@ -113,7 +116,8 @@ namespace DevMentorApi.Business
             return matches.Distinct();
         }
 
-        private async Task<ICollection<Guid>> GetCategoryLinks(ProfileResultFilter filter,
+        private async Task<ICollection<Guid>> GetCategoryLinks(
+            ProfileResultFilter filter,
             CancellationToken cancellationToken)
         {
             var cachedLinks = _cache.GetCategoryLinks(filter);

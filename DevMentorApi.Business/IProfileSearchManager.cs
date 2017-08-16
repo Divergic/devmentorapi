@@ -7,7 +7,7 @@
 
     public interface IProfileSearchManager
     {
-        Task<IEnumerable<ProfileResult>> GetProfileResults(ICollection<ProfileResultFilter> filters,
+        Task<IEnumerable<ProfileResult>> GetProfileResults(IEnumerable<ProfileResultFilter> filters,
             CancellationToken cancellationToken);
     }
 }
