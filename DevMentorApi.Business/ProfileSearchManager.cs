@@ -27,7 +27,7 @@ namespace DevMentorApi.Business
         }
 
         public async Task<IEnumerable<ProfileResult>> GetProfileResults(
-            IEnumerable<ProfileResultFilter> filters,
+            IEnumerable<ProfileFilter> filters,
             CancellationToken cancellationToken)
         {
             var results = await LoadResults(cancellationToken).ConfigureAwait(false);
@@ -53,7 +53,7 @@ namespace DevMentorApi.Business
         }
 
         private async Task<IEnumerable<Guid>> FilterProfiles(
-            ICollection<ProfileResultFilter> filters,
+            ICollection<ProfileFilter> filters,
             CancellationToken cancellationToken)
         {
             var tasks = new List<Task<ICollection<Guid>>>();
@@ -117,7 +117,7 @@ namespace DevMentorApi.Business
         }
 
         private async Task<ICollection<Guid>> GetCategoryLinks(
-            ProfileResultFilter filter,
+            ProfileFilter filter,
             CancellationToken cancellationToken)
         {
             var cachedLinks = _cache.GetCategoryLinks(filter);

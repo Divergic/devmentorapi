@@ -38,7 +38,7 @@
         [ProducesResponseType(typeof(IEnumerable<ProfileResult>), (int)HttpStatusCode.OK)]
         [SwaggerResponse((int)HttpStatusCode.OK, typeof(IEnumerable<ProfileResult>))]
         public async Task<IActionResult> Get(
-            IEnumerable<ProfileResultFilter> filters,
+            IEnumerable<ProfileFilter> filters,
             CancellationToken cancellationToken)
         {
             var results = await _manager.GetProfileResults(filters, cancellationToken).ConfigureAwait(false);

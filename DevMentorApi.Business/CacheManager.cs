@@ -37,7 +37,7 @@
             return _cache.Get<ICollection<Category>>(CategoriesCacheKey);
         }
 
-        public ICollection<Guid> GetCategoryLinks(ProfileResultFilter filter)
+        public ICollection<Guid> GetCategoryLinks(ProfileFilter filter)
         {
             Ensure.That(filter, nameof(filter)).IsNotNull();
 
@@ -91,7 +91,7 @@
             _cache.Set(CategoriesCacheKey, categories, options);
         }
 
-        public void StoreCategoryLinks(ProfileResultFilter filter, ICollection<Guid> links)
+        public void StoreCategoryLinks(ProfileFilter filter, ICollection<Guid> links)
         {
             Ensure.That(filter, nameof(filter)).IsNotNull();
             Ensure.That(links, nameof(links)).IsNotNull();
@@ -138,7 +138,7 @@
             return "Account|" + username;
         }
 
-        private static string BuildCategoryLinkCacheKey(ProfileResultFilter filter)
+        private static string BuildCategoryLinkCacheKey(ProfileFilter filter)
         {
             Debug.Assert(filter != null);
 

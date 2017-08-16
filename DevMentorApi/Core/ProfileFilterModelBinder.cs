@@ -6,11 +6,16 @@
     using DevMentorApi.Model;
     using Microsoft.AspNetCore.Mvc.ModelBinding;
 
-    public class ProfileResultFilterModelBinder : IModelBinder
+    public class ProfileFilterModelBinder : IModelBinder
     {
         public Task BindModelAsync(ModelBindingContext bindingContext)
         {
-            var filters = new List<ProfileResultFilter>();
+            if (bindingContext == null)
+            {
+                throw new ArgumentNullException(nameof(bindingContext));
+            }
+
+            var filters = new List<ProfileFilter>();
             var queries = bindingContext.HttpContext.Request.Query;
 
             foreach (var query in queries)
@@ -30,7 +35,7 @@
                     }
 
                     // This appears to be a valid filter
-                    var filter = new ProfileResultFilter
+                    var filter = new ProfileFilter
                     {
                         CategoryGroup = categoryGroup,
                         CategoryName = value

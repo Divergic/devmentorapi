@@ -15,9 +15,9 @@
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (context.Metadata.ModelType == typeof(IEnumerable<ProfileResultFilter>))
+            if (context.Metadata.ModelType == typeof(IEnumerable<ProfileFilter>))
             {
-                return new BinderTypeModelBinder(typeof(ProfileResultFilterModelBinder));
+                return new BinderTypeModelBinder(typeof(ProfileFilterModelBinder));
             }
 
             return null;

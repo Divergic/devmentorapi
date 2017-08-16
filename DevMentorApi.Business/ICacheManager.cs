@@ -10,7 +10,7 @@
 
         ICollection<Category> GetCategories();
 
-        ICollection<Guid> GetCategoryLinks(ProfileResultFilter filter);
+        ICollection<Guid> GetCategoryLinks(ProfileFilter filter);
 
         Profile GetProfile(Guid id);
 
@@ -22,7 +22,7 @@
 
         void StoreCategories(ICollection<Category> categories);
 
-        void StoreCategoryLinks(ProfileResultFilter filter, ICollection<Guid> links);
+        void StoreCategoryLinks(ProfileFilter filter, ICollection<Guid> links);
 
         void StoreProfile(Profile profile);
 

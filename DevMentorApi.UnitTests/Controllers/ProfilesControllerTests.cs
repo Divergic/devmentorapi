@@ -19,7 +19,7 @@
         public async Task GetReturnsResultsFromManagerTest()
         {
             var expected = Model.Create<List<ProfileResult>>();
-            var filters = Model.Create<List<ProfileResultFilter>>();
+            var filters = Model.Create<List<ProfileFilter>>();
 
             var manager = Substitute.For<IProfileSearchManager>();
 

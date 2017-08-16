@@ -1,4 +1,4 @@
-﻿namespace DevMentoryApi.Business.UnitTests
+namespace DevMentoryApi.Business.UnitTests
 {
     using System;
     using System.Collections.Generic;
@@ -19,9 +19,9 @@
         public async Task GetProfileResultsCachesCategoryLinksTest()
         {
             var expected = Model.Create<List<ProfileResult>>();
-            var filters = new List<ProfileResultFilter>
+            var filters = new List<ProfileFilter>
             {
-                Model.Create<ProfileResultFilter>()
+                Model.Create<ProfileFilter>()
             };
             var categoryLinks = Model.Create<List<CategoryLink>>();
 
@@ -34,7 +34,7 @@
             using (var tokenSource = new CancellationTokenSource())
             {
                 cache.GetProfileResults().Returns(expected);
-                cache.GetCategoryLinks(Arg.Any<ProfileResultFilter>()).Returns((ICollection<Guid>) null);
+                cache.GetCategoryLinks(Arg.Any<ProfileFilter>()).Returns((ICollection<Guid>) null);
                 linkStore.GetCategoryLinks(filters[0].CategoryGroup, filters[0].CategoryName, tokenSource.Token)
                     .Returns(categoryLinks);
 
@@ -50,10 +50,10 @@
         public async Task GetProfileResultsDoesNotReturnProfilesMatchingOnlySomeFiltersTest()
         {
             var expected = Model.Create<List<ProfileResult>>();
-            var filters = new List<ProfileResultFilter>
+            var filters = new List<ProfileFilter>
             {
-                Model.Create<ProfileResultFilter>(),
-                Model.Create<ProfileResultFilter>()
+                Model.Create<ProfileFilter>(),
+                Model.Create<ProfileFilter>()
             };
             var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
             {
@@ -94,7 +94,7 @@
         public async Task GetProfileResultsReturnsAllCachedResultsWhenFiltersIsEmptyTest()
         {
             var expected = Model.Create<List<ProfileResult>>();
-            var filters = new List<ProfileResultFilter>();
+            var filters = new List<ProfileFilter>();
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
@@ -137,7 +137,7 @@
         public async Task GetProfileResultsReturnsAllStoreResultsWhenFiltersIsEmptyTest()
         {
             var expected = Model.Create<List<ProfileResult>>();
-            var filters = new List<ProfileResultFilter>();
+            var filters = new List<ProfileFilter>();
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
@@ -200,10 +200,10 @@
         public async Task GetProfileResultsReturnsEmptyWhenFirstFilterFindsNoMatchesTest()
         {
             var expected = Model.Create<List<ProfileResult>>();
-            var filters = new List<ProfileResultFilter>
+            var filters = new List<ProfileFilter>
             {
-                Model.Create<ProfileResultFilter>(),
-                Model.Create<ProfileResultFilter>()
+                Model.Create<ProfileFilter>(),
+                Model.Create<ProfileFilter>()
             };
             var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
             {
@@ -241,12 +241,12 @@
         public async Task GetProfileResultsReturnsEmptyWhenLastCategoryLinksHasNoMatchesTest()
         {
             var expected = Model.Create<List<ProfileResult>>();
-            var filters = new List<ProfileResultFilter>
+            var filters = new List<ProfileFilter>
             {
-                Model.Create<ProfileResultFilter>(),
-                Model.Create<ProfileResultFilter>(),
-                Model.Create<ProfileResultFilter>(),
-                Model.Create<ProfileResultFilter>()
+                Model.Create<ProfileFilter>(),
+                Model.Create<ProfileFilter>(),
+                Model.Create<ProfileFilter>(),
+                Model.Create<ProfileFilter>()
             };
             var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
             {
@@ -300,9 +300,9 @@
         public async Task GetProfileResultsReturnsEmptyWhenNoProfilesMatchFiltersTest()
         {
             var expected = Model.Create<List<ProfileResult>>();
-            var filters = new List<ProfileResultFilter>
+            var filters = new List<ProfileFilter>
             {
-                Model.Create<ProfileResultFilter>()
+                Model.Create<ProfileFilter>()
             };
             var categoryLinks = Model.Create<List<CategoryLink>>();
 
@@ -315,7 +315,7 @@
             using (var tokenSource = new CancellationTokenSource())
             {
                 cache.GetProfileResults().Returns(expected);
-                cache.GetCategoryLinks(Arg.Any<ProfileResultFilter>()).Returns((ICollection<Guid>) null);
+                cache.GetCategoryLinks(Arg.Any<ProfileFilter>()).Returns((ICollection<Guid>) null);
                 linkStore.GetCategoryLinks(filters[0].CategoryGroup, filters[0].CategoryName, tokenSource.Token)
                     .Returns(categoryLinks);
 
@@ -329,9 +329,9 @@
         public async Task GetProfileResultsReturnsEmptyWhenOnlyFilterHasNoLinksTest()
         {
             var expected = Model.Create<List<ProfileResult>>();
-            var filters = new List<ProfileResultFilter>
+            var filters = new List<ProfileFilter>
             {
-                Model.Create<ProfileResultFilter>()
+                Model.Create<ProfileFilter>()
             };
             var categoryLinks = new List<CategoryLink>();
 
@@ -356,10 +356,10 @@
         public async Task GetProfileResultsReturnsEmptyWhenSecondFilterFindsNoMatchesTest()
         {
             var expected = Model.Create<List<ProfileResult>>();
-            var filters = new List<ProfileResultFilter>
+            var filters = new List<ProfileFilter>
             {
-                Model.Create<ProfileResultFilter>(),
-                Model.Create<ProfileResultFilter>()
+                Model.Create<ProfileFilter>(),
+                Model.Create<ProfileFilter>()
             };
             var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
             {
@@ -397,12 +397,12 @@
         public async Task GetProfileResultsReturnsEmptyWhenSecondLastCategoryLinksHasNoMatchesTest()
         {
             var expected = Model.Create<List<ProfileResult>>();
-            var filters = new List<ProfileResultFilter>
+            var filters = new List<ProfileFilter>
             {
-                Model.Create<ProfileResultFilter>(),
-                Model.Create<ProfileResultFilter>(),
-                Model.Create<ProfileResultFilter>(),
-                Model.Create<ProfileResultFilter>()
+                Model.Create<ProfileFilter>(),
+                Model.Create<ProfileFilter>(),
+                Model.Create<ProfileFilter>(),
+                Model.Create<ProfileFilter>()
             };
             var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
             {
@@ -456,10 +456,10 @@
         public async Task GetProfileResultsReturnsIgnoresFiltersWithEmptyListsTest()
         {
             var expected = Model.Create<List<ProfileResult>>();
-            var filters = new List<ProfileResultFilter>
+            var filters = new List<ProfileFilter>
             {
-                Model.Create<ProfileResultFilter>(),
-                Model.Create<ProfileResultFilter>()
+                Model.Create<ProfileFilter>(),
+                Model.Create<ProfileFilter>()
             };
             var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
             {
@@ -495,10 +495,10 @@
         public async Task GetProfileResultsReturnsProfilesMatchingAllFiltersTest()
         {
             var expected = Model.Create<List<ProfileResult>>();
-            var filters = new List<ProfileResultFilter>
+            var filters = new List<ProfileFilter>
             {
-                Model.Create<ProfileResultFilter>(),
-                Model.Create<ProfileResultFilter>()
+                Model.Create<ProfileFilter>(),
+                Model.Create<ProfileFilter>()
             };
             var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
             {
@@ -540,12 +540,12 @@
         public async Task GetProfileResultsReturnsProfilesMatchingMoreThanTwoFiltersTest()
         {
             var expected = Model.Create<List<ProfileResult>>();
-            var filters = new List<ProfileResultFilter>
+            var filters = new List<ProfileFilter>
             {
-                Model.Create<ProfileResultFilter>(),
-                Model.Create<ProfileResultFilter>(),
-                Model.Create<ProfileResultFilter>(),
-                Model.Create<ProfileResultFilter>()
+                Model.Create<ProfileFilter>(),
+                Model.Create<ProfileFilter>(),
+                Model.Create<ProfileFilter>(),
+                Model.Create<ProfileFilter>()
             };
             var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
             {
@@ -603,9 +603,9 @@
         public async Task GetProfileResultsReturnsProfilesMatchingSingleFilterTest()
         {
             var expected = Model.Create<List<ProfileResult>>();
-            var filters = new List<ProfileResultFilter>
+            var filters = new List<ProfileFilter>
             {
-                Model.Create<ProfileResultFilter>()
+                Model.Create<ProfileFilter>()
             };
             var categoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
             {
@@ -644,7 +644,7 @@
                                                                                   DateTimeOffset.UtcNow.Year
                 select x).ToList();
 
-            var filters = new List<ProfileResultFilter>();
+            var filters = new List<ProfileFilter>();
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
@@ -670,9 +670,9 @@
         public async Task GetProfileResultsReusesCachedCategoryLinksTest()
         {
             var expected = Model.Create<List<ProfileResult>>();
-            var filters = new List<ProfileResultFilter>
+            var filters = new List<ProfileFilter>
             {
-                Model.Create<ProfileResultFilter>()
+                Model.Create<ProfileFilter>()
             };
             var categoryLinks = Model.Create<List<CategoryLink>>();
 
@@ -685,7 +685,7 @@
             using (var tokenSource = new CancellationTokenSource())
             {
                 cache.GetProfileResults().Returns(expected);
-                cache.GetCategoryLinks(Arg.Any<ProfileResultFilter>())
+                cache.GetCategoryLinks(Arg.Any<ProfileFilter>())
                     .Returns(null, categoryLinks.Select(y => y.ProfileId).ToList());
                 linkStore.GetCategoryLinks(filters[0].CategoryGroup, filters[0].CategoryName, tokenSource.Token)
                     .Returns(categoryLinks);

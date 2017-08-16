@@ -1,6 +1,6 @@
 ﻿namespace DevMentorApi.Model
 {
-    public class ProfileResultFilter
+    public class ProfileFilter
     {
         public CategoryGroup CategoryGroup { get; set; }
 

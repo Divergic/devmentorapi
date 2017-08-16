@@ -122,7 +122,7 @@
         [Fact]
         public void GetCategoryLinksReturnsCachedCategoryLinksTest()
         {
-            var filter = Model.Create<ProfileResultFilter>();
+            var filter = Model.Create<ProfileFilter>();
             var expected = Model.Create<List<Category>>();
             var cacheKey = "CategoryLinks|" + filter.CategoryGroup + "|" + filter.CategoryName;
 
@@ -149,7 +149,7 @@
         [Fact]
         public void GetCategoryLinksReturnsNullWhenCachedCategoryLinksNotFoundTest()
         {
-            var filter = Model.Create<ProfileResultFilter>();
+            var filter = Model.Create<ProfileFilter>();
             var cacheKey = "CategoryLinks|" + filter.CategoryGroup + "|" + filter.CategoryName;
 
             var cache = Substitute.For<IMemoryCache>();
@@ -371,7 +371,7 @@
         [Fact]
         public void StoreCategoryLinksThrowsExceptionWithNullCategoryLinksTest()
         {
-            var filter = Model.Create<ProfileResultFilter>();
+            var filter = Model.Create<ProfileFilter>();
             var cache = Substitute.For<IMemoryCache>();
             var config = Substitute.For<ICacheConfig>();
 
@@ -401,7 +401,7 @@
         {
             var expected = Model.Create<List<Guid>>();
             var cacheExpiry = TimeSpan.FromMinutes(23);
-            var filter = Model.Create<ProfileResultFilter>();
+            var filter = Model.Create<ProfileFilter>();
             var cacheKey = "CategoryLinks|" + filter.CategoryGroup + "|" + filter.CategoryName;
 
             var cache = Substitute.For<IMemoryCache>();
