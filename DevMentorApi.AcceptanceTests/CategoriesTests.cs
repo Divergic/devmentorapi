@@ -24,7 +24,7 @@
         }
 
         [Fact]
-        public async Task GetReturnsAllTasksForAdministratorTest()
+        public async Task GetReturnsAllCategoriesForAdministratorTest()
         {
             var expected = await Model.Create<NewCategory>().Save().ConfigureAwait(false);
             var administrator = ClaimsIdentityFactory.Build().AsAdministrator();
@@ -38,7 +38,7 @@
         }
 
         [Fact]
-        public async Task GetReturnsVisibleTasksForAnonymousUserTest()
+        public async Task GetReturnsVisibleCategoriesForAnonymousUserTest()
         {
             var expected = await Model.Create<NewCategory>().Save().ConfigureAwait(false);
             var address = ApiLocation.Categories;
@@ -51,7 +51,7 @@
         }
 
         [Fact]
-        public async Task GetReturnsVisibleTasksForAuthenticatedUserTest()
+        public async Task GetReturnsVisibleCategoriesForAuthenticatedUserTest()
         {
             var expected = await Model.Create<NewCategory>().Save().ConfigureAwait(false);
             var identity = ClaimsIdentityFactory.Build();

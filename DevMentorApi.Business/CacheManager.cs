@@ -143,7 +143,7 @@
             Debug.Assert(filter != null);
 
             // The cache key has a prefix to partition this type of object just in case there is a key collision with another object type
-            return "CategoryLink|" + filter.CategoryGroup + "|" + filter.CategoryName;
+            return "CategoryLinks|" + filter.CategoryGroup + "|" + filter.CategoryName;
         }
 
         private static string BuildProfileCacheKey(Guid id)

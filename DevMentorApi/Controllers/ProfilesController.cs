@@ -1,14 +1,16 @@
 ﻿namespace DevMentorApi.Controllers
 {
+    using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
-    using DevMentorApi.Business;
-    using DevMentorApi.Model;
+    using Business;
     using EnsureThat;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
+    using Model;
     using Swashbuckle.AspNetCore.SwaggerGen;
 
     public class ProfilesController : Controller
@@ -35,15 +37,21 @@
         [Route("profiles")]
         [HttpGet]
         [AllowAnonymous]
-        [ProducesResponseType(typeof(IEnumerable<ProfileResult>), (int)HttpStatusCode.OK)]
-        [SwaggerResponse((int)HttpStatusCode.OK, typeof(IEnumerable<ProfileResult>))]
+        [ProducesResponseType(typeof(IEnumerable<ProfileResult>), (int) HttpStatusCode.OK)]
+        [SwaggerResponse((int) HttpStatusCode.OK, typeof(IEnumerable<ProfileResult>))]
         public async Task<IActionResult> Get(
             IEnumerable<ProfileFilter> filters,
             CancellationToken cancellationToken)
         {
             var results = await _manager.GetProfileResults(filters, cancellationToken).ConfigureAwait(false);
 
-            return Ok(results);
+            // Order by available first, highest number of years in tech then oldest by age
+            var orderedResults = from x in results
+                orderby x.Status descending, x.YearStartedInTech ?? 0 descending, x.BirthYear ??
+                                                                                  DateTimeOffset.UtcNow.Year
+                select x;
+
+            return Ok(orderedResults);
         }
     }
 }

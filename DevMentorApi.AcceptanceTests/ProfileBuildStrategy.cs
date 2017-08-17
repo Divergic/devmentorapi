@@ -18,6 +18,7 @@
             compiler.AddCreationRule<Profile>(x => x.Status, 5000, ProfileStatus.Available);
             compiler.AddCreationRule<Profile>(x => x.BannedAt, 5000, null);
 
+            compiler.AddValueGenerator<BirthYearValueGenerator>();
             compiler.AddValueGenerator<YearInPastValueGenerator>();
 
             return compiler.Compile();

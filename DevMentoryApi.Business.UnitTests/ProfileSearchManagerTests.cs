@@ -636,37 +636,6 @@ namespace DevMentoryApi.Business.UnitTests
         }
 
         [Fact]
-        public async Task GetProfileResultsReturnsResultsWithExpectedSortOrderTest()
-        {
-            var source = Model.Create<List<ProfileResult>>();
-            var expected = (from x in source
-                orderby x.Status descending, x.YearStartedInTech ?? 0 descending, x.BirthYear ??
-                                                                                  DateTimeOffset.UtcNow.Year
-                select x).ToList();
-
-            var filters = new List<ProfileFilter>();
-
-            var profileStore = Substitute.For<IProfileStore>();
-            var linkStore = Substitute.For<ICategoryLinkStore>();
-            var cache = Substitute.For<ICacheManager>();
-
-            var sut = new ProfileSearchManager(profileStore, linkStore, cache);
-
-            using (var tokenSource = new CancellationTokenSource())
-            {
-                cache.GetProfileResults().Returns((ICollection<ProfileResult>) null);
-                profileStore.GetProfileResults(tokenSource.Token).Returns(source);
-
-                var actual = await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false);
-
-                actual.Should().ContainInOrder(expected);
-                cache.Received()
-                    .StoreProfileResults(
-                        Verify.That<ICollection<ProfileResult>>(x => x.Should().ContainInOrder(expected)));
-            }
-        }
-
-        [Fact]
         public async Task GetProfileResultsReusesCachedCategoryLinksTest()
         {
             var expected = Model.Create<List<ProfileResult>>();

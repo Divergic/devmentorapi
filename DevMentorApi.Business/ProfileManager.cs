@@ -1,6 +1,7 @@
 ﻿namespace DevMentorApi.Business
 {
     using System;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Azure;
@@ -106,6 +107,44 @@
             if (changes.ProfileChanged)
             {
                 await _processor.Execute(updated, changes, cancellationToken).ConfigureAwait(false);
+
+                UpdateResultsCache(updated);
+            }
+        }
+
+        private void UpdateResultsCache(Profile profile)
+        {
+            // The status has changed such that the visibility of the profile has been changed
+            // We need to update cache information for the available profiles
+            var results = _cache.GetProfileResults();
+
+            if (results == null)
+            {
+                // There are no results in the cache so we don't need to update it
+                return;
+            }
+
+            var cachedResult = results.FirstOrDefault(x => x.Id == profile.Id);
+            var cacheRequiresUpdate = false;
+
+            if (cachedResult != null)
+            {
+                results.Remove(cachedResult);
+                cacheRequiresUpdate = true;
+            }
+
+            if (profile.Status != ProfileStatus.Hidden)
+            {
+                // The profile is now visible
+                var newResult = new ProfileResult(profile);
+
+                results.Add(newResult);
+                cacheRequiresUpdate = true;
+            }
+
+            if (cacheRequiresUpdate)
+            {
+                _cache.StoreProfileResults(results);
             }
         }
 

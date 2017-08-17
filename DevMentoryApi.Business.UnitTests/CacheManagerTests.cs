@@ -123,7 +123,7 @@
         public void GetCategoryLinksReturnsCachedCategoryLinksTest()
         {
             var filter = Model.Create<ProfileFilter>();
-            var expected = Model.Create<List<Category>>();
+            var expected = Model.Create<List<Guid>>();
             var cacheKey = "CategoryLinks|" + filter.CategoryGroup + "|" + filter.CategoryName;
 
             var cache = Substitute.For<IMemoryCache>();

@@ -1,6 +1,8 @@
 ﻿namespace DevMentoryApi.Business.UnitTests
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using DevMentorApi.Azure;
@@ -527,6 +529,37 @@
             action.ShouldThrow<ArgumentNullException>();
         }
 
+        [Theory]
+        [InlineData(ProfileStatus.Available)]
+        [InlineData(ProfileStatus.Unavailable)]
+        public async Task UpdateProfileAddsProfileToResultsCacheWhenNotPreviouslyCachedTest(ProfileStatus status)
+        {
+            var expected = Model.Create<UpdatableProfile>().Set(x => x.Status = status);
+            var profile = Model.Create<Profile>().Set(x => x.BannedAt = null);
+            var changeResult = Model.Create<ProfileChangeResult>().Set(x => x.ProfileChanged = true);
+            var cacheResults = new List<ProfileResult>();
+
+            var store = Substitute.For<IProfileStore>();
+            var calculator = Substitute.For<IProfileChangeCalculator>();
+            var processor = Substitute.For<IProfileChangeProcessor>();
+            var cache = Substitute.For<ICacheManager>();
+
+            var sut = new ProfileManager(store, calculator, processor, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                cache.GetProfileResults().Returns(cacheResults);
+                store.GetProfile(profile.Id, tokenSource.Token).Returns(profile);
+                calculator.CalculateChanges(profile, expected).Returns(changeResult);
+
+                await sut.UpdateProfile(profile.Id, expected, tokenSource.Token).ConfigureAwait(false);
+
+                cache.Received()
+                    .StoreProfileResults(
+                        Verify.That<ICollection<ProfileResult>>(x => x.Should().Contain(y => y.Id == profile.Id)));
+            }
+        }
+
         [Fact]
         public async Task UpdateProfileCalculatesAndProcessesChangesForUpdatedProfileNotBannedTest()
         {
@@ -556,6 +589,61 @@
         }
 
         [Fact]
+        public async Task UpdateProfileDoesNotAddHiddenProfileToResultsCacheWhenNotPreviouslyCachedTest()
+        {
+            var expected = Model.Create<UpdatableProfile>().Set(x => x.Status = ProfileStatus.Hidden);
+            var profile = Model.Create<Profile>().Set(x => x.BannedAt = null);
+            var changeResult = Model.Create<ProfileChangeResult>().Set(x => x.ProfileChanged = true);
+            var cacheResults = new List<ProfileResult>();
+
+            var store = Substitute.For<IProfileStore>();
+            var calculator = Substitute.For<IProfileChangeCalculator>();
+            var processor = Substitute.For<IProfileChangeProcessor>();
+            var cache = Substitute.For<ICacheManager>();
+
+            var sut = new ProfileManager(store, calculator, processor, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                cache.GetProfileResults().Returns(cacheResults);
+                store.GetProfile(profile.Id, tokenSource.Token).Returns(profile);
+                calculator.CalculateChanges(profile, expected).Returns(changeResult);
+
+                await sut.UpdateProfile(profile.Id, expected, tokenSource.Token).ConfigureAwait(false);
+
+                cache.DidNotReceive()
+                    .StoreProfileResults(
+                        Arg.Any<ICollection<ProfileResult>>());
+            }
+        }
+
+        [Fact]
+        public async Task UpdateProfileDoesNotCacheProfileResultWhenNoResultsAreCachedTest()
+        {
+            var expected = Model.Create<UpdatableProfile>();
+            var profile = Model.Create<Profile>().Set(x => x.BannedAt = null);
+            var changeResult = Model.Create<ProfileChangeResult>().Set(x => x.ProfileChanged = true);
+
+            var store = Substitute.For<IProfileStore>();
+            var calculator = Substitute.For<IProfileChangeCalculator>();
+            var processor = Substitute.For<IProfileChangeProcessor>();
+            var cache = Substitute.For<ICacheManager>();
+
+            var sut = new ProfileManager(store, calculator, processor, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                cache.GetProfileResults().Returns((ICollection<ProfileResult>) null);
+                store.GetProfile(profile.Id, tokenSource.Token).Returns(profile);
+                calculator.CalculateChanges(profile, expected).Returns(changeResult);
+
+                await sut.UpdateProfile(profile.Id, expected, tokenSource.Token).ConfigureAwait(false);
+
+                cache.DidNotReceive().StoreProfileResults(Arg.Any<ICollection<ProfileResult>>());
+            }
+        }
+
+        [Fact]
         public async Task UpdateProfileDoesNotProcessProfileChangesWhenNoChangeFoundTest()
         {
             var expected = Model.Create<UpdatableProfile>();
@@ -580,6 +668,37 @@
                     Arg.Any<Profile>(),
                     Arg.Any<ProfileChangeResult>(),
                     Arg.Any<CancellationToken>()).ConfigureAwait(false);
+            }
+        }
+
+        [Fact]
+        public async Task UpdateProfileRemovesHiddenProfileFromCacheTest()
+        {
+            var expected = Model.Create<UpdatableProfile>().Set(x => x.Status = ProfileStatus.Hidden);
+            var profile = Model.Create<Profile>().Set(x => x.BannedAt = null);
+            var changeResult = Model.Create<ProfileChangeResult>().Set(x => x.ProfileChanged = true);
+            var cacheResults = new List<ProfileResult>
+            {
+                Model.Create<ProfileResult>().Set(x => x.Id = profile.Id)
+            };
+
+            var store = Substitute.For<IProfileStore>();
+            var calculator = Substitute.For<IProfileChangeCalculator>();
+            var processor = Substitute.For<IProfileChangeProcessor>();
+            var cache = Substitute.For<ICacheManager>();
+
+            var sut = new ProfileManager(store, calculator, processor, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                cache.GetProfileResults().Returns(cacheResults);
+                store.GetProfile(profile.Id, tokenSource.Token).Returns(profile);
+                calculator.CalculateChanges(profile, expected).Returns(changeResult);
+
+                await sut.UpdateProfile(profile.Id, expected, tokenSource.Token).ConfigureAwait(false);
+
+                cache.Received().StoreProfileResults(
+                    Verify.That<ICollection<ProfileResult>>(x => x.Should().NotContain(y => y.Id == profile.Id)));
             }
         }
 
@@ -643,6 +762,43 @@
                 .ConfigureAwait(false);
 
             action.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Theory]
+        [InlineData(ProfileStatus.Available)]
+        [InlineData(ProfileStatus.Unavailable)]
+        public async Task UpdateProfileUpdatesProfileResultInCacheTest(ProfileStatus status)
+        {
+            var expected = Model.Create<UpdatableProfile>().Set(x => x.Status = status);
+            var profile = Model.Create<Profile>().Set(x => x.BannedAt = null);
+            var changeResult = Model.Create<ProfileChangeResult>().Set(x => x.ProfileChanged = true);
+            var cacheResults = new List<ProfileResult>
+            {
+                Model.Create<ProfileResult>().Set(x => x.Id = profile.Id)
+            };
+
+            var store = Substitute.For<IProfileStore>();
+            var calculator = Substitute.For<IProfileChangeCalculator>();
+            var processor = Substitute.For<IProfileChangeProcessor>();
+            var cache = Substitute.For<ICacheManager>();
+
+            var sut = new ProfileManager(store, calculator, processor, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                cache.GetProfileResults().Returns(cacheResults);
+                store.GetProfile(profile.Id, tokenSource.Token).Returns(profile);
+                calculator.CalculateChanges(profile, expected).Returns(changeResult);
+
+                await sut.UpdateProfile(profile.Id, expected, tokenSource.Token).ConfigureAwait(false);
+
+                // This is a mouthful. 
+                // We want to make sure that the profile results being put into the cache contains only a single item
+                // matching our updated profile and that has all the same data as the updated profile
+                cache.Received().StoreProfileResults(Verify.That<ICollection<ProfileResult>>(x => x
+                    .Single(y => y.Id == profile.Id)
+                    .ShouldBeEquivalentTo(expected, opt => opt.ExcludingMissingMembers())));
+            }
         }
     }
 }

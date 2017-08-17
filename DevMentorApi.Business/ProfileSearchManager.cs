@@ -5,9 +5,9 @@ namespace DevMentorApi.Business
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using DevMentorApi.Azure;
-    using DevMentorApi.Model;
+    using Azure;
     using EnsureThat;
+    using Model;
 
     public class ProfileSearchManager : IProfileSearchManager
     {
@@ -149,20 +149,12 @@ namespace DevMentorApi.Business
                 return cachedResults;
             }
 
-            var storeResults = await _profileStore.GetProfileResults(cancellationToken).ConfigureAwait(false);
+            var storeResults = (await _profileStore.GetProfileResults(cancellationToken).ConfigureAwait(false))
+                .ToList();
 
-            // Store the results before caching them
-            // Order by available first, highest number of years in tech then oldest by age
-            var orderedResults = from x in storeResults
-                orderby x.Status descending, x.YearStartedInTech ?? 0 descending, x.BirthYear ??
-                                                                                  DateTimeOffset.UtcNow.Year
-                select x;
+            _cache.StoreProfileResults(storeResults);
 
-            var finalResults = orderedResults.ToList();
-
-            _cache.StoreProfileResults(finalResults);
-
-            return finalResults;
+            return storeResults;
         }
     }
 }
