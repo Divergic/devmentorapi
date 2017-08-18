@@ -34,6 +34,6 @@
 
         public static Uri Profiles => new Uri(Config.WebsiteAddress, "/profiles");
 
-        public static Uri UserProfile => new Uri(Config.WebsiteAddress, "/profile");
+        public static Uri AccountProfile => new Uri(Config.WebsiteAddress, "/profile");
     }
 }

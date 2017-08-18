@@ -12,71 +12,23 @@
     using Xunit;
     using Xunit.Abstractions;
 
-    public class UserProfileTests
+    public class AccountProfileTests
     {
-        private readonly ILogger<UserProfileTests> _logger;
+        private readonly ILogger<AccountProfileTests> _logger;
         private readonly ITestOutputHelper _output;
 
-        public UserProfileTests(ITestOutputHelper output)
+        public AccountProfileTests(ITestOutputHelper output)
         {
             _output = output;
-            _logger = output.BuildLoggerFor<UserProfileTests>();
+            _logger = output.BuildLoggerFor<AccountProfileTests>();
         }
-
-        [Fact]
-        public async Task DeleteBansProfileTest()
-        {
-            var account = Model.Create<Account>();
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save(null, account)
-                .ConfigureAwait(false);
-            var identity = ClaimsIdentityFactory.Build(account, profile);
-            var administrator = ClaimsIdentityFactory.Build().AsAdministrator();
-            var profileUri = ApiLocation.ProfileFor(profile.Id);
-
-            // At this point a public user can read the profile
-            var publicProfile = await Client.Get<PublicProfile>(profileUri, _logger).ConfigureAwait(false);
-
-            publicProfile.ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
-
-            await Client.Delete(profileUri, _logger, administrator).ConfigureAwait(false);
-
-            var actual = await Client.Get<Profile>(ApiLocation.UserProfile, _logger, identity).ConfigureAwait(false);
-
-            actual.BannedAt.Should().BeCloseTo(DateTimeOffset.UtcNow, 5000);
-        }
-
-        [Fact]
-        public async Task DeleteReturnsForbiddenWhenUserNotAdministratorTest()
-        {
-            var identity = ClaimsIdentityFactory.Build();
-            var profileUri = ApiLocation.ProfileFor(Guid.NewGuid());
-
-            await Client.Delete(profileUri, _logger, identity, HttpStatusCode.Forbidden).ConfigureAwait(false);
-        }
-
-        [Fact]
-        public async Task DeleteReturnsNotFoundWhenProfileDoesNotExistTest()
-        {
-            var administrator = ClaimsIdentityFactory.Build().AsAdministrator();
-            var profileUri = ApiLocation.ProfileFor(Guid.NewGuid());
-
-            await Client.Delete(profileUri, _logger, administrator, HttpStatusCode.NotFound).ConfigureAwait(false);
-        }
-
-        [Fact]
-        public async Task DeleteReturnsUnauthorizedForAnonymousUserTest()
-        {
-            var profileUri = ApiLocation.ProfileFor(Guid.NewGuid());
-
-            await Client.Delete(profileUri, _logger, null, HttpStatusCode.Unauthorized).ConfigureAwait(false);
-        }
-
+        
         [Fact]
         public async Task GetForNewUserCreatesProfileAsHiddenTest()
         {
             var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>().Set(x => x.BannedAt = null);
             var identity = ClaimsIdentityFactory.Build(null, profile);
-            var address = ApiLocation.UserProfile;
+            var address = ApiLocation.AccountProfile;
 
             var actual = await Client.Get<Profile>(address, _logger, identity).ConfigureAwait(false);
 
@@ -93,7 +45,7 @@
                 Email = Guid.NewGuid().ToString("N") + "@test.com"
             };
             var identity = ClaimsIdentityFactory.Build(null, profile);
-            var address = ApiLocation.UserProfile;
+            var address = ApiLocation.AccountProfile;
 
             var actual = await Client.Get<Profile>(address, _logger, identity).ConfigureAwait(false);
 
@@ -117,7 +69,7 @@
                 LastName = lastName
             };
             var identity = ClaimsIdentityFactory.Build(null, profile);
-            var address = ApiLocation.UserProfile;
+            var address = ApiLocation.AccountProfile;
 
             var actual = await Client.Get<Profile>(address, _logger, identity).ConfigureAwait(false);
 
@@ -131,7 +83,7 @@
             var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>()
                 .Set(x => x.BannedAt = DateTimeOffset.UtcNow).Save(_logger, account).ConfigureAwait(false);
             var identity = ClaimsIdentityFactory.Build(account, profile);
-            var address = ApiLocation.UserProfile;
+            var address = ApiLocation.AccountProfile;
 
             var actual = await Client.Get<Profile>(address, _logger, identity).ConfigureAwait(false);
 
@@ -146,7 +98,7 @@
             var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save(_logger, account)
                 .ConfigureAwait(false);
             var identity = ClaimsIdentityFactory.Build(account, profile);
-            var address = ApiLocation.UserProfile;
+            var address = ApiLocation.AccountProfile;
 
             var actual = await Client.Get<Profile>(address, _logger, identity).ConfigureAwait(false);
 
@@ -156,7 +108,7 @@
         [Fact]
         public async Task GetReturnsForbiddenForAnonymousUserTest()
         {
-            var address = ApiLocation.UserProfile;
+            var address = ApiLocation.AccountProfile;
 
             await Client.Get(address, _logger, null, HttpStatusCode.Unauthorized).ConfigureAwait(false);
         }
@@ -168,7 +120,7 @@
             var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>()
                 .Set(x => x.Status = ProfileStatus.Hidden).Save(_logger, account).ConfigureAwait(false);
             var identity = ClaimsIdentityFactory.Build(account, profile);
-            var address = ApiLocation.UserProfile;
+            var address = ApiLocation.AccountProfile;
 
             var actual = await Client.Get<Profile>(address, _logger, identity).ConfigureAwait(false);
 
@@ -190,7 +142,7 @@
 
             var user = ClaimsIdentityFactory.Build(null, expected);
 
-            await Client.Put(ApiLocation.UserProfile, _logger, expected, user, HttpStatusCode.NoContent)
+            await Client.Put(ApiLocation.AccountProfile, _logger, expected, user, HttpStatusCode.NoContent)
                 .ConfigureAwait(false);
         }
 
@@ -205,10 +157,10 @@
             profile.BannedAt = null;
 
             // Attempt to overpost BannedAt to clear it
-            await Client.Put(ApiLocation.UserProfile, _logger, profile, user, HttpStatusCode.NoContent)
+            await Client.Put(ApiLocation.AccountProfile, _logger, profile, user, HttpStatusCode.NoContent)
                 .ConfigureAwait(false);
 
-            var actual = await Client.Get<Profile>(ApiLocation.UserProfile, _logger, user).ConfigureAwait(false);
+            var actual = await Client.Get<Profile>(ApiLocation.AccountProfile, _logger, user).ConfigureAwait(false);
 
             actual.BannedAt.Should().HaveValue();
         }
@@ -223,7 +175,7 @@
             expected.Skills.Clear();
             expected.Skills.Add(skill);
 
-            await Client.Put(ApiLocation.UserProfile, _logger, expected, user, HttpStatusCode.NoContent)
+            await Client.Put(ApiLocation.AccountProfile, _logger, expected, user, HttpStatusCode.NoContent)
                 .ConfigureAwait(false);
 
             var actual = await Client.Get<List<PublicCategory>>(ApiLocation.Categories, _logger).ConfigureAwait(false);
@@ -237,7 +189,7 @@
         {
             var user = ClaimsIdentityFactory.Build();
 
-            await Client.Put(ApiLocation.UserProfile, _logger, null, user, HttpStatusCode.BadRequest)
+            await Client.Put(ApiLocation.AccountProfile, _logger, null, user, HttpStatusCode.BadRequest)
                 .ConfigureAwait(false);
         }
 
@@ -250,7 +202,7 @@
             var expected = Model.Using<ProfileBuildStrategy>().Create<UpdatableProfile>().Set(x => x.Email = email);
             var user = ClaimsIdentityFactory.Build(null, expected);
 
-            await Client.Put(ApiLocation.UserProfile, _logger, expected, user, HttpStatusCode.BadRequest)
+            await Client.Put(ApiLocation.AccountProfile, _logger, expected, user, HttpStatusCode.BadRequest)
                 .ConfigureAwait(false);
         }
 
@@ -263,7 +215,7 @@
                 .Set(x => x.FirstName = firstName);
             var user = ClaimsIdentityFactory.Build(null, expected);
 
-            await Client.Put(ApiLocation.UserProfile, _logger, expected, user, HttpStatusCode.BadRequest)
+            await Client.Put(ApiLocation.AccountProfile, _logger, expected, user, HttpStatusCode.BadRequest)
                 .ConfigureAwait(false);
         }
 
@@ -276,7 +228,7 @@
                 .Set(x => x.LastName = lastName);
             var user = ClaimsIdentityFactory.Build(null, expected);
 
-            await Client.Put(ApiLocation.UserProfile, _logger, expected, user, HttpStatusCode.BadRequest)
+            await Client.Put(ApiLocation.AccountProfile, _logger, expected, user, HttpStatusCode.BadRequest)
                 .ConfigureAwait(false);
         }
 
@@ -287,7 +239,7 @@
                 .Set(x => x.Status = (ProfileStatus) int.MaxValue);
             var user = ClaimsIdentityFactory.Build(null, expected);
 
-            await Client.Put(ApiLocation.UserProfile, _logger, expected, user, HttpStatusCode.BadRequest)
+            await Client.Put(ApiLocation.AccountProfile, _logger, expected, user, HttpStatusCode.BadRequest)
                 .ConfigureAwait(false);
         }
 
@@ -302,7 +254,7 @@
 
             var user = ClaimsIdentityFactory.Build(null, expected);
 
-            await Client.Put(ApiLocation.UserProfile, _logger, expected, user, HttpStatusCode.BadRequest)
+            await Client.Put(ApiLocation.AccountProfile, _logger, expected, user, HttpStatusCode.BadRequest)
                 .ConfigureAwait(false);
         }
 
@@ -318,7 +270,7 @@
 
             var user = ClaimsIdentityFactory.Build(null, expected);
 
-            await Client.Put(ApiLocation.UserProfile, _logger, expected, user, HttpStatusCode.BadRequest)
+            await Client.Put(ApiLocation.AccountProfile, _logger, expected, user, HttpStatusCode.BadRequest)
                 .ConfigureAwait(false);
         }
 
@@ -333,7 +285,7 @@
 
             var user = ClaimsIdentityFactory.Build(null, expected);
 
-            await Client.Put(ApiLocation.UserProfile, _logger, expected, user, HttpStatusCode.BadRequest)
+            await Client.Put(ApiLocation.AccountProfile, _logger, expected, user, HttpStatusCode.BadRequest)
                 .ConfigureAwait(false);
         }
 
@@ -348,7 +300,7 @@
 
             var user = ClaimsIdentityFactory.Build(null, expected);
 
-            await Client.Put(ApiLocation.UserProfile, _logger, expected, user, HttpStatusCode.BadRequest)
+            await Client.Put(ApiLocation.AccountProfile, _logger, expected, user, HttpStatusCode.BadRequest)
                 .ConfigureAwait(false);
         }
 
@@ -360,7 +312,7 @@
                 .Set(x => x.YearStartedInTech = year);
             var user = ClaimsIdentityFactory.Build(null, expected);
 
-            await Client.Put(ApiLocation.UserProfile, _logger, expected, user, HttpStatusCode.BadRequest)
+            await Client.Put(ApiLocation.AccountProfile, _logger, expected, user, HttpStatusCode.BadRequest)
                 .ConfigureAwait(false);
         }
 
@@ -375,7 +327,7 @@
 
             var user = ClaimsIdentityFactory.Build(null, expected);
 
-            await Client.Put(ApiLocation.UserProfile, _logger, expected, user, HttpStatusCode.BadRequest)
+            await Client.Put(ApiLocation.AccountProfile, _logger, expected, user, HttpStatusCode.BadRequest)
                 .ConfigureAwait(false);
         }
 
@@ -384,7 +336,7 @@
         {
             var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>();
 
-            await Client.Put(ApiLocation.UserProfile, _logger, profile, null, HttpStatusCode.Unauthorized)
+            await Client.Put(ApiLocation.AccountProfile, _logger, profile, null, HttpStatusCode.Unauthorized)
                 .ConfigureAwait(false);
         }
 
@@ -394,10 +346,10 @@
             var expected = Model.Using<ProfileBuildStrategy>().Create<UpdatableProfile>();
             var user = ClaimsIdentityFactory.Build(null, expected);
 
-            await Client.Put(ApiLocation.UserProfile, _logger, expected, user, HttpStatusCode.NoContent)
+            await Client.Put(ApiLocation.AccountProfile, _logger, expected, user, HttpStatusCode.NoContent)
                 .ConfigureAwait(false);
 
-            var actual = await Client.Get<Profile>(ApiLocation.UserProfile, _logger, user).ConfigureAwait(false);
+            var actual = await Client.Get<Profile>(ApiLocation.AccountProfile, _logger, user).ConfigureAwait(false);
 
             actual.ShouldBeEquivalentTo(expected, opt => opt.ExcludingMissingMembers());
         }

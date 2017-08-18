@@ -11,10 +11,12 @@
             ILogger logger = null,
             Account account = null)
         {
-            var address = ApiLocation.UserProfile;
+            var address = ApiLocation.AccountProfile;
 
-            // Assumption here is that this is a new profile and the account does not exist yet
-            // The account will be created implicitly via auto-registration
+            // If account is null then this will be invoked with a new account
+            // This is a one-time usage for testing because the caller will not have access 
+            // to the account context for any additional calls
+            // If additional calls are required for the same account context then pass an account in and reuse it
             var identity = ClaimsIdentityFactory.Build(account, profile);
 
             await Client.Put(address, logger, profile, identity, HttpStatusCode.NoContent).ConfigureAwait(false);

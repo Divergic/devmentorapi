@@ -12,11 +12,11 @@
     using Microsoft.AspNetCore.Mvc;
     using Swashbuckle.AspNetCore.SwaggerGen;
 
-    public class UserProfileController : Controller
+    public class AccountProfileController : Controller
     {
         private readonly IProfileManager _manager;
 
-        public UserProfileController(IProfileManager manager)
+        public AccountProfileController(IProfileManager manager)
         {
             Ensure.That(manager, nameof(manager)).IsNotNull();
 

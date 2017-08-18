@@ -43,8 +43,11 @@
                 return null;
             }
 
-            // Update the cache of profiles for this profile
+            // Update the cache for this profile
             _cache.StoreProfile(profile);
+
+            // Remove this profile from the results cache
+            UpdateResultsCache(profile);
 
             // TODO: Update all item links (and link caches) to removed the banned profile, then remove the banned profile from cache
             return profile;
@@ -133,9 +136,10 @@
                 cacheRequiresUpdate = true;
             }
 
-            if (profile.Status != ProfileStatus.Hidden)
+            if (profile.Status != ProfileStatus.Hidden
+                && profile.BannedAt == null)
             {
-                // The profile is now visible
+                // The profile is visible so the updated profile needs to be added into the results cache
                 var newResult = new ProfileResult(profile);
 
                 results.Add(newResult);
