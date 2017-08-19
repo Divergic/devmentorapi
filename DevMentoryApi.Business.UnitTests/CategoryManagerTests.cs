@@ -16,6 +16,41 @@
     public class CategoryManagerTests
     {
         [Fact]
+        public async Task CreateCategoryPreservesExistingLinkCountWhenCategoryAlreadyExistsTest()
+        {
+            var expected = Model.Create<NewCategory>();
+            var category = Model.Create<Category>().Set(x => x.Group = expected.Group).Set(x => x.Name = expected.Name);
+
+            var store = Substitute.For<ICategoryStore>();
+            var cache = Substitute.For<ICacheManager>();
+
+            var sut = new CategoryManager(store, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                store.GetCategory(expected.Group, expected.Name, tokenSource.Token).Returns(category);
+
+                await sut.CreateCategory(expected, tokenSource.Token).ConfigureAwait(false);
+
+                await store.Received(1).StoreCategory(Arg.Any<Category>(), tokenSource.Token).ConfigureAwait(false);
+                await store.Received().StoreCategory(
+                    Arg.Is<Category>(x => x.Group == expected.Group),
+                    tokenSource.Token).ConfigureAwait(false);
+                await store.Received().StoreCategory(Arg.Is<Category>(x => x.Name == expected.Name), tokenSource.Token)
+                    .ConfigureAwait(false);
+                await store.Received().StoreCategory(
+                    Arg.Is<Category>(x => x.LinkCount == category.LinkCount),
+                    tokenSource.Token).ConfigureAwait(false);
+                await store.Received().StoreCategory(Arg.Is<Category>(x => x.Reviewed), tokenSource.Token)
+                    .ConfigureAwait(false);
+                await store.Received().StoreCategory(Arg.Is<Category>(x => x.Visible), tokenSource.Token)
+                    .ConfigureAwait(false);
+
+                cache.Received().RemoveCategories();
+            }
+        }
+
+        [Fact]
         public async Task CreateCategoryProvidesCategoryToStoreTest()
         {
             var expected = Model.Create<NewCategory>();
@@ -77,7 +112,8 @@
 
                 await sut.GetCategories(ReadType.All, tokenSource.Token).ConfigureAwait(false);
 
-                cache.Received().StoreCategories(Verify.That<ICollection<Category>>(x => x.ShouldAllBeEquivalentTo(expected)));
+                cache.Received().StoreCategories(
+                    Verify.That<ICollection<Category>>(x => x.ShouldAllBeEquivalentTo(expected)));
             }
         }
 

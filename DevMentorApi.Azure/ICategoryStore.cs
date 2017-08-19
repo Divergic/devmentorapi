@@ -11,6 +11,8 @@
 
         Task<IEnumerable<Category>> GetAllCategories(CancellationToken cancellationToken);
 
+        Task<Category> GetCategory(CategoryGroup group, string name, CancellationToken cancellationToken);
+
         Task StoreCategory(Category category, CancellationToken cancellationToken);
     }
 }

@@ -26,10 +26,19 @@ namespace DevMentorApi.Business
         {
             Ensure.That(newCategory, nameof(newCategory)).IsNotNull();
 
+            var existingCategory = await _store.GetCategory(newCategory.Group, newCategory.Name, cancellationToken).ConfigureAwait(false);
+
+            var linkCount = 0;
+
+            if (existingCategory != null)
+            {
+                linkCount = existingCategory.LinkCount;
+            }
+
             var category = new Category
             {
                 Group = newCategory.Group,
-                LinkCount = 0,
+                LinkCount = linkCount,
                 Name = newCategory.Name,
                 Reviewed = true,
                 Visible = true
