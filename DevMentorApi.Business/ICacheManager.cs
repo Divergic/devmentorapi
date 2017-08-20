@@ -2,7 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
-    using Model;
+    using DevMentorApi.Model;
 
     public interface ICacheManager
     {
@@ -17,6 +17,8 @@
         ICollection<ProfileResult> GetProfileResults();
 
         void RemoveCategories();
+
+        void RemoveCategoryLinks(ProfileFilter filter);
 
         void StoreAccount(Account account);
 

@@ -3,9 +3,9 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using DevMentorApi.Model;
     using EnsureThat;
     using Microsoft.Extensions.Caching.Memory;
-    using Model;
 
     public class CacheManager : ICacheManager
     {
@@ -63,6 +63,13 @@
         public void RemoveCategories()
         {
             _cache.Remove(CategoriesCacheKey);
+        }
+
+        public void RemoveCategoryLinks(ProfileFilter filter)
+        {
+            var cacheKey = BuildCategoryLinkCacheKey(filter);
+
+            _cache.Remove(cacheKey);
         }
 
         public void StoreAccount(Account account)

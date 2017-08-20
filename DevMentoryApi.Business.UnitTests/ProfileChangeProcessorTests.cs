@@ -232,6 +232,8 @@
                     Arg.Any<string>(),
                     Arg.Any<CategoryLinkChange>(),
                     tokenSource.Token).ConfigureAwait(false);
+
+                cacheManager.Received(changes.CategoryChanges.Count).RemoveCategoryLinks(Arg.Any<ProfileFilter>());
             }
         }
 

@@ -299,6 +299,21 @@
         }
 
         [Fact]
+        public void RemoveCategoriesLinksRemovesFromCacheTest()
+        {
+            var filter = Model.Create<ProfileFilter>();
+            var cache = Substitute.For<IMemoryCache>();
+            var config = Substitute.For<ICacheConfig>();
+            var cacheKey = "CategoryLinks|" + filter.CategoryGroup + "|" + filter.CategoryName;
+
+            var sut = new CacheManager(cache, config);
+
+            sut.RemoveCategoryLinks(filter);
+
+            cache.Received().Remove(cacheKey);
+        }
+
+        [Fact]
         public void StoreAccountThrowsExceptionWithNullAccountTest()
         {
             var cache = Substitute.For<IMemoryCache>();

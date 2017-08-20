@@ -1,15 +1,14 @@
 ﻿namespace DevMentorApi.AcceptanceTests
 {
+    using System.Collections.Generic;
     using System.Net;
     using System.Threading.Tasks;
+    using DevMentorApi.Model;
     using Microsoft.Extensions.Logging;
-    using Model;
 
     public static class ModelExtensions
     {
-        public static async Task<Profile> Save(this Profile profile,
-            ILogger logger = null,
-            Account account = null)
+        public static async Task<Profile> Save(this Profile profile, ILogger logger = null, Account account = null)
         {
             var address = ApiLocation.AccountProfile;
 
@@ -37,12 +36,25 @@
             return actual;
         }
 
-        public static async Task<NewCategory> Save(this NewCategory category,
-            ILogger logger = null)
+        public static async Task<List<Profile>> Save(this IEnumerable<Profile> profiles, ILogger logger = null)
+        {
+            var results = new List<Profile>();
+
+            foreach (var profile in profiles)
+            {
+                var storedProfile = await Save(profile, logger).ConfigureAwait(false);
+
+                results.Add(storedProfile);
+            }
+
+            return results;
+        }
+
+        public static async Task<NewCategory> Save(this NewCategory category, ILogger logger = null)
         {
             var administrator = ClaimsIdentityFactory.Build().AsAdministrator();
             var address = ApiLocation.Categories;
-            
+
             await Client.Post(address, logger, category, administrator).ConfigureAwait(false);
 
             return category;
