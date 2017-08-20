@@ -1,5 +1,6 @@
 ﻿namespace DevMentorApi.AcceptanceTests
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
@@ -108,6 +109,36 @@
         }
 
         [Fact]
+        public async Task GetReturnsCategoryWithCorrectLinkCountWhenProfileBannedTest()
+        {
+            var account = Model.Create<Account>();
+            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save(_logger, account)
+                .ConfigureAwait(false);
+            var newCategory = profile.Skills.First();
+            var address = ApiLocation.Categories;
+            var categoryApproval = new NewCategory
+            {
+                Group = CategoryGroup.Skill,
+                Name = newCategory.Name
+            };
+            var administrator = ClaimsIdentityFactory.Build().AsAdministrator();
+
+            await Client.Post(address, _logger, categoryApproval, administrator).ConfigureAwait(false);
+
+            var firstActual = await Client.Get<List<PublicCategory>>(address, _logger).ConfigureAwait(false);
+
+            firstActual.Single(x => x.Group == CategoryGroup.Skill && x.Name == newCategory.Name).LinkCount.Should()
+                .Be(1);
+
+            await profile.Set(x => x.BannedAt = DateTimeOffset.UtcNow).Save(_logger, account).ConfigureAwait(false);
+
+            var secondActual = await Client.Get<List<PublicCategory>>(address, _logger).ConfigureAwait(false);
+
+            secondActual.Single(x => x.Group == CategoryGroup.Skill && x.Name == newCategory.Name).LinkCount.Should()
+                .Be(0);
+        }
+
+        [Fact]
         public async Task GetReturnsCategoryWithCorrectLinkCountWhenProfileIsAddedToExistingCategoryTest()
         {
             var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save().ConfigureAwait(false);
@@ -136,7 +167,8 @@
         public async Task GetReturnsCategoryWithCorrectLinkCountWhenProfileIsRemovedFromExistingCategoryTest()
         {
             var account = Model.Create<Account>();
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save(_logger, account).ConfigureAwait(false);
+            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save(_logger, account)
+                .ConfigureAwait(false);
             var newCategory = profile.Skills.First();
             var address = ApiLocation.Categories;
             var categoryApproval = new NewCategory
@@ -151,7 +183,7 @@
             profile.Skills.Remove(profile.Skills.First());
 
             await profile.Save(_logger, account).ConfigureAwait(false);
-            
+
             var actual = await Client.Get<List<PublicCategory>>(address, _logger).ConfigureAwait(false);
 
             var category = actual.Single(x => x.Group == CategoryGroup.Skill && x.Name == newCategory.Name);

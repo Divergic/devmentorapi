@@ -4,15 +4,30 @@ namespace DevMentorApi.Azure.IntegrationTests
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using DevMentorApi.Model;
     using FluentAssertions;
     using Microsoft.WindowsAzure.Storage;
-    using Model;
     using ModelBuilder;
     using NSubstitute;
     using Xunit;
 
     public class ProfileStoreTests
     {
+        [Fact]
+        public async Task BanProfileReturnsNullWhenAlreadyBannedTest()
+        {
+            var profile = Model.Create<Profile>().Set(x => x.BannedAt = DateTimeOffset.UtcNow);
+            var bannedAt = DateTimeOffset.UtcNow.AddDays(-2);
+
+            var sut = new ProfileStore(Config.Storage);
+
+            await sut.StoreProfile(profile, CancellationToken.None).ConfigureAwait(false);
+
+            var actual = await sut.BanProfile(profile.Id, bannedAt, CancellationToken.None).ConfigureAwait(false);
+
+            actual.Should().BeNull();
+        }
+
         [Fact]
         public async Task BanProfileReturnsNullWhenProfileNotFoundTest()
         {
@@ -75,8 +90,7 @@ namespace DevMentorApi.Azure.IntegrationTests
         {
             var first = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Available)
                 .Set(x => x.BannedAt = null);
-            var second = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Hidden)
-                .Set(x => x.BannedAt = null);
+            var second = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Hidden).Set(x => x.BannedAt = null);
 
             var sut = new ProfileStore(Config.Storage);
 

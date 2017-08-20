@@ -42,6 +42,12 @@
 
             var entity = (ProfileAdapter) result.Result;
 
+            if (entity.Value.BannedAt.HasValue)
+            {
+                // This profile has already been banned
+                return null;
+            }
+
             entity.Value.BannedAt = bannedAt;
 
             var updateOperation = TableOperation.Replace(entity);

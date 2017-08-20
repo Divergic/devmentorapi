@@ -20,6 +20,8 @@
 
         void RemoveCategoryLinks(ProfileFilter filter);
 
+        void RemoveProfile(Guid id);
+
         void StoreAccount(Account account);
 
         void StoreCategories(ICollection<Category> categories);

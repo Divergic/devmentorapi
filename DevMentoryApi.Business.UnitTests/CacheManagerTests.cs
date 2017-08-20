@@ -286,6 +286,34 @@
         }
 
         [Fact]
+        public void RemoveCategoriesLinksRemovesFromCacheTest()
+        {
+            var filter = Model.Create<ProfileFilter>();
+            var cache = Substitute.For<IMemoryCache>();
+            var config = Substitute.For<ICacheConfig>();
+            var cacheKey = "CategoryLinks|" + filter.CategoryGroup + "|" + filter.CategoryName;
+
+            var sut = new CacheManager(cache, config);
+
+            sut.RemoveCategoryLinks(filter);
+
+            cache.Received().Remove(cacheKey);
+        }
+
+        [Fact]
+        public void RemoveCategoriesLinksThrowsExceptionWithNullFilterTest()
+        {
+            var cache = Substitute.For<IMemoryCache>();
+            var config = Substitute.For<ICacheConfig>();
+
+            var sut = new CacheManager(cache, config);
+
+            Action action = () => sut.RemoveCategoryLinks(null);
+
+            action.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Fact]
         public void RemoveCategoriesRemovesFromCacheTest()
         {
             var cache = Substitute.For<IMemoryCache>();
@@ -299,18 +327,32 @@
         }
 
         [Fact]
-        public void RemoveCategoriesLinksRemovesFromCacheTest()
+        public void RemoveProfileDeletesProfileFromCacheTest()
         {
-            var filter = Model.Create<ProfileFilter>();
+            var expected = Model.Create<Profile>();
+            var cacheKey = "Profile|" + expected.Id;
+
             var cache = Substitute.For<IMemoryCache>();
             var config = Substitute.For<ICacheConfig>();
-            var cacheKey = "CategoryLinks|" + filter.CategoryGroup + "|" + filter.CategoryName;
 
             var sut = new CacheManager(cache, config);
 
-            sut.RemoveCategoryLinks(filter);
+            sut.RemoveProfile(expected.Id);
 
             cache.Received().Remove(cacheKey);
+        }
+
+        [Fact]
+        public void RemoveProfileThrowsExceptionWithEmptyIdTest()
+        {
+            var cache = Substitute.For<IMemoryCache>();
+            var config = Substitute.For<ICacheConfig>();
+
+            var sut = new CacheManager(cache, config);
+
+            Action action = () => sut.RemoveProfile(Guid.Empty);
+
+            action.ShouldThrow<ArgumentException>();
         }
 
         [Fact]

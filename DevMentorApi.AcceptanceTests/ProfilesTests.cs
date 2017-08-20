@@ -93,6 +93,34 @@
         }
 
         [Fact]
+        public async Task GetDoesNotReturnProfileAfterProfileBannedWhenPreviouslyMatchedFilterTest()
+        {
+            var account = Model.Create<Account>();
+            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save(_logger, account)
+                .ConfigureAwait(false);
+            var filters = new List<ProfileFilter>
+            {
+                new ProfileFilter
+                {
+                    CategoryGroup = CategoryGroup.Language,
+                    CategoryName = profile.Languages.First()
+                }
+            };
+            var address = ApiLocation.ProfilesMatching(filters);
+
+            var firstActual = await Client.Get<List<ProfileResult>>(address, _logger).ConfigureAwait(false);
+
+            firstActual.Single(x => x.Id == profile.Id)
+                .ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+
+            await profile.Set(x => x.BannedAt = DateTimeOffset.UtcNow).Save(_logger, account).ConfigureAwait(false);
+
+            var secondActual = await Client.Get<List<ProfileResult>>(address, _logger).ConfigureAwait(false);
+
+            secondActual.Should().NotContain(x => x.Id == profile.Id);
+        }
+
+        [Fact]
         public async Task GetDoesNotReturnProfileAfterProfileHiddenTest()
         {
             var account = Model.Create<Account>();

@@ -30,6 +30,7 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
+                calculator.RemoveAllCategoryLinks(profile).Returns(new ProfileChangeResult());
                 store.BanProfile(profile.Id, Arg.Any<DateTimeOffset>(), tokenSource.Token).Returns(profile);
 
                 await sut.BanProfile(profile.Id, bannedAt, tokenSource.Token).ConfigureAwait(false);
@@ -52,12 +53,89 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
+                calculator.RemoveAllCategoryLinks(profile).Returns(new ProfileChangeResult());
                 store.BanProfile(profile.Id, profile.BannedAt.Value, tokenSource.Token).Returns(profile);
                 cache.GetProfileResults().Returns((ICollection<ProfileResult>)null);
 
                 await sut.BanProfile(profile.Id, profile.BannedAt.Value, tokenSource.Token).ConfigureAwait(false);
 
                 cache.DidNotReceive().StoreProfileResults(Arg.Any<ICollection<ProfileResult>>());
+            }
+        }
+
+        [Fact]
+        public async Task BanProfileDoesNotProcessChangesWhenNoneFoundTest()
+        {
+            var profile = Model.Create<Profile>();
+            var bannedAt = DateTimeOffset.UtcNow.AddDays(-2);
+
+            var store = Substitute.For<IProfileStore>();
+            var calculator = Substitute.For<IProfileChangeCalculator>();
+            var processor = Substitute.For<IProfileChangeProcessor>();
+            var cache = Substitute.For<ICacheManager>();
+
+            var sut = new ProfileManager(store, calculator, processor, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                calculator.RemoveAllCategoryLinks(profile).Returns(new ProfileChangeResult());
+                store.BanProfile(profile.Id, Arg.Any<DateTimeOffset>(), tokenSource.Token).Returns(profile);
+
+                await sut.BanProfile(profile.Id, bannedAt, tokenSource.Token).ConfigureAwait(false);
+
+                await processor.DidNotReceive().Execute(
+                    Arg.Any<Profile>(),
+                    Arg.Any<ProfileChangeResult>(),
+                    Arg.Any<CancellationToken>()).ConfigureAwait(false);
+            }
+        }
+
+        [Fact]
+        public async Task BanProfileRemovesCategoryLinksTest()
+        {
+            var profile = Model.Create<Profile>();
+            var changeResult = Model.Create<ProfileChangeResult>();
+            var bannedAt = DateTimeOffset.UtcNow.AddDays(-2);
+
+            var store = Substitute.For<IProfileStore>();
+            var calculator = Substitute.For<IProfileChangeCalculator>();
+            var processor = Substitute.For<IProfileChangeProcessor>();
+            var cache = Substitute.For<ICacheManager>();
+
+            var sut = new ProfileManager(store, calculator, processor, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                calculator.RemoveAllCategoryLinks(profile).Returns(changeResult);
+                store.BanProfile(profile.Id, Arg.Any<DateTimeOffset>(), tokenSource.Token).Returns(profile);
+
+                await sut.BanProfile(profile.Id, bannedAt, tokenSource.Token).ConfigureAwait(false);
+
+                await processor.Received().Execute(profile, changeResult, tokenSource.Token).ConfigureAwait(false);
+            }
+        }
+
+        [Fact]
+        public async Task BanProfileRemovesProfileFromCacheTest()
+        {
+            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Unavailable);
+            var bannedAt = DateTimeOffset.UtcNow.AddDays(-2);
+
+            var store = Substitute.For<IProfileStore>();
+            var calculator = Substitute.For<IProfileChangeCalculator>();
+            var processor = Substitute.For<IProfileChangeProcessor>();
+            var cache = Substitute.For<ICacheManager>();
+
+            var sut = new ProfileManager(store, calculator, processor, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                calculator.RemoveAllCategoryLinks(expected).Returns(new ProfileChangeResult());
+                store.BanProfile(expected.Id, bannedAt, tokenSource.Token).Returns(expected);
+
+                await sut.BanProfile(expected.Id, bannedAt, tokenSource.Token).ConfigureAwait(false);
+
+                cache.Received().RemoveProfile(expected.Id);
             }
         }
 
@@ -79,6 +157,7 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
+                calculator.RemoveAllCategoryLinks(profile).Returns(new ProfileChangeResult());
                 store.BanProfile(profile.Id, profile.BannedAt.Value, tokenSource.Token).Returns(profile);
                 cache.GetProfileResults().Returns(cacheResults);
 
@@ -127,29 +206,6 @@
                 .ConfigureAwait(false);
 
             action.ShouldThrow<ArgumentException>();
-        }
-
-        [Fact]
-        public async Task BanProfileUpdatesCacheTest()
-        {
-            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Unavailable);
-            var bannedAt = DateTimeOffset.UtcNow.AddDays(-2);
-
-            var store = Substitute.For<IProfileStore>();
-            var calculator = Substitute.For<IProfileChangeCalculator>();
-            var processor = Substitute.For<IProfileChangeProcessor>();
-            var cache = Substitute.For<ICacheManager>();
-
-            var sut = new ProfileManager(store, calculator, processor, cache);
-
-            using (var tokenSource = new CancellationTokenSource())
-            {
-                store.BanProfile(expected.Id, bannedAt, tokenSource.Token).Returns(expected);
-
-                await sut.BanProfile(expected.Id, bannedAt, tokenSource.Token).ConfigureAwait(false);
-
-                cache.Received().StoreProfile(expected);
-            }
         }
 
         [Fact]

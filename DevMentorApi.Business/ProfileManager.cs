@@ -42,14 +42,20 @@
             {
                 return null;
             }
+            
+            var linkChanges = _calculator.RemoveAllCategoryLinks(profile);
 
-            // Update the cache for this profile
-            _cache.StoreProfile(profile);
+            if (linkChanges.CategoryChanges.Count > 0)
+            {
+                await _processor.Execute(profile, linkChanges, cancellationToken).ConfigureAwait(false);
+            }
+
+            // Remove the profile from cache 
+            _cache.RemoveProfile(profile.Id);
 
             // Remove this profile from the results cache
             UpdateResultsCache(profile);
 
-            // TODO: Update all item links (and link caches) to removed the banned profile, then remove the banned profile from cache
             return profile;
         }
 

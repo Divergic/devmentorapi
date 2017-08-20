@@ -67,7 +67,18 @@
 
         public void RemoveCategoryLinks(ProfileFilter filter)
         {
+            Ensure.That(filter, nameof(filter)).IsNotNull();
+
             var cacheKey = BuildCategoryLinkCacheKey(filter);
+
+            _cache.Remove(cacheKey);
+        }
+
+        public void RemoveProfile(Guid id)
+        {
+            Ensure.That(id, nameof(id)).IsNotEmpty();
+
+            var cacheKey = BuildProfileCacheKey(id);
 
             _cache.Remove(cacheKey);
         }
