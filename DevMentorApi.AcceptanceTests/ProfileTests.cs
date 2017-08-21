@@ -3,9 +3,9 @@
     using System;
     using System.Net;
     using System.Threading.Tasks;
+    using DevMentorApi.Model;
     using FluentAssertions;
     using Microsoft.Extensions.Logging;
-    using Model;
     using ModelBuilder;
     using Xunit;
     using Xunit.Abstractions;
@@ -19,6 +19,61 @@
         {
             _output = output;
             _logger = output.BuildLoggerFor<ProfileTests>();
+        }
+
+        [Fact]
+        public async Task DeleteBansAccountTest()
+        {
+            var account = Model.Using<ProfileBuildStrategy>().Create<Account>();
+            var accountIdentity = ClaimsIdentityFactory.Build(account);
+            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save(_logger, account)
+                .ConfigureAwait(false);
+            var address = ApiLocation.ProfileFor(profile.Id);
+            var identity = ClaimsIdentityFactory.Build().AsAdministrator();
+
+            await Client.Delete(address, _logger, identity).ConfigureAwait(false);
+
+            var actual = await Client.Get<Profile>(ApiLocation.AccountProfile, _logger, accountIdentity)
+                .ConfigureAwait(false);
+
+            actual.BannedAt.Should().BeCloseTo(DateTimeOffset.UtcNow, 5000);
+        }
+
+        [Fact]
+        public async Task DeleteReturnsForbiddenWhenUserNotAdministratorTest()
+        {
+            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save().ConfigureAwait(false);
+            var address = ApiLocation.ProfileFor(profile.Id);
+            var identity = ClaimsIdentityFactory.Build();
+
+            await Client.Delete(address, _logger, identity, HttpStatusCode.Forbidden).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task DeleteReturnsNotFoundForEmptyIdTest()
+        {
+            var administrator = ClaimsIdentityFactory.Build().AsAdministrator();
+            var profileUri = ApiLocation.ProfileFor(Guid.Empty);
+
+            await Client.Delete(profileUri, _logger, administrator, HttpStatusCode.NotFound).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task DeleteReturnsNotFoundWhenProfileDoesNotExistTest()
+        {
+            var administrator = ClaimsIdentityFactory.Build().AsAdministrator();
+            var profileUri = ApiLocation.ProfileFor(Guid.NewGuid());
+
+            await Client.Delete(profileUri, _logger, administrator, HttpStatusCode.NotFound).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task DeleteReturnsUnauthorizedForAnonymousUserTest()
+        {
+            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save().ConfigureAwait(false);
+            var address = ApiLocation.ProfileFor(profile.Id);
+
+            await Client.Delete(address, _logger, null, HttpStatusCode.Unauthorized).ConfigureAwait(false);
         }
 
         [Fact]

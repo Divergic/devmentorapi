@@ -1,17 +1,22 @@
 ﻿namespace DevMentorApi.Azure
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Reflection;
     using System.Threading;
     using System.Threading.Tasks;
-    using DevMentorApi.Model;
     using EnsureThat;
     using Microsoft.WindowsAzure.Storage.Table;
+    using Model;
 
     public class ProfileStore : TableStoreBase, IProfileStore
     {
         private const string TableName = "Profiles";
+        private static readonly IList<string> _resultsColumns = DetermineProfileResultColumns();
 
-        public ProfileStore(IStorageConfiguration configuration) : base(configuration)
+        public ProfileStore(IStorageConfiguration configuration)
+            : base(configuration)
         {
         }
 
@@ -35,7 +40,13 @@
                 return null;
             }
 
-            var entity = (ProfileAdapter)result.Result;
+            var entity = (ProfileAdapter) result.Result;
+
+            if (entity.Value.BannedAt.HasValue)
+            {
+                // This profile has already been banned
+                return null;
+            }
 
             entity.Value.BannedAt = bannedAt;
 
@@ -62,9 +73,33 @@
                 return null;
             }
 
-            var entity = (ProfileAdapter)result.Result;
+            var entity = (ProfileAdapter) result.Result;
 
             return entity.Value;
+        }
+
+        public async Task<IEnumerable<ProfileResult>> GetProfileResults(CancellationToken cancellationToken)
+        {
+            var table = GetTable(TableName);
+
+            // We can't filter out BannedAt because the filter would search for where the value is null
+            // This is not possible with the query mechanics of Azure table services so this filter has 
+            // to happen in the code here rather than in the table service itself
+            var statusFilter = TableQuery.GenerateFilterCondition(nameof(Profile.Status), QueryComparisons.NotEqual,
+                ProfileStatus.Hidden.ToString());
+
+            var query = new TableQuery<ProfileResultAdapter>
+            {
+                // For performance reasons, select the minimum number of columns required to filter and populate profile results
+                SelectColumns = _resultsColumns,
+                FilterString = statusFilter
+            };
+
+            var results = await table.ExecuteQueryAsync(query, cancellationToken).ConfigureAwait(false);
+
+            return from x in results
+                where x.BannedAt == null
+                select x.Value;
         }
 
         public Task StoreProfile(Profile profile, CancellationToken cancellationToken)
@@ -74,6 +109,18 @@
             var adapter = new ProfileAdapter(profile);
 
             return InsertOrReplaceEntity(TableName, adapter, cancellationToken);
+        }
+
+        private static IList<string> DetermineProfileResultColumns()
+        {
+            var properties = typeof(ProfileResult).GetTypeInfo().GetProperties();
+
+            var columns = properties.Select(x => x.Name).ToList();
+
+            // Add the BannedAt field because it will be exposed by the adapter for filtering, but not the model returned by the adapter
+            columns.Add(nameof(ProfileResultAdapter.BannedAt));
+
+            return columns;
         }
     }
 }

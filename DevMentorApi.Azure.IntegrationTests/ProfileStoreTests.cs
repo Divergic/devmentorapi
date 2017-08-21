@@ -1,17 +1,33 @@
 namespace DevMentorApi.Azure.IntegrationTests
 {
     using System;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using DevMentorApi.Model;
     using FluentAssertions;
     using Microsoft.WindowsAzure.Storage;
-    using Model;
     using ModelBuilder;
     using NSubstitute;
     using Xunit;
 
     public class ProfileStoreTests
     {
+        [Fact]
+        public async Task BanProfileReturnsNullWhenAlreadyBannedTest()
+        {
+            var profile = Model.Create<Profile>().Set(x => x.BannedAt = DateTimeOffset.UtcNow);
+            var bannedAt = DateTimeOffset.UtcNow.AddDays(-2);
+
+            var sut = new ProfileStore(Config.Storage);
+
+            await sut.StoreProfile(profile, CancellationToken.None).ConfigureAwait(false);
+
+            var actual = await sut.BanProfile(profile.Id, bannedAt, CancellationToken.None).ConfigureAwait(false);
+
+            actual.Should().BeNull();
+        }
+
         [Fact]
         public async Task BanProfileReturnsNullWhenProfileNotFoundTest()
         {
@@ -51,6 +67,83 @@ namespace DevMentorApi.Azure.IntegrationTests
         }
 
         [Fact]
+        public async Task GetProfileResultsDoesNotReturnBannedProfilesTest()
+        {
+            var first = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Available)
+                .Set(x => x.BannedAt = null);
+            var second = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Available)
+                .Set(x => x.BannedAt = DateTimeOffset.UtcNow);
+
+            var sut = new ProfileStore(Config.Storage);
+
+            await sut.StoreProfile(first, CancellationToken.None).ConfigureAwait(false);
+            await sut.StoreProfile(second, CancellationToken.None).ConfigureAwait(false);
+
+            var actual = (await sut.GetProfileResults(CancellationToken.None).ConfigureAwait(false)).ToList();
+
+            actual.Should().Contain(x => x.Id == first.Id);
+            actual.Should().NotContain(x => x.Id == second.Id);
+        }
+
+        [Fact]
+        public async Task GetProfileResultsDoesNotReturnHiddenProfilesTest()
+        {
+            var first = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Available)
+                .Set(x => x.BannedAt = null);
+            var second = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Hidden).Set(x => x.BannedAt = null);
+
+            var sut = new ProfileStore(Config.Storage);
+
+            await sut.StoreProfile(first, CancellationToken.None).ConfigureAwait(false);
+            await sut.StoreProfile(second, CancellationToken.None).ConfigureAwait(false);
+
+            var actual = (await sut.GetProfileResults(CancellationToken.None).ConfigureAwait(false)).ToList();
+
+            actual.Should().Contain(x => x.Id == first.Id);
+            actual.Should().NotContain(x => x.Id == second.Id);
+        }
+
+        [Fact]
+        public async Task GetProfileResultsReturnsAllAvailableProfilesTest()
+        {
+            var first = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Available)
+                .Set(x => x.BannedAt = null);
+            var second = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Unavailable)
+                .Set(x => x.BannedAt = null);
+
+            var sut = new ProfileStore(Config.Storage);
+
+            await sut.StoreProfile(first, CancellationToken.None).ConfigureAwait(false);
+            await sut.StoreProfile(second, CancellationToken.None).ConfigureAwait(false);
+
+            var actual = (await sut.GetProfileResults(CancellationToken.None).ConfigureAwait(false)).ToList();
+
+            actual.Should().Contain(x => x.Id == first.Id);
+            actual.Should().Contain(x => x.Id == second.Id);
+        }
+
+        [Fact]
+        public async Task GetProfileResultsReturnsNullWhenTableNotFoundTest()
+        {
+            // Retrieve storage account from connection-string
+            var storageAccount = CloudStorageAccount.Parse(Config.Storage.ConnectionString);
+
+            // Create the table client
+            var client = storageAccount.CreateCloudTableClient();
+
+            var table = client.GetTableReference("Profiles");
+
+            await table.DeleteIfExistsAsync();
+
+            var sut = new ProfileStore(Config.Storage);
+
+            var actual = (await sut.GetProfileResults(CancellationToken.None).ConfigureAwait(false)).ToList();
+
+            actual.Should().NotBeNull();
+            actual.Should().BeEmpty();
+        }
+
+        [Fact]
         public async Task GetProfileReturnsNullWhenProfileNotFoundTest()
         {
             var profileId = Guid.NewGuid();
@@ -58,6 +151,26 @@ namespace DevMentorApi.Azure.IntegrationTests
             var sut = new ProfileStore(Config.Storage);
 
             var actual = await sut.GetProfile(profileId, CancellationToken.None);
+
+            actual.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task GetProfileReturnsNullWhenTableNotFoundTest()
+        {
+            // Retrieve storage account from connection-string
+            var storageAccount = CloudStorageAccount.Parse(Config.Storage.ConnectionString);
+
+            // Create the table client
+            var client = storageAccount.CreateCloudTableClient();
+
+            var table = client.GetTableReference("Profiles");
+
+            await table.DeleteIfExistsAsync();
+
+            var sut = new ProfileStore(Config.Storage);
+
+            var actual = await sut.GetProfile(Guid.NewGuid(), CancellationToken.None).ConfigureAwait(false);
 
             actual.Should().BeNull();
         }

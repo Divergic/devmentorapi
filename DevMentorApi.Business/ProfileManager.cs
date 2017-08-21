@@ -1,6 +1,7 @@
 ﻿namespace DevMentorApi.Business
 {
     using System;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Azure;
@@ -41,11 +42,20 @@
             {
                 return null;
             }
+            
+            var linkChanges = _calculator.RemoveAllCategoryLinks(profile);
 
-            // Update the cache of profiles for this profile
-            _cache.StoreProfile(profile);
+            if (linkChanges.CategoryChanges.Count > 0)
+            {
+                await _processor.Execute(profile, linkChanges, cancellationToken).ConfigureAwait(false);
+            }
 
-            // TODO: Update all item links (and link caches) to removed the banned profile, then remove the banned profile from cache
+            // Remove the profile from cache 
+            _cache.RemoveProfile(profile.Id);
+
+            // Remove this profile from the results cache
+            UpdateResultsCache(profile);
+
             return profile;
         }
 
@@ -106,6 +116,45 @@
             if (changes.ProfileChanged)
             {
                 await _processor.Execute(updated, changes, cancellationToken).ConfigureAwait(false);
+
+                UpdateResultsCache(updated);
+            }
+        }
+
+        private void UpdateResultsCache(Profile profile)
+        {
+            // The status has changed such that the visibility of the profile has been changed
+            // We need to update cache information for the available profiles
+            var results = _cache.GetProfileResults();
+
+            if (results == null)
+            {
+                // There are no results in the cache so we don't need to update it
+                return;
+            }
+
+            var cachedResult = results.FirstOrDefault(x => x.Id == profile.Id);
+            var cacheRequiresUpdate = false;
+
+            if (cachedResult != null)
+            {
+                results.Remove(cachedResult);
+                cacheRequiresUpdate = true;
+            }
+
+            if (profile.Status != ProfileStatus.Hidden
+                && profile.BannedAt == null)
+            {
+                // The profile is visible so the updated profile needs to be added into the results cache
+                var newResult = new ProfileResult(profile);
+
+                results.Add(newResult);
+                cacheRequiresUpdate = true;
+            }
+
+            if (cacheRequiresUpdate)
+            {
+                _cache.StoreProfileResults(results);
             }
         }
 

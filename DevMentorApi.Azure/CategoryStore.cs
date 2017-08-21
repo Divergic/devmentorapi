@@ -65,6 +65,20 @@ namespace DevMentorApi.Azure
                 select x.Value;
         }
 
+        public async Task<Category> GetCategory(CategoryGroup group, string name, CancellationToken cancellationToken)
+        {
+            var partitionKey = CategoryAdapter.BuildPartitionKey(group);
+            var rowKey = CategoryAdapter.BuildRowKey(name);
+            var table = GetTable(TableName);
+            var operation = TableOperation.Retrieve<CategoryAdapter>(partitionKey, rowKey);
+
+            var result = await table.ExecuteAsync(operation, null, null, cancellationToken).ConfigureAwait(false);
+
+            var adapter = result.Result as CategoryAdapter;
+
+            return adapter?.Value;
+        }
+
         public Task StoreCategory(Category category, CancellationToken cancellationToken)
         {
             Ensure.That(category, nameof(category)).IsNotNull();

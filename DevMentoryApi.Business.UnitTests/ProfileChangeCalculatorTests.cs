@@ -415,6 +415,85 @@
             action.ShouldThrow<ArgumentNullException>();
         }
 
+        [Theory]
+        [InlineData("Female", true)]
+        [InlineData(null, false)]
+        public void RemoveAllCategoryLinksDeterminesGenderChangeTest(string gender, bool removeExpected)
+        {
+            var profile = Model.Create<Profile>().Set(x => x.Gender = gender);
+
+            var sut = new ProfileChangeCalculator();
+
+            var actual = sut.RemoveAllCategoryLinks(profile);
+
+            if (removeExpected)
+            {
+                actual.CategoryChanges.Should().Contain(
+                    x => x.CategoryGroup == CategoryGroup.Gender && x.CategoryName == gender);
+            }
+            else
+            {
+                actual.CategoryChanges.Should().NotContain(
+                    x => x.CategoryGroup == CategoryGroup.Gender && x.CategoryName == gender);
+            }
+        }
+
+        [Fact]
+        public void RemoveAllCategoryLinksDeterminesSkillAndLanguageChangesTest()
+        {
+            var profile = Model.Create<Profile>();
+
+            var sut = new ProfileChangeCalculator();
+
+            var actual = sut.RemoveAllCategoryLinks(profile);
+
+            foreach (var language in profile.Languages)
+            {
+                actual.CategoryChanges.Should().Contain(
+                    x => x.CategoryGroup == CategoryGroup.Language && x.CategoryName == language);
+            }
+
+            foreach (var skill in profile.Skills)
+            {
+                actual.CategoryChanges.Should().Contain(
+                    x => x.CategoryGroup == CategoryGroup.Skill && x.CategoryName == skill.Name);
+            }
+        }
+
+        [Fact]
+        public void RemoveAllCategoryLinksIgnoresChangesWhenNoLanguagesLinkedTest()
+        {
+            var profile = Model.Create<Profile>().Set(x => x.Languages.Clear());
+
+            var sut = new ProfileChangeCalculator();
+
+            var actual = sut.RemoveAllCategoryLinks(profile);
+
+            actual.CategoryChanges.Should().NotContain(x => x.CategoryGroup == CategoryGroup.Language);
+        }
+
+        [Fact]
+        public void RemoveAllCategoryLinksIgnoresChangesWhenNoSkillsLinkedTest()
+        {
+            var profile = Model.Create<Profile>().Set(x => x.Skills.Clear());
+
+            var sut = new ProfileChangeCalculator();
+
+            var actual = sut.RemoveAllCategoryLinks(profile);
+
+            actual.CategoryChanges.Should().NotContain(x => x.CategoryGroup == CategoryGroup.Skill);
+        }
+
+        [Fact]
+        public void RemoveAllCategoryLinksThrowsExceptionWithNullProfileTest()
+        {
+            var sut = new ProfileChangeCalculator();
+
+            Action action = () => sut.RemoveAllCategoryLinks(null);
+
+            action.ShouldThrow<ArgumentNullException>();
+        }
+
         private static object[] BuildIntPropertyTestScenario(
             PropertyInfo property,
             int? originalValue,

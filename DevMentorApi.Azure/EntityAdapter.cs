@@ -40,6 +40,7 @@
 
             Value = new T();
 
+            TableEntity.ReadUserObject(this, properties, operationContext);
             TableEntity.ReadUserObject(Value, properties, operationContext);
 
             var additionalMappings = GetAdditionPropertyMappings(Value, operationContext);

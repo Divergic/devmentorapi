@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using DevMentorApi.Model;
     using EnsureThat;
     using Microsoft.Extensions.Caching.Memory;
@@ -9,6 +10,7 @@
     public class CacheManager : ICacheManager
     {
         private const string CategoriesCacheKey = "Categories";
+        private const string ProfileResultsCacheKey = "ProfileResults";
         private readonly IMemoryCache _cache;
         private readonly ICacheConfig _config;
 
@@ -35,6 +37,15 @@
             return _cache.Get<ICollection<Category>>(CategoriesCacheKey);
         }
 
+        public ICollection<Guid> GetCategoryLinks(ProfileFilter filter)
+        {
+            Ensure.That(filter, nameof(filter)).IsNotNull();
+
+            var cacheKey = BuildCategoryLinkCacheKey(filter);
+
+            return _cache.Get<ICollection<Guid>>(cacheKey);
+        }
+
         public Profile GetProfile(Guid id)
         {
             Ensure.That(id, nameof(id)).IsNotEmpty();
@@ -44,9 +55,32 @@
             return _cache.Get<Profile>(cacheKey);
         }
 
+        public ICollection<ProfileResult> GetProfileResults()
+        {
+            return _cache.Get<ICollection<ProfileResult>>(ProfileResultsCacheKey);
+        }
+
         public void RemoveCategories()
         {
             _cache.Remove(CategoriesCacheKey);
+        }
+
+        public void RemoveCategoryLinks(ProfileFilter filter)
+        {
+            Ensure.That(filter, nameof(filter)).IsNotNull();
+
+            var cacheKey = BuildCategoryLinkCacheKey(filter);
+
+            _cache.Remove(cacheKey);
+        }
+
+        public void RemoveProfile(Guid id)
+        {
+            Ensure.That(id, nameof(id)).IsNotEmpty();
+
+            var cacheKey = BuildProfileCacheKey(id);
+
+            _cache.Remove(cacheKey);
         }
 
         public void StoreAccount(Account account)
@@ -60,7 +94,6 @@
                 SlidingExpiration = _config.AccountExpiration
             };
 
-            // Cache this account for lookup later
             _cache.Set(cacheKey, account, options);
         }
 
@@ -73,8 +106,22 @@
                 SlidingExpiration = _config.CategoriesExpiration
             };
 
-            // Cache this account for lookup later
             _cache.Set(CategoriesCacheKey, categories, options);
+        }
+
+        public void StoreCategoryLinks(ProfileFilter filter, ICollection<Guid> links)
+        {
+            Ensure.That(filter, nameof(filter)).IsNotNull();
+            Ensure.That(links, nameof(links)).IsNotNull();
+
+            var cacheKey = BuildCategoryLinkCacheKey(filter);
+
+            var options = new MemoryCacheEntryOptions
+            {
+                SlidingExpiration = _config.CategoryLinksExpiration
+            };
+
+            _cache.Set(cacheKey, links, options);
         }
 
         public void StoreProfile(Profile profile)
@@ -88,14 +135,33 @@
                 SlidingExpiration = _config.ProfileExpiration
             };
 
-            // Cache this profile for lookup later
             _cache.Set(cacheKey, profile, options);
+        }
+
+        public void StoreProfileResults(ICollection<ProfileResult> results)
+        {
+            Ensure.That(results, nameof(results)).IsNotNull();
+
+            var options = new MemoryCacheEntryOptions
+            {
+                SlidingExpiration = _config.ProfileResultsExpiration
+            };
+
+            _cache.Set(ProfileResultsCacheKey, results, options);
         }
 
         private static string BuildAccountCacheKey(string username)
         {
             // The cache key has a prefix to partition this type of object just in case there is a key collision with another object type
             return "Account|" + username;
+        }
+
+        private static string BuildCategoryLinkCacheKey(ProfileFilter filter)
+        {
+            Debug.Assert(filter != null);
+
+            // The cache key has a prefix to partition this type of object just in case there is a key collision with another object type
+            return "CategoryLinks|" + filter.CategoryGroup + "|" + filter.CategoryName;
         }
 
         private static string BuildProfileCacheKey(Guid id)

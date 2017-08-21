@@ -54,6 +54,29 @@ namespace DevMentorApi.Business
             return result;
         }
 
+        public ProfileChangeResult RemoveAllCategoryLinks(Profile original)
+        {
+            Ensure.That(original, nameof(original)).IsNotNull();
+
+            var result = new ProfileChangeResult();
+
+            // Remove gender link
+            DetermineCategoryChanges(CategoryGroup.Gender, original.Gender, null, result);
+
+            // Check for changes to languages
+            var emptyCategoryNames = new List<string>();
+
+            // Remove all language links
+            DetermineCategoryChanges(CategoryGroup.Language, original.Languages, emptyCategoryNames, result);
+
+            var originalSkillNames = original.Skills.Select(x => x.Name).ToList();
+
+            // Remove all skill links
+            DetermineCategoryChanges(CategoryGroup.Skill, originalSkillNames, emptyCategoryNames, result);
+
+            return result;
+        }
+
         private static void DetermineCategoryChanges(
             CategoryGroup categoryGroup,
             ICollection<string> originalNames,

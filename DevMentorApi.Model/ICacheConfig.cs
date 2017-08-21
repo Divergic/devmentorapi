@@ -8,6 +8,10 @@
 
         TimeSpan CategoriesExpiration { get; }
 
+        TimeSpan CategoryLinksExpiration { get; }
+
         TimeSpan ProfileExpiration { get; }
+
+        TimeSpan ProfileResultsExpiration { get; }
     }
 }

@@ -135,6 +135,57 @@
         }
 
         [Fact]
+        public async Task GetCategoryReturnsNullWhenCategoryNotFoundTest()
+        {
+            var category = Model.Create<Category>();
+
+            var sut = new CategoryStore(Config.Storage);
+
+            var actual = await sut.GetCategory(category.Group, category.Name, CancellationToken.None)
+                .ConfigureAwait(false);
+
+            actual.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task GetCategoryReturnsNullWhenTableNotFoundTest()
+        {
+            // Retrieve storage account from connection-string
+            var storageAccount = CloudStorageAccount.Parse(Config.Storage.ConnectionString);
+
+            // Create the table client
+            var client = storageAccount.CreateCloudTableClient();
+
+            var table = client.GetTableReference("Categories");
+
+            await table.DeleteIfExistsAsync();
+
+            var category = Model.Create<Category>();
+
+            var sut = new CategoryStore(Config.Storage);
+
+            var actual = await sut.GetCategory(category.Group, category.Name, CancellationToken.None)
+                .ConfigureAwait(false);
+
+            actual.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task GetCategoryReturnsStoredCategoryTest()
+        {
+            var category = Model.Create<Category>();
+
+            var sut = new CategoryStore(Config.Storage);
+
+            await sut.StoreCategory(category, CancellationToken.None).ConfigureAwait(false);
+
+            var actual = await sut.GetCategory(category.Group, category.Name, CancellationToken.None)
+                .ConfigureAwait(false);
+
+            actual.ShouldBeEquivalentTo(category);
+        }
+
+        [Fact]
         public async Task StoreCategoryCreatesTableAndWritesCategoryWhenTableNotFoundTest()
         {
             // Retrieve storage account from connection-string

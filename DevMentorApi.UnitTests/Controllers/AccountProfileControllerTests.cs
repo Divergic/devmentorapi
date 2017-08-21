@@ -17,7 +17,7 @@
     using NSubstitute;
     using Xunit;
 
-    public class UserProfileControllerTests
+    public class AccountProfileControllerTests
     {
         [Fact]
         public async Task GetReturnsNotFoundWhenManagerReturnsNullTest()
@@ -37,7 +37,7 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                using (var target = new UserProfileController(manager))
+                using (var target = new AccountProfileController(manager))
                 {
                     target.ControllerContext = controllerContext;
 
@@ -69,7 +69,7 @@
             {
                 manager.GetProfile(account.Id, tokenSource.Token).Returns(profile);
 
-                using (var target = new UserProfileController(manager))
+                using (var target = new AccountProfileController(manager))
                 {
                     target.ControllerContext = controllerContext;
 
@@ -103,7 +103,7 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                using (var target = new UserProfileController(manager))
+                using (var target = new AccountProfileController(manager))
                 {
                     target.ControllerContext = controllerContext;
 
@@ -121,7 +121,7 @@
         {
             var manager = Substitute.For<IProfileManager>();
 
-            using (var target = new UserProfileController(manager))
+            using (var target = new AccountProfileController(manager))
             {
                 var actual = await target.Put(null, CancellationToken.None).ConfigureAwait(false);
 
@@ -133,7 +133,7 @@
         [Fact]
         public void ThrowsExceptionWhenCreatedWithNullManagerTest()
         {
-            Action action = () => new UserProfileController(null);
+            Action action = () => new AccountProfileController(null);
 
             action.ShouldThrow<ArgumentNullException>();
         }

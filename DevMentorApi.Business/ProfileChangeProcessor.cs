@@ -92,7 +92,14 @@
 
                     categoryTasks.Add(categoryLinkTask);
 
-                    // TODO: Invalidate the link category cache
+                    var filter = new ProfileFilter
+                    {
+                        CategoryGroup = category.Group,
+                        CategoryName = category.Name
+                    };
+
+                    // Clear the cache to ensure that this profile is reflected in the category links on subsequent calls
+                    _cache.RemoveCategoryLinks(filter);
 
                     // Update the category data
                     var categoryTask = _categoryStore.StoreCategory(category, cancellationToken);
