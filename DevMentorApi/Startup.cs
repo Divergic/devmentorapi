@@ -43,49 +43,69 @@
             ILoggerFactory loggerFactory,
             IApplicationLifetime appLifetime)
         {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-
-            app.UseStatusCodePages();
-
-            app.UseMiddleware<ShieldExceptionMiddleware>();
-
-            // This must be second because it calls all subsequent middleware and watches for failures
-            app.UseMiddleware<ExceptionMonitorMiddleware>();
-
             ConfigureLogging(env, loggerFactory);
 
-            app.UseCors(builder => builder.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
+            var logger = loggerFactory.CreateLogger(typeof(Startup));
 
-            // Enable middleware to serve generated Swagger as a JSON endpoint.
-            app.UseSwagger();
+            try
+            {
 
-            // Enable middleware to serve swagger-ui (HTML, JS, CSS etc.), specifying the Swagger JSON endpoint.
-            app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "DevMentor API V1"); });
-
-            ConfigureAuthentication(app, env);
-
-            // Ensure that identity information is populated before MVC middleware executes
-            app.UseMiddleware<AccountContextMiddleware>();
-
-            app.UseMvc();
-
-            // If you want to dispose of resources that have been resolved in the
-            // application container, register for the "ApplicationStopped" event.
-            appLifetime.ApplicationStopped.Register(
-                () =>
+                if (env.IsDevelopment())
                 {
-                    ApplicationContainer.Dispose();
-                    ApplicationContainer = null;
-                });
+                    app.UseDeveloperExceptionPage();
+                }
+
+                app.UseStatusCodePages();
+
+                app.UseMiddleware<ShieldExceptionMiddleware>();
+
+                // This must be second because it calls all subsequent middleware and watches for failures
+                app.UseMiddleware<ExceptionMonitorMiddleware>();
+
+                app.UseCors(builder => builder.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
+
+                // Enable middleware to serve generated Swagger as a JSON endpoint.
+                app.UseSwagger();
+
+                // Enable middleware to serve swagger-ui (HTML, JS, CSS etc.), specifying the Swagger JSON endpoint.
+                app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "DevMentor API V1"); });
+
+                ConfigureAuthentication(app, env);
+
+                // Ensure that identity information is populated before MVC middleware executes
+                app.UseMiddleware<AccountContextMiddleware>();
+
+                app.UseMvc();
+
+                // If you want to dispose of resources that have been resolved in the
+                // application container, register for the "ApplicationStopped" event.
+                appLifetime.ApplicationStopped.Register(
+                    () =>
+                    {
+                        ApplicationContainer.Dispose();
+                        ApplicationContainer = null;
+                    });
+            }
+            catch (Exception ex)
+            {
+                var eventId = new EventId(0);
+
+                logger.LogError(eventId, ex, "Failed to configure application.");
+
+                throw;
+            }
         }
 
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            // Add framework services.
-            services.AddMvc(
+            var loggerFactory = services.BuildServiceProvider().GetService<ILoggerFactory>();
+
+            var log = loggerFactory.CreateLogger(typeof(Startup));
+
+            try
+            {
+                // Add framework services.
+                services.AddMvc(
                 config =>
                 {
                     if (Configuration.Authentication.RequireHttps)
@@ -155,18 +175,13 @@
                     c.DocumentFilter<AdministratorDocumentFilter>();
                 });
 
-            var loggerFactory = services.BuildServiceProvider().GetService<ILoggerFactory>();
-
-            var log = loggerFactory.CreateLogger(typeof(Startup));
-
-            try
-            {
                 ApplicationContainer = ContainerFactory.Build(services, Configuration);
             }
             catch (TypeInitializationException ex)
             {
                 var eventId = new EventId(1);
-                log.LogError(eventId, ex, "Failed ConfigureServices");
+
+                log.LogError(eventId, ex, "Failed to configure services");
 
                 var loaderFailure = ex.InnerException as ReflectionTypeLoadException;
 
@@ -184,7 +199,7 @@
             {
                 var eventId = new EventId(2);
 
-                log.LogError(eventId, ex, "Failed ConfigureServices");
+                log.LogError(eventId, ex, "Failed to configure services");
             }
 
             // Create the IServiceProvider based on the container.
