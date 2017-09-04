@@ -2,8 +2,10 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Security.Claims;
     using Jose;
+    using Model;
 
     public static class TokenFactory
     {
@@ -33,9 +35,22 @@
                 }
             };
 
+            var roleClaims = identity.Claims.Where(x => x.Type == ClaimType.Role).Select(x => x.Value).ToArray();
+
+            if (roleClaims.Length > 0)
+            {
+                // Convert role claims to the custom roles configured in Auth0
+                payload.Add(ClaimType.Auth0Roles, roleClaims);
+            }
+
             foreach (var claim in identity.Claims)
             {
-                if (claim.Type == "sub")
+                if (claim.Type == ClaimType.Subject)
+                {
+                    continue;
+                }
+
+                if (claim.Type == ClaimType.Role)
                 {
                     continue;
                 }

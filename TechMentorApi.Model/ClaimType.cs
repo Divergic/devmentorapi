@@ -2,6 +2,7 @@
 {
     public static class ClaimType
     {
+        public const string Auth0Roles = "http://techmentor/roles";
         public const string Email = "email";
         public const string EmailVerified = "email_verified";
         public const string GivenName = "givenName";
