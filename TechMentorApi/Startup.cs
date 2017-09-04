@@ -72,6 +72,9 @@
 
                 ConfigureAuthentication(app, env);
 
+                // Convert any Auth0 claims into role claims
+                app.UseMiddleware<Auth0ClaimsMiddleware>();
+
                 // Ensure that identity information is populated before MVC middleware executes
                 app.UseMiddleware<AccountContextMiddleware>();
 
