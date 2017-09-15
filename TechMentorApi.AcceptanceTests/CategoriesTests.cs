@@ -5,11 +5,11 @@
     using System.Linq;
     using System.Net;
     using System.Threading.Tasks;
-    using TechMentorApi.Model;
-    using TechMentorApi.ViewModels;
     using FluentAssertions;
     using Microsoft.Extensions.Logging;
+    using Model;
     using ModelBuilder;
+    using ViewModels;
     using Xunit;
     using Xunit.Abstractions;
 
@@ -272,7 +272,7 @@
         [Fact]
         public async Task PostReturnsBadRequestWhenUnsupportedGroupProvidedTest()
         {
-            var model = Model.Create<NewCategory>().Set(x => x.Group = (CategoryGroup)1234);
+            var model = Model.Create<NewCategory>().Set(x => x.Group = (CategoryGroup) 1234);
             var identity = ClaimsIdentityFactory.Build().AsAdministrator();
             var address = ApiLocation.Categories;
 
@@ -304,6 +304,26 @@
             var address = ApiLocation.Categories;
 
             await Client.Post(address, _logger, null, null, HttpStatusCode.Unauthorized).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task PostSetsReviewedToTrueTest()
+        {
+            var expected = Model.Create<NewCategory>();
+            var identity = ClaimsIdentityFactory.Build().AsAdministrator();
+            var address = ApiLocation.Categories;
+
+            // Get the public categories to ensure they are cached in the API
+            await Client.Get(ApiLocation.Categories, _logger, null).ConfigureAwait(false);
+
+            await Client.Post(address, _logger, expected, identity).ConfigureAwait(false);
+
+            var categories = await Client.Get<List<Category>>(ApiLocation.Categories, _logger, identity)
+                .ConfigureAwait(false);
+
+            var actual = categories.Single(x => x.Group == expected.Group && x.Name == expected.Name);
+
+            actual.Reviewed.Should().BeTrue();
         }
     }
 }

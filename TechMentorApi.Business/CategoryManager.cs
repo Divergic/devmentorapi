@@ -4,9 +4,9 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using TechMentorApi.Azure;
-    using TechMentorApi.Model;
+    using Azure;
     using EnsureThat;
+    using Model;
 
     public class CategoryManager : ICategoryManager
     {
@@ -26,27 +26,14 @@
         {
             Ensure.That(newCategory, nameof(newCategory)).IsNotNull();
 
-            var existingCategory = await _store.GetCategory(newCategory.Group, newCategory.Name, cancellationToken).ConfigureAwait(false);
-
-            var linkCount = 0;
-
-            if (existingCategory != null)
-            {
-                linkCount = existingCategory.LinkCount;
-            }
-
             var category = new Category
             {
                 Group = newCategory.Group,
-                LinkCount = linkCount,
                 Name = newCategory.Name,
-                Reviewed = true,
                 Visible = true
             };
 
-            await _store.StoreCategory(category, cancellationToken).ConfigureAwait(false);
-
-            _cache.RemoveCategories();
+            await StoreCategory(category, false, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<IEnumerable<Category>> GetCategories(ReadType readType, CancellationToken cancellationToken)
@@ -61,6 +48,13 @@
             return from x in categories
                 where x.Visible
                 select x;
+        }
+
+        public Task UpdateCategory(Category category, CancellationToken cancellationToken)
+        {
+            Ensure.That(category, nameof(category)).IsNotNull();
+
+            return StoreCategory(category, true, cancellationToken);
         }
 
         private async Task<IEnumerable<Category>> GetCategoriesInternal(CancellationToken cancellationToken)
@@ -84,6 +78,27 @@
             _cache.StoreCategories(categories);
 
             return categories;
+        }
+
+        private async Task StoreCategory(Category category, bool mustExist, CancellationToken cancellationToken)
+        {
+            var existingCategory = await _store.GetCategory(category.Group, category.Name, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (existingCategory != null)
+            {
+                category.LinkCount = existingCategory.LinkCount;
+            }
+            else if (mustExist)
+            {
+                throw new NotFoundException();
+            }
+
+            category.Reviewed = true;
+
+            await _store.StoreCategory(category, cancellationToken).ConfigureAwait(false);
+
+            _cache.RemoveCategories();
         }
     }
 }

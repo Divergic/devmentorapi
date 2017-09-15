@@ -3,12 +3,13 @@
     using System;
     using System.Net;
     using System.Threading.Tasks;
-    using TechMentorApi.Core;
-    using TechMentorApi.Security;
     using FluentAssertions;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
+    using Model;
     using NSubstitute;
+    using TechMentorApi.Core;
+    using TechMentorApi.Security;
     using Xunit;
     using Xunit.Abstractions;
 
@@ -58,7 +59,7 @@
         }
 
         [Fact]
-        public async Task InvokeSendsResultToExecutorWhenDelegateThrowsExceptionTest()
+        public async Task InvokeSendsInternalServerErrorToExecutorWhenDelegateThrowsExceptionTest()
         {
             RequestDelegate next = delegate { throw new InvalidOperationException(); };
             var logger = _output.BuildLoggerFor<ShieldExceptionMiddleware>();
@@ -71,7 +72,25 @@
 
             await executor.Received().Execute(
                     context,
-                    Arg.Is<ObjectResult>(x => x.StatusCode == (int)HttpStatusCode.InternalServerError))
+                    Arg.Is<ObjectResult>(x => x.StatusCode == (int) HttpStatusCode.InternalServerError))
+                .ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task InvokeSendsNotFoundToExecutorWhenDelegateThrowsNotFoundExceptionTest()
+        {
+            RequestDelegate next = delegate { throw new NotFoundException(); };
+            var logger = _output.BuildLoggerFor<ShieldExceptionMiddleware>();
+            var executor = Substitute.For<IResultExecutor>();
+            var context = Substitute.For<HttpContext>();
+
+            var sut = new ShieldExceptionMiddleware(next, logger, executor);
+
+            await sut.Invoke(context).ConfigureAwait(false);
+
+            await executor.Received().Execute(
+                    context,
+                    Arg.Is<ObjectResult>(x => x.StatusCode == (int) HttpStatusCode.NotFound))
                 .ConfigureAwait(false);
         }
 
