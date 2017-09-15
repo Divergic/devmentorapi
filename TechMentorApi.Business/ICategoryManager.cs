@@ -3,12 +3,14 @@
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
-    using TechMentorApi.Model;
+    using Model;
 
     public interface ICategoryManager
     {
         Task CreateCategory(NewCategory newCategory, CancellationToken cancellationToken);
 
         Task<IEnumerable<Category>> GetCategories(ReadType readType, CancellationToken cancellationToken);
+
+        Task UpdateCategory(Category category, CancellationToken cancellationToken);
     }
 }

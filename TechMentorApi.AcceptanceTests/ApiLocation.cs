@@ -8,6 +8,18 @@
 
     public static class ApiLocation
     {
+        public static Uri Category(NewCategory category)
+        {
+            return new Uri(Config.WebsiteAddress,
+                "/categories/" + category.Group + "/" + UrlEncode(category.Name));
+        }
+
+        public static Uri Category(Category category)
+        {
+            return new Uri(Config.WebsiteAddress,
+                "/categories/" + category.Group + "/" + UrlEncode(category.Name));
+        }
+
         public static Uri ProfileFor(Guid profileId)
         {
             return new Uri(Config.WebsiteAddress, "/profiles/" + profileId);
@@ -20,7 +32,7 @@
             foreach (var filter in filters)
             {
                 criteria.Add(filter.CategoryGroup.ToString().ToLowerInvariant() + "=" +
-                             WebUtility.UrlEncode(filter.CategoryName));
+                             UrlEncode(filter.CategoryName));
             }
 
             var query = criteria.Aggregate((x, y) => x + "&" + y);
@@ -28,12 +40,22 @@
             return new Uri(Config.WebsiteAddress, "/profiles?" + query);
         }
 
+        private static string UrlEncode(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return string.Empty;
+            }
+
+            return WebUtility.UrlEncode(value).Replace("+", "%20");
+        }
+
+        public static Uri AccountProfile => new Uri(Config.WebsiteAddress, "/profile");
+
         public static Uri Categories => new Uri(Config.WebsiteAddress, "/categories");
 
         public static Uri Ping => new Uri(Config.WebsiteAddress, "/ping");
 
         public static Uri Profiles => new Uri(Config.WebsiteAddress, "/profiles");
-
-        public static Uri AccountProfile => new Uri(Config.WebsiteAddress, "/profile");
     }
 }

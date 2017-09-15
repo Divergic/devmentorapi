@@ -3,11 +3,12 @@
     using System;
     using System.Net;
     using System.Threading.Tasks;
-    using TechMentorApi.Core;
-    using TechMentorApi.Properties;
+    using Core;
     using EnsureThat;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Logging;
+    using Model;
+    using Properties;
 
     public class ShieldExceptionMiddleware
     {
@@ -36,6 +37,15 @@
             try
             {
                 await _next(context);
+            }
+            catch (NotFoundException ex)
+            {
+                // Something wasn't found deeper in the application stack, return a NotFoundResult
+                var result = new ErrorMessageResult(
+                    ex.Message,
+                    HttpStatusCode.NotFound);
+
+                await _executor.Execute(context, result);
             }
             catch (Exception ex)
             {

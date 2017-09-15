@@ -120,4 +120,7 @@
   <data name="InvalidYearInRangeFormat" xml:space="preserve">
     <value>The {0} value is invalid. Please provide a year between 1988 and the current year inclusive.</value>
   </data>
+  <data name="NotFoundException_Message" xml:space="preserve">
+    <value>The requested item was not found.</value>
+  </data>
 </root>
