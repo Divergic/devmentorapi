@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Text;
     using TechMentorApi.Model;
     using EnsureThat;
     using Microsoft.WindowsAzure.Storage;
@@ -20,11 +21,17 @@
         public static string BuildPartitionKey(CategoryGroup categoryGroup, string categoryName)
         {
             Ensure.That(categoryName).IsNotNullOrWhiteSpace();
+            
+            // We need to Base64 encode the category name to handle #/\ characters in the names
+            var invariantName = categoryName.ToUpperInvariant();
+            var bytes = Encoding.UTF8.GetBytes(invariantName);
 
+            var encodedName = Convert.ToBase64String(bytes);
+            
             // We get to save several bytes per record by storing the int representation of the enum in the parition key
             // Store the name part as upper case so that it will be case insensitive
             // We only want one entry for Azure, azure and AZURE
-            return (int)categoryGroup + "|" + categoryName.ToUpperInvariant();
+            return (int)categoryGroup + "|" + encodedName;
         }
 
         public static string BuildRowKey(Guid profileId)
@@ -48,7 +55,9 @@
         {
             var parts = PartitionKey.Split('|');
             var group = parts[0];
-            var name = parts[1];
+            var encodedName = parts[1];
+            var nameBytes = Convert.FromBase64String(encodedName);
+            var name = Encoding.UTF8.GetString(nameBytes);
 
             Value.CategoryGroup = (CategoryGroup)Enum.Parse(typeof(CategoryGroup), group);
             Value.CategoryName = name;

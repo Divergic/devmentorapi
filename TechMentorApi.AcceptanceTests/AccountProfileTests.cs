@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Net;
     using System.Threading.Tasks;
     using FluentAssertions;
@@ -22,7 +23,7 @@
             _output = output;
             _logger = output.BuildLoggerFor<AccountProfileTests>();
         }
-        
+
         [Fact]
         public async Task GetForNewUserCreatesProfileAsHiddenTest()
         {
@@ -125,6 +126,29 @@
             var actual = await Client.Get<Profile>(address, _logger, identity).ConfigureAwait(false);
 
             actual.ShouldBeEquivalentTo(profile, opt => opt.Excluding(x => x.Id));
+        }
+
+        [Theory]
+        [InlineData("C#")]
+        [InlineData("C++")]
+        [InlineData("VB6")]
+        [InlineData("Delphi/Object Pascal")]
+        [InlineData("Assembly language")]
+        [InlineData("PL/SQL")]
+        [InlineData("Objective-C")]
+        public async Task PutAddsSkillWithNonAlphabetCharactersTest(string categoryName)
+        {
+            // See https://github.com/Divergic/techmentorapi/issues/22
+            var expected = Model.Using<ProfileBuildStrategy>().Create<UpdatableProfile>()
+                .Set(x => x.Skills.First().Name = categoryName);
+            var user = ClaimsIdentityFactory.Build(null, expected);
+
+            await Client.Put(ApiLocation.AccountProfile, _logger, expected, user, HttpStatusCode.NoContent)
+                .ConfigureAwait(false);
+
+            var actual = await Client.Get<Profile>(ApiLocation.AccountProfile, _logger, user).ConfigureAwait(false);
+
+            actual.ShouldBeEquivalentTo(expected, opt => opt.ExcludingMissingMembers());
         }
 
         [Theory]
@@ -344,6 +368,22 @@
         public async Task PutUpdatesProfileInformationTest()
         {
             var expected = Model.Using<ProfileBuildStrategy>().Create<UpdatableProfile>();
+            var user = ClaimsIdentityFactory.Build(null, expected);
+
+            await Client.Put(ApiLocation.AccountProfile, _logger, expected, user, HttpStatusCode.NoContent)
+                .ConfigureAwait(false);
+
+            var actual = await Client.Get<Profile>(ApiLocation.AccountProfile, _logger, user).ConfigureAwait(false);
+
+            actual.ShouldBeEquivalentTo(expected, opt => opt.ExcludingMissingMembers());
+        }
+
+        [Theory]
+        [InlineData("梅", "張")]
+        [InlineData("Françoise", "Gagné")]
+        public async Task PutUpdatesProfileWithNonAsciiCharactersTest(string firstName, string lastName)
+        {
+            var expected = Model.Using<ProfileBuildStrategy>().Create<UpdatableProfile>().Set(x => x.FirstName = firstName).Set(x => x.LastName = lastName);
             var user = ClaimsIdentityFactory.Build(null, expected);
 
             await Client.Put(ApiLocation.AccountProfile, _logger, expected, user, HttpStatusCode.NoContent)

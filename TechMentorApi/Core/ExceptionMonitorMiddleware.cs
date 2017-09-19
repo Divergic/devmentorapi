@@ -1,10 +1,12 @@
 ﻿namespace TechMentorApi.Core
 {
     using System;
+    using System.Text;
     using System.Threading.Tasks;
     using EnsureThat;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Logging;
+    using Microsoft.WindowsAzure.Storage;
 
     public class ExceptionMonitorMiddleware
     {
@@ -49,7 +51,76 @@
 
             log.LogError(eventId, exception, exception.Message);
 
+            var storageExceptionData = GetStorageExceptionData(exception);
+
+            if (string.IsNullOrWhiteSpace(storageExceptionData) == false)
+            {
+                log.LogError(eventId, storageExceptionData);
+            }
+
             return Task.CompletedTask;
+        }
+
+        private static StorageException FindStorageException(Exception ex)
+        {
+            var exception = ex;
+            var aggregateException = exception as AggregateException;
+
+            if (aggregateException != null)
+            {
+                exception = aggregateException.Flatten();
+            }
+
+            var storageException = exception as StorageException;
+
+            if (storageException != null)
+            {
+                return storageException;
+            }
+
+            if (exception.InnerException == null)
+            {
+                return null;
+            }
+
+            return FindStorageException(exception.InnerException);
+        }
+
+        private static string GetStorageExceptionData(Exception exception)
+        {
+            var storageException = FindStorageException(exception);
+
+            if (storageException == null)
+            {
+                return null;
+            }
+
+            var builder = new StringBuilder();
+
+            builder.AppendLine(storageException.Message);
+
+            var information = storageException.RequestInformation.ExtendedErrorInformation;
+
+            if (information == null)
+            {
+                return builder.ToString();
+            }
+
+            builder.AppendLine(information.ErrorCode + " - " + information.ErrorMessage);
+
+            if (information.AdditionalDetails == null)
+            {
+                return builder.ToString();
+            }
+
+            var keys = information.AdditionalDetails.Keys;
+
+            foreach (var key in keys)
+            {
+                builder.AppendLine(key + " - " + information.AdditionalDetails[key]);
+            }
+
+            return builder.ToString();
         }
     }
 }

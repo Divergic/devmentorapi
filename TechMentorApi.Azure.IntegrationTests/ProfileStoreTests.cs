@@ -4,9 +4,9 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using TechMentorApi.Model;
     using FluentAssertions;
     using Microsoft.WindowsAzure.Storage;
+    using Model;
     using ModelBuilder;
     using NSubstitute;
     using Xunit;
@@ -238,6 +238,22 @@
         public async Task StoreProfileWritesProfileToStorageTest()
         {
             var profile = Model.Create<Profile>().Set(x => x.BannedAt = null);
+
+            var sut = new ProfileStore(Config.Storage);
+
+            await sut.StoreProfile(profile, CancellationToken.None).ConfigureAwait(false);
+
+            var actual = await sut.GetProfile(profile.Id, CancellationToken.None).ConfigureAwait(false);
+
+            actual.ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+        }
+
+        [Theory]
+        [InlineData("梅", "張")]
+        [InlineData("Françoise", "Gagné")]
+        public async Task StoreProfileWritesProfileWithNonAsciiCharactersTest(string firstName, string lastName)
+        {
+            var profile = Model.Create<Profile>().Set(x => x.FirstName = firstName).Set(x => x.LastName = lastName);
 
             var sut = new ProfileStore(Config.Storage);
 

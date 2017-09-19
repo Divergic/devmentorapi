@@ -5,9 +5,9 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using TechMentorApi.Model;
     using FluentAssertions;
     using Microsoft.WindowsAzure.Storage;
+    using Model;
     using ModelBuilder;
     using NSubstitute;
     using Xunit;
@@ -254,6 +254,29 @@
         public async Task StoreCategoryWritesCategoryToStorageTest()
         {
             var expected = Model.Create<Category>();
+
+            var sut = new CategoryStore(Config.Storage);
+
+            await sut.StoreCategory(expected, CancellationToken.None).ConfigureAwait(false);
+
+            var categories = await sut.GetAllCategories(CancellationToken.None).ConfigureAwait(false);
+
+            var actual = categories.First(x => x.Group == expected.Group && x.Name == expected.Name);
+
+            actual.ShouldBeEquivalentTo(expected);
+        }
+
+        [Theory]
+        [InlineData("C#")]
+        [InlineData("C++")]
+        [InlineData("VB6")]
+        [InlineData("Delphi/Object Pascal")]
+        [InlineData("Assembly language")]
+        [InlineData("PL/SQL")]
+        [InlineData("Objective-C")]
+        public async Task StoreCategoryWritesCategoryWithNonAlphabetCharactersTest(string categoryName)
+        {
+            var expected = Model.Create<Category>().Set(x => x.Name = categoryName);
 
             var sut = new CategoryStore(Config.Storage);
 
