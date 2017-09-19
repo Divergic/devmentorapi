@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Text;
     using TechMentorApi.Model;
     using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Table;
@@ -26,7 +27,12 @@
         {
             // Store the name as the row key so that it will be case insensitive
             // We only want one entry for Azure, azure and AZURE
-            return name.ToUpperInvariant();
+            var invariantName = name.ToUpperInvariant();
+            var bytes = Encoding.UTF8.GetBytes(invariantName);
+
+            var key = Convert.ToBase64String(bytes);
+
+            return key;
         }
 
         protected override string BuildPartitionKey()
@@ -52,6 +58,8 @@
             IDictionary<string, EntityProperty> properties,
             OperationContext operationContext)
         {
+            // We can't remove the rowkey because we won't know the original casing once the record is read back out again because 
+            // BuildRowKey uses ToUpperInvariant to avoid duplicates of the same logical value
             properties.Remove(nameof(Category.Group));
 
             base.WriteValues(properties, operationContext);

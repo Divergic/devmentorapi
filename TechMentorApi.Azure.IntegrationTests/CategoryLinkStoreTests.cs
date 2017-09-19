@@ -5,9 +5,9 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using TechMentorApi.Model;
     using FluentAssertions;
     using Microsoft.WindowsAzure.Storage;
+    using Model;
     using ModelBuilder;
     using Xunit;
 
@@ -63,22 +63,48 @@
             action.ShouldThrow<ArgumentException>();
         }
 
+        [Theory]
+        [InlineData("C#")]
+        [InlineData("C++")]
+        [InlineData("VB6")]
+        [InlineData("Delphi/Object Pascal")]
+        [InlineData("Assembly language")]
+        [InlineData("PL/SQL")]
+        [InlineData("Objective-C")]
+        public async Task StoreCategoryLinkAddsCategoriesWithNonAlphabetCharactersTest(string categoryName)
+        {
+            const CategoryGroup group = CategoryGroup.Gender;
+            var change = Model.Create<CategoryLinkChange>().Set(x => x.ChangeType = CategoryLinkChangeType.Add);
+
+            var sut = new CategoryLinkStore(Config.Storage);
+
+            await sut.StoreCategoryLink(group, categoryName, change, CancellationToken.None).ConfigureAwait(false);
+
+            var links = await sut.GetCategoryLinks(group, categoryName, CancellationToken.None).ConfigureAwait(false);
+
+            var actual = links.Single(x => x.ProfileId == change.ProfileId);
+
+            actual.CategoryGroup.Should().Be(group);
+            actual.CategoryName.Should().Be(categoryName.ToUpperInvariant());
+            actual.ProfileId.Should().Be(change.ProfileId);
+        }
+
         [Fact]
         public async Task StoreCategoryLinkAddsCategoryLinkToStorageTest()
         {
-            const CategoryGroup Group = CategoryGroup.Gender;
+            const CategoryGroup group = CategoryGroup.Gender;
             var categoryName = Guid.NewGuid().ToString();
             var change = Model.Create<CategoryLinkChange>().Set(x => x.ChangeType = CategoryLinkChangeType.Add);
 
             var sut = new CategoryLinkStore(Config.Storage);
 
-            await sut.StoreCategoryLink(Group, categoryName, change, CancellationToken.None).ConfigureAwait(false);
+            await sut.StoreCategoryLink(group, categoryName, change, CancellationToken.None).ConfigureAwait(false);
 
-            var links = await sut.GetCategoryLinks(Group, categoryName, CancellationToken.None).ConfigureAwait(false);
+            var links = await sut.GetCategoryLinks(group, categoryName, CancellationToken.None).ConfigureAwait(false);
 
             var actual = links.Single();
 
-            actual.CategoryGroup.Should().Be(Group);
+            actual.CategoryGroup.Should().Be(group);
             actual.CategoryName.Should().Be(categoryName.ToUpperInvariant());
             actual.ProfileId.Should().Be(change.ProfileId);
         }
@@ -96,19 +122,19 @@
 
             await table.DeleteIfExistsAsync();
 
-            const CategoryGroup Group = CategoryGroup.Gender;
+            const CategoryGroup group = CategoryGroup.Gender;
             var categoryName = Guid.NewGuid().ToString();
             var change = Model.Create<CategoryLinkChange>().Set(x => x.ChangeType = CategoryLinkChangeType.Add);
 
             var sut = new CategoryLinkStore(Config.Storage);
 
-            await sut.StoreCategoryLink(Group, categoryName, change, CancellationToken.None).ConfigureAwait(false);
+            await sut.StoreCategoryLink(group, categoryName, change, CancellationToken.None).ConfigureAwait(false);
 
-            var links = await sut.GetCategoryLinks(Group, categoryName, CancellationToken.None).ConfigureAwait(false);
+            var links = await sut.GetCategoryLinks(group, categoryName, CancellationToken.None).ConfigureAwait(false);
 
             var actual = links.Single();
 
-            actual.CategoryGroup.Should().Be(Group);
+            actual.CategoryGroup.Should().Be(group);
             actual.CategoryName.Should().Be(categoryName.ToUpperInvariant());
             actual.ProfileId.Should().Be(change.ProfileId);
         }
@@ -116,14 +142,14 @@
         [Fact]
         public void StoreCategoryLinkIgnoresRemoveWhenCategoryLinkNotFoundTest()
         {
-            const CategoryGroup Group = CategoryGroup.Gender;
+            const CategoryGroup group = CategoryGroup.Gender;
             var categoryName = Guid.NewGuid().ToString();
             var change = Model.Create<CategoryLinkChange>().Set(x => x.ChangeType = CategoryLinkChangeType.Remove);
 
             var sut = new CategoryLinkStore(Config.Storage);
 
             Func<Task> action = async () => await sut
-                .StoreCategoryLink(Group, categoryName, change, CancellationToken.None).ConfigureAwait(false);
+                .StoreCategoryLink(group, categoryName, change, CancellationToken.None).ConfigureAwait(false);
 
             action.ShouldNotThrow();
         }
@@ -141,14 +167,14 @@
 
             await table.DeleteIfExistsAsync();
 
-            const CategoryGroup Group = CategoryGroup.Gender;
+            const CategoryGroup group = CategoryGroup.Gender;
             var categoryName = Guid.NewGuid().ToString();
             var change = Model.Create<CategoryLinkChange>().Set(x => x.ChangeType = CategoryLinkChangeType.Remove);
 
             var sut = new CategoryLinkStore(Config.Storage);
 
             Func<Task> action = async () => await sut
-                .StoreCategoryLink(Group, categoryName, change, CancellationToken.None).ConfigureAwait(false);
+                .StoreCategoryLink(group, categoryName, change, CancellationToken.None).ConfigureAwait(false);
 
             action.ShouldNotThrow();
         }
@@ -156,19 +182,19 @@
         [Fact]
         public async Task StoreCategoryLinkRemovesCategoryLinkFromStorageTest()
         {
-            const CategoryGroup Group = CategoryGroup.Gender;
+            const CategoryGroup group = CategoryGroup.Gender;
             var categoryName = Guid.NewGuid().ToString();
             var change = Model.Create<CategoryLinkChange>().Set(x => x.ChangeType = CategoryLinkChangeType.Add);
 
             var sut = new CategoryLinkStore(Config.Storage);
 
-            await sut.StoreCategoryLink(Group, categoryName, change, CancellationToken.None).ConfigureAwait(false);
+            await sut.StoreCategoryLink(group, categoryName, change, CancellationToken.None).ConfigureAwait(false);
 
             change.ChangeType = CategoryLinkChangeType.Remove;
 
-            await sut.StoreCategoryLink(Group, categoryName, change, CancellationToken.None).ConfigureAwait(false);
+            await sut.StoreCategoryLink(group, categoryName, change, CancellationToken.None).ConfigureAwait(false);
 
-            var actual = await sut.GetCategoryLinks(Group, categoryName, CancellationToken.None).ConfigureAwait(false);
+            var actual = await sut.GetCategoryLinks(group, categoryName, CancellationToken.None).ConfigureAwait(false);
 
             actual.Should().BeEmpty();
         }
@@ -184,7 +210,7 @@
 
             builder.TypeCreators.OfType<EnumerableTypeCreator>().Single().AutoPopulateCount = itemCount;
 
-            const CategoryGroup Group = CategoryGroup.Gender;
+            const CategoryGroup group = CategoryGroup.Gender;
             var categoryName = Guid.NewGuid().ToString();
             var changes = Model.Create<List<CategoryLinkChange>>();
 
@@ -192,12 +218,12 @@
 
             var sut = new CategoryLinkStore(Config.Storage);
 
-            await sut.StoreCategoryLinks(Group, categoryName, changes, CancellationToken.None).ConfigureAwait(false);
+            await sut.StoreCategoryLinks(group, categoryName, changes, CancellationToken.None).ConfigureAwait(false);
 
-            var actual = (await sut.GetCategoryLinks(Group, categoryName, CancellationToken.None).ConfigureAwait(false))
+            var actual = (await sut.GetCategoryLinks(group, categoryName, CancellationToken.None).ConfigureAwait(false))
                 .ToList();
 
-            actual.All(x => x.CategoryGroup == Group).Should().BeTrue();
+            actual.All(x => x.CategoryGroup == group).Should().BeTrue();
             actual.All(x => x.CategoryName.Equals(categoryName, StringComparison.OrdinalIgnoreCase)).Should().BeTrue();
             actual.ShouldAllBeEquivalentTo(
                 changes.Where(x => x.ChangeType == CategoryLinkChangeType.Add),
@@ -214,7 +240,7 @@
 
             builder.TypeCreators.OfType<EnumerableTypeCreator>().Single().AutoPopulateCount = itemCount;
 
-            const CategoryGroup Group = CategoryGroup.Gender;
+            const CategoryGroup group = CategoryGroup.Gender;
             var categoryName = Guid.NewGuid().ToString();
             var changes = Model.Create<List<CategoryLinkChange>>()
                 .SetEach(x => x.ChangeType = CategoryLinkChangeType.Add);
@@ -223,12 +249,12 @@
 
             var sut = new CategoryLinkStore(Config.Storage);
 
-            await sut.StoreCategoryLinks(Group, categoryName, changes, CancellationToken.None).ConfigureAwait(false);
+            await sut.StoreCategoryLinks(group, categoryName, changes, CancellationToken.None).ConfigureAwait(false);
 
-            var actual = (await sut.GetCategoryLinks(Group, categoryName, CancellationToken.None).ConfigureAwait(false))
+            var actual = (await sut.GetCategoryLinks(group, categoryName, CancellationToken.None).ConfigureAwait(false))
                 .ToList();
 
-            actual.All(x => x.CategoryGroup == Group).Should().BeTrue();
+            actual.All(x => x.CategoryGroup == group).Should().BeTrue();
             actual.All(x => x.CategoryName.Equals(categoryName, StringComparison.OrdinalIgnoreCase)).Should().BeTrue();
             actual.ShouldAllBeEquivalentTo(changes, opt => opt.ExcludingMissingMembers());
         }
@@ -236,7 +262,7 @@
         [Fact]
         public async Task StoreCategoryLinksAddsNewItemsWhenRemovingItemsInBatchFailsTest()
         {
-            const CategoryGroup Group = CategoryGroup.Gender;
+            const CategoryGroup group = CategoryGroup.Gender;
             var categoryName = Guid.NewGuid().ToString();
             var changes = new List<CategoryLinkChange>
             {
@@ -259,13 +285,13 @@
 
             var sut = new CategoryLinkStore(Config.Storage);
 
-            await sut.StoreCategoryLinks(Group, categoryName, changes, CancellationToken.None).ConfigureAwait(false);
+            await sut.StoreCategoryLinks(group, categoryName, changes, CancellationToken.None).ConfigureAwait(false);
 
-            var actual = (await sut.GetCategoryLinks(Group, categoryName, CancellationToken.None).ConfigureAwait(false))
+            var actual = (await sut.GetCategoryLinks(group, categoryName, CancellationToken.None).ConfigureAwait(false))
                 .ToList();
 
             actual.Should().HaveCount(1);
-            actual.All(x => x.CategoryGroup == Group).Should().BeTrue();
+            actual.All(x => x.CategoryGroup == group).Should().BeTrue();
             actual.All(x => x.CategoryName.Equals(categoryName, StringComparison.OrdinalIgnoreCase)).Should().BeTrue();
             actual.ShouldAllBeEquivalentTo(
                 changes.Where(x => x.ChangeType == CategoryLinkChangeType.Add),
@@ -285,19 +311,19 @@
 
             await table.DeleteIfExistsAsync();
 
-            const CategoryGroup Group = CategoryGroup.Gender;
+            const CategoryGroup group = CategoryGroup.Gender;
             var categoryName = Guid.NewGuid().ToString();
             var changes = Model.Create<List<CategoryLinkChange>>()
                 .SetEach(x => x.ChangeType = CategoryLinkChangeType.Add);
 
             var sut = new CategoryLinkStore(Config.Storage);
 
-            await sut.StoreCategoryLinks(Group, categoryName, changes, CancellationToken.None).ConfigureAwait(false);
+            await sut.StoreCategoryLinks(group, categoryName, changes, CancellationToken.None).ConfigureAwait(false);
 
-            var actual = (await sut.GetCategoryLinks(Group, categoryName, CancellationToken.None).ConfigureAwait(false))
+            var actual = (await sut.GetCategoryLinks(group, categoryName, CancellationToken.None).ConfigureAwait(false))
                 .ToList();
 
-            actual.All(x => x.CategoryGroup == Group).Should().BeTrue();
+            actual.All(x => x.CategoryGroup == group).Should().BeTrue();
             actual.All(x => x.CategoryName.Equals(categoryName, StringComparison.OrdinalIgnoreCase)).Should().BeTrue();
             actual.ShouldAllBeEquivalentTo(changes, opt => opt.ExcludingMissingMembers());
         }
@@ -305,20 +331,20 @@
         [Fact]
         public async Task StoreCategoryLinksCanAddAndRemoveAllItemsTest()
         {
-            const CategoryGroup Group = CategoryGroup.Gender;
+            const CategoryGroup group = CategoryGroup.Gender;
             var categoryName = Guid.NewGuid().ToString();
             var changes = Model.Create<List<CategoryLinkChange>>()
                 .SetEach(x => x.ChangeType = CategoryLinkChangeType.Add);
 
             var sut = new CategoryLinkStore(Config.Storage);
 
-            await sut.StoreCategoryLinks(Group, categoryName, changes, CancellationToken.None).ConfigureAwait(false);
+            await sut.StoreCategoryLinks(group, categoryName, changes, CancellationToken.None).ConfigureAwait(false);
 
             changes.SetEach(x => x.ChangeType = CategoryLinkChangeType.Remove);
 
-            await sut.StoreCategoryLinks(Group, categoryName, changes, CancellationToken.None).ConfigureAwait(false);
+            await sut.StoreCategoryLinks(group, categoryName, changes, CancellationToken.None).ConfigureAwait(false);
 
-            var actual = await sut.GetCategoryLinks(Group, categoryName, CancellationToken.None).ConfigureAwait(false);
+            var actual = await sut.GetCategoryLinks(group, categoryName, CancellationToken.None).ConfigureAwait(false);
 
             actual.Should().BeEmpty();
         }
@@ -326,7 +352,7 @@
         [Fact]
         public void StoreCategoryLinksIgnoresDeletingItemsNotFoundTest()
         {
-            const CategoryGroup Group = CategoryGroup.Gender;
+            const CategoryGroup group = CategoryGroup.Gender;
             var categoryName = Guid.NewGuid().ToString();
             var changes = new List<CategoryLinkChange>
             {
@@ -340,7 +366,7 @@
             var sut = new CategoryLinkStore(Config.Storage);
 
             Func<Task> action = async () => await sut
-                .StoreCategoryLinks(Group, categoryName, changes, CancellationToken.None).ConfigureAwait(false);
+                .StoreCategoryLinks(group, categoryName, changes, CancellationToken.None).ConfigureAwait(false);
 
             action.ShouldNotThrow();
         }
@@ -363,7 +389,7 @@
         [Fact]
         public async Task StoreCategoryLinksOverwritesExistingEntryUsingNewBatchTest()
         {
-            const CategoryGroup Group = CategoryGroup.Gender;
+            const CategoryGroup group = CategoryGroup.Gender;
             var categoryName = Guid.NewGuid().ToString();
             var changes = new List<CategoryLinkChange>
             {
@@ -376,13 +402,13 @@
 
             var sut = new CategoryLinkStore(Config.Storage);
 
-            await sut.StoreCategoryLinks(Group, categoryName, changes, CancellationToken.None).ConfigureAwait(false);
-            await sut.StoreCategoryLinks(Group, categoryName, changes, CancellationToken.None).ConfigureAwait(false);
+            await sut.StoreCategoryLinks(group, categoryName, changes, CancellationToken.None).ConfigureAwait(false);
+            await sut.StoreCategoryLinks(group, categoryName, changes, CancellationToken.None).ConfigureAwait(false);
 
-            var actual = (await sut.GetCategoryLinks(Group, categoryName, CancellationToken.None).ConfigureAwait(false))
+            var actual = (await sut.GetCategoryLinks(group, categoryName, CancellationToken.None).ConfigureAwait(false))
                 .ToList();
 
-            actual.All(x => x.CategoryGroup == Group).Should().BeTrue();
+            actual.All(x => x.CategoryGroup == group).Should().BeTrue();
             actual.All(x => x.CategoryName.Equals(categoryName, StringComparison.OrdinalIgnoreCase)).Should().BeTrue();
             actual.ShouldAllBeEquivalentTo(changes, opt => opt.ExcludingMissingMembers());
         }
