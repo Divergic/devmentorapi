@@ -17,6 +17,8 @@
             sut.FirstName.Should().BeNull();
             sut.LastName.Should().BeNull();
             sut.Status.Should().Be(ProfileStatus.Hidden);
+            sut.Languages.Should().BeEmpty();
+            sut.Skills.Should().BeEmpty();
         }
 
         [Fact]

@@ -1,12 +1,18 @@
 ﻿namespace TechMentorApi.Model
 {
     using System;
+    using System.Collections.Generic;
     using EnsureThat;
 
     public class PublicProfile
     {
+        private ICollection<string> _languages;
+        private ICollection<Skill> _skills;
+
         public PublicProfile()
         {
+            Languages = new List<string>();
+            Skills = new List<Skill>();
         }
 
         public PublicProfile(Profile profile)
@@ -19,7 +25,9 @@
             FirstName = profile.FirstName;
             Gender = profile.Gender;
             GitHubUsername = profile.GitHubUsername;
+            Languages = profile.Languages;
             LastName = profile.LastName;
+            Skills = profile.Skills;
             Status = profile.Status;
             TimeZone = profile.TimeZone;
             TwitterUsername = profile.TwitterUsername;
@@ -39,7 +47,35 @@
 
         public Guid Id { get; set; }
 
+        public ICollection<string> Languages
+        {
+            get => _languages;
+            set
+            {
+                if (value == null)
+                {
+                    value = new List<string>();
+                }
+
+                _languages = value;
+            }
+        }
+
         public string LastName { get; set; }
+
+        public ICollection<Skill> Skills
+        {
+            get => _skills;
+            set
+            {
+                if (value == null)
+                {
+                    value = new List<Skill>();
+                }
+
+                _skills = value;
+            }
+        }
 
         public ProfileStatus Status { get; set; }
 
