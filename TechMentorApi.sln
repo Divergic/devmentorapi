@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.15
+VisualStudioVersion = 15.0.26730.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TechMentorApi", "TechMentorApi\TechMentorApi.csproj", "{390843F8-0700-4CF3-AD6A-8E853227F01D}"
 EndProject
@@ -87,5 +87,8 @@ Global
 		{1126F1B5-A279-42FD-B815-018136463EE3} = {A1C5E883-3433-43BC-AAD3-1AA85D124F18}
 		{1508657F-141F-42B4-AF10-74778310A43D} = {84BFF4D4-DFBF-4061-8295-6A132B84DC1E}
 		{B3E32378-09A4-4FD1-8C35-48B5D73D11C1} = {A1C5E883-3433-43BC-AAD3-1AA85D124F18}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {39C1FB2C-1F17-4179-BC46-9D1202CFD60E}
 	EndGlobalSection
 EndGlobal
