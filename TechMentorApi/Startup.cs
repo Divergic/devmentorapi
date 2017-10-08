@@ -70,7 +70,7 @@
                 // Enable middleware to serve swagger-ui (HTML, JS, CSS etc.), specifying the Swagger JSON endpoint.
                 app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "DevMentor API V1"); });
 
-                ConfigureAuthentication(app, env);
+                app.UseAuthentication();
 
                 // Convert any Auth0 claims into role claims
                 app.UseMiddleware<Auth0ClaimsMiddleware>();
