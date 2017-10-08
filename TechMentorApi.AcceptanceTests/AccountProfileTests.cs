@@ -24,6 +24,18 @@
             _logger = output.BuildLoggerFor<AccountProfileTests>();
         }
 
+        public static IEnumerable<object[]> InvalidYearDataSource()
+        {
+            yield return new object[]
+            {
+                1988
+            };
+            yield return new object[]
+            {
+                DateTimeOffset.UtcNow.Year + 1
+            };
+        }
+
         [Fact]
         public async Task GetForNewUserCreatesProfileAsHiddenTest()
         {
@@ -383,7 +395,8 @@
         [InlineData("Françoise", "Gagné")]
         public async Task PutUpdatesProfileWithNonAsciiCharactersTest(string firstName, string lastName)
         {
-            var expected = Model.Using<ProfileBuildStrategy>().Create<UpdatableProfile>().Set(x => x.FirstName = firstName).Set(x => x.LastName = lastName);
+            var expected = Model.Using<ProfileBuildStrategy>().Create<UpdatableProfile>()
+                .Set(x => x.FirstName = firstName).Set(x => x.LastName = lastName);
             var user = ClaimsIdentityFactory.Build(null, expected);
 
             await Client.Put(ApiLocation.AccountProfile, _logger, expected, user, HttpStatusCode.NoContent)
@@ -392,18 +405,6 @@
             var actual = await Client.Get<Profile>(ApiLocation.AccountProfile, _logger, user).ConfigureAwait(false);
 
             actual.ShouldBeEquivalentTo(expected, opt => opt.ExcludingMissingMembers());
-        }
-
-        private static IEnumerable<object[]> InvalidYearDataSource()
-        {
-            yield return new object[]
-            {
-                1988
-            };
-            yield return new object[]
-            {
-                DateTimeOffset.UtcNow.Year + 1
-            };
         }
     }
 }

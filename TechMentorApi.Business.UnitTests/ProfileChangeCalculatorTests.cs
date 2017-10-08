@@ -4,10 +4,9 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
-    using TechMentorApi.Azure;
-    using TechMentorApi.Business;
-    using TechMentorApi.Model;
+    using Azure;
     using FluentAssertions;
+    using Model;
     using ModelBuilder;
     using Xunit;
     using Xunit.Abstractions;
@@ -19,6 +18,193 @@
         public ProfileChangeCalculatorTests(ITestOutputHelper output)
         {
             _output = output;
+        }
+
+        public static IEnumerable<object[]> IntPropertiesDataSource()
+        {
+            var scenarios = new List<object[]>();
+            var properties = from x in typeof(Profile).GetProperties()
+                where x.PropertyType == typeof(int?)
+                select x;
+
+            foreach (var property in properties)
+            {
+                var value = Environment.TickCount;
+
+                scenarios.Add(BuildIntPropertyTestScenario(property, null, null, false, "values are both null"));
+                scenarios.Add(BuildIntPropertyTestScenario(property, value, value, false, "values are same"));
+                scenarios.Add(
+                    BuildIntPropertyTestScenario(
+                        property,
+                        Environment.TickCount,
+                        Environment.TickCount + 1,
+                        true,
+                        "values are different"));
+                scenarios.Add(BuildIntPropertyTestScenario(property, null, value, true, "values changing from null"));
+                scenarios.Add(BuildIntPropertyTestScenario(property, value, null, true, "values changing to null"));
+            }
+
+            return scenarios;
+        }
+
+        public static IEnumerable<object[]> StringPropertiesDataSource()
+        {
+            var template = Model.Create<Profile>();
+            var scenarios = new List<object[]>();
+            var properties = (from x in typeof(Profile).GetProperties()
+                where x.PropertyType == typeof(string) && x.Name != nameof(Profile.Gender)
+                select x).ToList();
+
+            foreach (var property in properties)
+            {
+                var value = Guid.NewGuid().ToString();
+
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(template, property, value, value, false, "values are same"));
+
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(template, property, null, null, false, "values are both null"));
+
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(
+                        template,
+                        property,
+                        string.Empty,
+                        string.Empty,
+                        false,
+                        "values are both empty"));
+
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(template, property, " ", " ", false, "values are both whitespace"));
+
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(
+                        template,
+                        property,
+                        null,
+                        string.Empty,
+                        false,
+                        "values are null and empty"));
+
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(
+                        template,
+                        property,
+                        null,
+                        " ",
+                        false,
+                        "values are null and whitespace"));
+
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(
+                        template,
+                        property,
+                        string.Empty,
+                        null,
+                        false,
+                        "values are empty and null"));
+
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(
+                        template,
+                        property,
+                        " ",
+                        null,
+                        false,
+                        "values are whitespace and null"));
+
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(
+                        template,
+                        property,
+                        " ",
+                        string.Empty,
+                        false,
+                        "values are whitespace and empty"));
+
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(
+                        template,
+                        property,
+                        string.Empty,
+                        " ",
+                        false,
+                        "values are empty and whitespace"));
+
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(
+                        template,
+                        property,
+                        Guid.NewGuid().ToString(),
+                        Guid.NewGuid().ToString(),
+                        true,
+                        "values are different"));
+
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(
+                        template,
+                        property,
+                        value.ToLowerInvariant(),
+                        value.ToUpperInvariant(),
+                        true,
+                        "values are same but with different case"));
+
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(
+                        template,
+                        property,
+                        null,
+                        value.ToUpperInvariant(),
+                        true,
+                        "value changed from null"));
+
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(
+                        template,
+                        property,
+                        value.ToUpperInvariant(),
+                        null,
+                        true,
+                        "value changed to null"));
+
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(
+                        template,
+                        property,
+                        string.Empty,
+                        value.ToUpperInvariant(),
+                        true,
+                        "value changed from empty"));
+
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(
+                        template,
+                        property,
+                        value.ToUpperInvariant(),
+                        string.Empty,
+                        true,
+                        "value changed to empty"));
+
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(
+                        template,
+                        property,
+                        " ",
+                        value.ToUpperInvariant(),
+                        true,
+                        "value changed from whitespace"));
+
+                scenarios.Add(
+                    BuildStringPropertyTestScenario(
+                        template,
+                        property,
+                        value.ToUpperInvariant(),
+                        " ",
+                        true,
+                        "value changed to whitespace"));
+            }
+
+            return scenarios;
         }
 
         [Fact]
@@ -545,193 +731,6 @@
                 expected,
                 scenario
             };
-        }
-
-        private static IEnumerable<object[]> IntPropertiesDataSource()
-        {
-            var scenarios = new List<object[]>();
-            var properties = from x in typeof(Profile).GetProperties()
-                where x.PropertyType == typeof(int?)
-                select x;
-
-            foreach (var property in properties)
-            {
-                var value = Environment.TickCount;
-
-                scenarios.Add(BuildIntPropertyTestScenario(property, null, null, false, "values are both null"));
-                scenarios.Add(BuildIntPropertyTestScenario(property, value, value, false, "values are same"));
-                scenarios.Add(
-                    BuildIntPropertyTestScenario(
-                        property,
-                        Environment.TickCount,
-                        Environment.TickCount + 1,
-                        true,
-                        "values are different"));
-                scenarios.Add(BuildIntPropertyTestScenario(property, null, value, true, "values changing from null"));
-                scenarios.Add(BuildIntPropertyTestScenario(property, value, null, true, "values changing to null"));
-            }
-
-            return scenarios;
-        }
-
-        private static IEnumerable<object[]> StringPropertiesDataSource()
-        {
-            var template = Model.Create<Profile>();
-            var scenarios = new List<object[]>();
-            var properties = (from x in typeof(Profile).GetProperties()
-                where x.PropertyType == typeof(string) && x.Name != nameof(Profile.Gender)
-                select x).ToList();
-
-            foreach (var property in properties)
-            {
-                var value = Guid.NewGuid().ToString();
-
-                scenarios.Add(
-                    BuildStringPropertyTestScenario(template, property, value, value, false, "values are same"));
-
-                scenarios.Add(
-                    BuildStringPropertyTestScenario(template, property, null, null, false, "values are both null"));
-
-                scenarios.Add(
-                    BuildStringPropertyTestScenario(
-                        template,
-                        property,
-                        string.Empty,
-                        string.Empty,
-                        false,
-                        "values are both empty"));
-
-                scenarios.Add(
-                    BuildStringPropertyTestScenario(template, property, " ", " ", false, "values are both whitespace"));
-
-                scenarios.Add(
-                    BuildStringPropertyTestScenario(
-                        template,
-                        property,
-                        null,
-                        string.Empty,
-                        false,
-                        "values are null and empty"));
-
-                scenarios.Add(
-                    BuildStringPropertyTestScenario(
-                        template,
-                        property,
-                        null,
-                        " ",
-                        false,
-                        "values are null and whitespace"));
-
-                scenarios.Add(
-                    BuildStringPropertyTestScenario(
-                        template,
-                        property,
-                        string.Empty,
-                        null,
-                        false,
-                        "values are empty and null"));
-
-                scenarios.Add(
-                    BuildStringPropertyTestScenario(
-                        template,
-                        property,
-                        " ",
-                        null,
-                        false,
-                        "values are whitespace and null"));
-
-                scenarios.Add(
-                    BuildStringPropertyTestScenario(
-                        template,
-                        property,
-                        " ",
-                        string.Empty,
-                        false,
-                        "values are whitespace and empty"));
-
-                scenarios.Add(
-                    BuildStringPropertyTestScenario(
-                        template,
-                        property,
-                        string.Empty,
-                        " ",
-                        false,
-                        "values are empty and whitespace"));
-
-                scenarios.Add(
-                    BuildStringPropertyTestScenario(
-                        template,
-                        property,
-                        Guid.NewGuid().ToString(),
-                        Guid.NewGuid().ToString(),
-                        true,
-                        "values are different"));
-
-                scenarios.Add(
-                    BuildStringPropertyTestScenario(
-                        template,
-                        property,
-                        value.ToLowerInvariant(),
-                        value.ToUpperInvariant(),
-                        true,
-                        "values are same but with different case"));
-
-                scenarios.Add(
-                    BuildStringPropertyTestScenario(
-                        template,
-                        property,
-                        null,
-                        value.ToUpperInvariant(),
-                        true,
-                        "value changed from null"));
-
-                scenarios.Add(
-                    BuildStringPropertyTestScenario(
-                        template,
-                        property,
-                        value.ToUpperInvariant(),
-                        null,
-                        true,
-                        "value changed to null"));
-
-                scenarios.Add(
-                    BuildStringPropertyTestScenario(
-                        template,
-                        property,
-                        string.Empty,
-                        value.ToUpperInvariant(),
-                        true,
-                        "value changed from empty"));
-
-                scenarios.Add(
-                    BuildStringPropertyTestScenario(
-                        template,
-                        property,
-                        value.ToUpperInvariant(),
-                        string.Empty,
-                        true,
-                        "value changed to empty"));
-
-                scenarios.Add(
-                    BuildStringPropertyTestScenario(
-                        template,
-                        property,
-                        " ",
-                        value.ToUpperInvariant(),
-                        true,
-                        "value changed from whitespace"));
-
-                scenarios.Add(
-                    BuildStringPropertyTestScenario(
-                        template,
-                        property,
-                        value.ToUpperInvariant(),
-                        " ",
-                        true,
-                        "value changed to whitespace"));
-            }
-
-            return scenarios;
         }
     }
 }
