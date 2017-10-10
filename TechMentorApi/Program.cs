@@ -1,16 +1,21 @@
 ﻿namespace TechMentorApi
 {
-    using System.IO;
+    using Microsoft.AspNetCore;
     using Microsoft.AspNetCore.Hosting;
 
     public class Program
     {
+        public static IWebHost BuildWebHost(string[] args)
+        {
+            return WebHost.CreateDefaultBuilder(args)
+                .UseStartup<Startup>()
+                .UseKestrel(x => x.AddServerHeader = false)
+                .Build();
+        }
+
         public static void Main(string[] args)
         {
-            var host = new WebHostBuilder().UseKestrel().UseContentRoot(Directory.GetCurrentDirectory())
-                .UseIISIntegration().UseStartup<Startup>().UseApplicationInsights().Build();
-
-            host.Run();
+            BuildWebHost(args).Run();
         }
     }
 }
