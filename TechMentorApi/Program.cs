@@ -9,6 +9,7 @@
         {
             return WebHost.CreateDefaultBuilder(args)
                 .UseStartup<Startup>()
+                .UseKestrel(x => x.AddServerHeader = false)
                 .Build();
         }
 
