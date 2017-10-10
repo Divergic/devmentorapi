@@ -9,8 +9,8 @@
     using System.Threading.Tasks;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
-    using TechMentorApi.Core;
-    using TechMentorApi.Security;
+    using Core;
+    using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
@@ -23,18 +23,15 @@
     using Microsoft.IdentityModel.Tokens;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
+    using Security;
     using Swashbuckle.AspNetCore.Swagger;
 
     public class Startup
     {
-        public Startup(IHostingEnvironment env)
+        public Startup(IConfiguration configuration)
         {
-            var builder = new ConfigurationBuilder().SetBasePath(env.ContentRootPath)
-                .AddJsonFile("appsettings.json", false, true)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true).AddEnvironmentVariables();
-
-            ConfigurationRoot = builder.Build();
-            Configuration = ConfigurationRoot.Get<Config>();
+            ConfigurationRoot = configuration;
+            Configuration = configuration.Get<Config>();
         }
 
         public void Configure(
@@ -43,13 +40,14 @@
             ILoggerFactory loggerFactory,
             IApplicationLifetime appLifetime)
         {
+            CurrentEnvironment = env;
+
             ConfigureLogging(env, loggerFactory);
 
             var logger = loggerFactory.CreateLogger(typeof(Startup));
 
             try
             {
-
                 if (env.IsDevelopment())
                 {
                     app.UseDeveloperExceptionPage();
@@ -71,12 +69,6 @@
                 app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "DevMentor API V1"); });
 
                 app.UseAuthentication();
-
-                // Convert any Auth0 claims into role claims
-                app.UseMiddleware<Auth0ClaimsMiddleware>();
-
-                // Ensure that identity information is populated before MVC middleware executes
-                app.UseMiddleware<AccountContextMiddleware>();
 
                 app.UseMvc();
 
@@ -103,80 +95,93 @@
         {
             var loggerFactory = services.BuildServiceProvider().GetService<ILoggerFactory>();
 
-            var log = loggerFactory.CreateLogger(typeof(Startup));
+            var logger = loggerFactory.CreateLogger(typeof(Startup));
 
             try
             {
                 // Add framework services.
                 services.AddMvc(
-                config =>
-                {
-                    if (Configuration.Authentication.RequireHttps)
+                    config =>
                     {
-                        config.Filters.Add(new RequireHttpsFilter());
-                    }
-
-                    config.Filters.Add(new AuthorizeFilter("AuthenticatedUser"));
-                    config.Filters.Add(new ValidateModelAttribute());
-
-                    // add custom binder to beginning of collection
-                    config.ModelBinderProviders.Insert(0, new ProfileFilterModelBinderProvider());
-                }).AddJsonOptions(
-                options =>
-                {
-                    options.SerializerSettings.Converters.Add(
-                        new StringEnumConverter
+                        if (Configuration.Authentication.RequireHttps)
                         {
-                            CamelCaseText = true
-                        });
-                    options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
-                });
+                            config.Filters.Add(new RequireHttpsFilter());
+                        }
 
-            services.AddMemoryCache();
+                        config.Filters.Add(new AuthorizeFilter("AuthenticatedUser"));
+                        config.Filters.Add(new ValidateModelAttribute());
 
-            services.AddAuthorization(
-                options =>
-                {
-                    options.AddPolicy("AuthenticatedUser", policyBuilder => policyBuilder.RequireAuthenticatedUser());
-                    options.AddPolicy(
-                        Role.Administrator,
-                        policyBuilder => policyBuilder.RequireRole(Role.Administrator));
-                });
+                        // add custom binder to beginning of collection
+                        config.ModelBinderProviders.Insert(0, new ProfileFilterModelBinderProvider());
+                    }).AddJsonOptions(
+                    options =>
+                    {
+                        options.SerializerSettings.Converters.Add(
+                            new StringEnumConverter
+                            {
+                                CamelCaseText = true
+                            });
+                        options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+                    });
 
-            services.AddCors();
+                services.AddMemoryCache();
 
-            // Register the Swagger generator, defining one or more Swagger documents
-            services.AddSwaggerGen(
-                c =>
-                {
-                    c.SwaggerDoc(
-                        "v1",
-                        new Info
-                        {
-                            Title = "DevMentor API",
-                            Version = "v1"
-                        });
-                    c.DescribeAllEnumsAsStrings();
-                    c.DescribeAllParametersInCamelCase();
-                    c.DescribeStringEnumsInCamelCase();
+                // The order in which middleware is configured and added is important
+                services.AddAuthentication(o =>
+                    {
+                        o.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                        o.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                    })
+                    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme,
+                        options => ConfigureAuthentication(logger, CurrentEnvironment, options));
 
-                    //var securityScheme = new OAuth2Scheme
-                    //{
-                    //    AuthorizationUrl = Configuration.Authentication.AuthorizationUrl,
-                    //    Flow = "implicit",
-                    //    TokenUrl = Configuration.Authentication.TokenUrl
-                    //};
+                // Transform claims to ensure authenticated identity has AccountId claim and any possible Auth0 claims mapped
+                services.AddTransient<IClaimsTransformation, ClaimsTransformer>();
 
-                    //c.AddSecurityDefinition("Auth02", securityScheme);
+                services.AddAuthorization(
+                    options =>
+                    {
+                        options.AddPolicy("AuthenticatedUser",
+                            policyBuilder => policyBuilder.RequireAuthenticatedUser());
+                        options.AddPolicy(
+                            Role.Administrator,
+                            policyBuilder => policyBuilder.RequireRole(Role.Administrator));
+                    });
 
-                    var filePath = Path.Combine(
-                        PlatformServices.Default.Application.ApplicationBasePath,
-                        "TechMentorApi.xml");
-                    c.IncludeXmlComments(filePath);
+                services.AddCors();
 
-                    c.OperationFilter<OAuth2OperationFilter>();
-                    c.DocumentFilter<AdministratorDocumentFilter>();
-                });
+                // Register the Swagger generator, defining one or more Swagger documents
+                services.AddSwaggerGen(
+                    c =>
+                    {
+                        c.SwaggerDoc(
+                            "v1",
+                            new Info
+                            {
+                                Title = "DevMentor API",
+                                Version = "v1"
+                            });
+                        c.DescribeAllEnumsAsStrings();
+                        c.DescribeAllParametersInCamelCase();
+                        c.DescribeStringEnumsInCamelCase();
+
+                        //var securityScheme = new OAuth2Scheme
+                        //{
+                        //    AuthorizationUrl = Configuration.Authentication.AuthorizationUrl,
+                        //    Flow = "implicit",
+                        //    TokenUrl = Configuration.Authentication.TokenUrl
+                        //};
+
+                        //c.AddSecurityDefinition("Auth02", securityScheme);
+
+                        var filePath = Path.Combine(
+                            PlatformServices.Default.Application.ApplicationBasePath,
+                            "TechMentorApi.xml");
+                        c.IncludeXmlComments(filePath);
+
+                        c.OperationFilter<OAuth2OperationFilter>();
+                        c.DocumentFilter<AdministratorDocumentFilter>();
+                    });
 
                 ApplicationContainer = ContainerFactory.Build(services, Configuration);
             }
@@ -184,7 +189,7 @@
             {
                 var eventId = new EventId(1);
 
-                log.LogError(eventId, ex, "Failed to configure services");
+                logger.LogError(eventId, ex, "Failed to configure services");
 
                 var loaderFailure = ex.InnerException as ReflectionTypeLoadException;
 
@@ -192,7 +197,7 @@
                 {
                     foreach (var loaderException in loaderFailure.LoaderExceptions)
                     {
-                        log.LogError(eventId, loaderException, "Loader Exception in ConfigureServices");
+                        logger.LogError(eventId, loaderException, "Loader Exception in ConfigureServices");
                     }
                 }
 
@@ -202,7 +207,7 @@
             {
                 var eventId = new EventId(2);
 
-                log.LogError(eventId, ex, "Failed to configure services");
+                logger.LogError(eventId, ex, "Failed to configure services");
             }
 
             // Create the IServiceProvider based on the container.
@@ -225,10 +230,11 @@
                     break; // One pad char
                 default: throw new Exception("Illegal base64url string!");
             }
+
             return Convert.FromBase64String(s); // Standard base64 decoder
         }
 
-        private void ConfigureAuthentication(IApplicationBuilder app, IHostingEnvironment env)
+        private void ConfigureAuthentication(ILogger logger, IHostingEnvironment env, JwtBearerOptions options)
         {
             var tokenValidationParameters = new TokenValidationParameters
             {
@@ -249,32 +255,23 @@
                 tokenValidationParameters.IssuerSigningKey = securityKey;
             }
 
-            var options = new JwtBearerOptions
+            options.TokenValidationParameters = tokenValidationParameters;
+            options.Events = new JwtBearerEvents
             {
-                TokenValidationParameters = tokenValidationParameters,
-                Events = new JwtBearerEvents
+                OnAuthenticationFailed = context =>
                 {
-                    OnAuthenticationFailed = context =>
-                    {
-                        var logFactory = app.ApplicationServices.GetService<ILoggerFactory>();
-                        var logger = logFactory.CreateLogger<Startup>();
+                    Debug.WriteLine(context.Exception.ToString());
 
-                        Debug.WriteLine(context.Exception.ToString());
+                    logger.LogError(default(EventId), context.Exception, "Authentication failed");
 
-                        logger.LogError(default(EventId), context.Exception, "Authentication failed");
-
-                        return Task.CompletedTask;
-                    }
+                    return Task.CompletedTask;
                 }
             };
 
             var tokenHandler = options.SecurityTokenValidators.OfType<JwtSecurityTokenHandler>().FirstOrDefault();
 
-            if (tokenHandler != null)
-            {
-                // Remove stupid Microsoft claim mappings
-                tokenHandler.InboundClaimTypeMap.Clear();
-            }
+            // Remove stupid Microsoft claim mappings
+            tokenHandler?.InboundClaimTypeMap.Clear();
 
             if (env.IsDevelopment())
             {
@@ -285,9 +282,6 @@
                 options.Audience = Configuration.Authentication.Audience;
                 options.Authority = Configuration.Authentication.Authority;
             }
-
-            // The order in which middleware is configured and added is important
-            app.UseJwtBearerAuthentication(options);
         }
 
         private void ConfigureLogging(IHostingEnvironment env, ILoggerFactory loggerFactory)
@@ -311,8 +305,10 @@
 
         public Config Configuration { get; }
 
-        public IConfigurationRoot ConfigurationRoot { get; }
+        public IConfiguration ConfigurationRoot { get; }
 
         private IContainer ApplicationContainer { get; set; }
+
+        private IHostingEnvironment CurrentEnvironment { get; set; }
     }
 }
