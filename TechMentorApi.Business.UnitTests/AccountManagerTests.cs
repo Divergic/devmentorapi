@@ -19,7 +19,7 @@
             var provider = Guid.NewGuid().ToString();
             var username = Guid.NewGuid().ToString();
             var user = Model.CreateWith<User>(provider + "|" + username);
-            var expected = Model.Create<Account>();
+            var expected = Model.Create<AccountResult>().Set(x => x.IsNewAccount = false);
 
             var accountStore = Substitute.For<IAccountStore>();
             var profileStore = Substitute.For<IProfileStore>();
@@ -34,15 +34,18 @@
                 await sut.GetAccount(user, tokenSource.Token).ConfigureAwait(false);
 
                 cache.Received().StoreAccount(expected);
+                cache.DidNotReceive().StoreProfile(Arg.Any<Profile>());
+                await profileStore.DidNotReceive().StoreProfile(Arg.Any<Profile>(), Arg.Any<CancellationToken>()).ConfigureAwait(false);
             }
         }
 
         [Fact]
-        public async Task GetAccountCachesCreatedProfileWhenNotFoundInStoreTest()
+        public async Task GetAccountCachesCreatedProfileWhenNewAccountCreatedTest()
         {
             var provider = Guid.NewGuid().ToString();
             var username = Guid.NewGuid().ToString();
             var user = Model.CreateWith<User>(provider + "|" + username);
+            var account = Model.Create<AccountResult>().Set(x => x.IsNewAccount = true);
 
             var accountStore = Substitute.For<IAccountStore>();
             var profileStore = Substitute.For<IProfileStore>();
@@ -52,6 +55,8 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
+                accountStore.GetAccount(provider, username, tokenSource.Token).Returns(account);
+
                 var actual = await sut.GetAccount(user, tokenSource.Token).ConfigureAwait(false);
 
                 cache.Received(1).StoreProfile(Arg.Any<Profile>());
@@ -63,11 +68,12 @@
         }
 
         [Fact]
-        public async Task GetAccountCachesRegisteredAccountTest()
+        public async Task GetAccountCachesNewAccountTest()
         {
             var provider = Guid.NewGuid().ToString();
             var username = Guid.NewGuid().ToString();
             var user = Model.CreateWith<User>(provider + "|" + username);
+            var account = Model.Create<AccountResult>().Set(x => x.IsNewAccount = true);
 
             var accountStore = Substitute.For<IAccountStore>();
             var profileStore = Substitute.For<IProfileStore>();
@@ -77,6 +83,8 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
+                accountStore.GetAccount(provider, username, tokenSource.Token).Returns(account);
+
                 var actual = await sut.GetAccount(user, tokenSource.Token).ConfigureAwait(false);
 
                 cache.Received().StoreAccount(actual);
@@ -84,11 +92,12 @@
         }
 
         [Fact]
-        public async Task GetAccountCreatesProfileWhenNotFoundInStoreTest()
+        public async Task GetAccountCreatesProfileWhenNewAccountCreatedTest()
         {
             var provider = Guid.NewGuid().ToString();
             var username = Guid.NewGuid().ToString();
             var user = Model.CreateWith<User>(provider + "|" + username);
+            var account = Model.Create<AccountResult>().Set(x => x.IsNewAccount = true);
 
             var accountStore = Substitute.For<IAccountStore>();
             var profileStore = Substitute.For<IProfileStore>();
@@ -98,6 +107,8 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
+                accountStore.GetAccount(provider, username, tokenSource.Token).Returns(account);
+
                 var actual = await sut.GetAccount(user, tokenSource.Token).ConfigureAwait(false);
 
                 await profileStore.Received(1).StoreProfile(Arg.Any<Profile>(), tokenSource.Token)
@@ -123,7 +134,7 @@
         public async Task GetAccountDefaultsToUnspecifiedProviderWhenNotFoundInUsernameTest()
         {
             var user = Model.Create<User>();
-            var expected = Model.Create<Account>();
+            var expected = Model.Create<AccountResult>();
 
             var accountStore = Substitute.For<IAccountStore>();
             var profileStore = Substitute.For<IProfileStore>();
@@ -140,80 +151,14 @@
                 actual.ShouldBeEquivalentTo(expected);
             }
         }
-
-        [Fact]
-        public async Task GetAccountRegistersNewAccountWhenNotFoundInStoreTest()
-        {
-            var provider = Guid.NewGuid().ToString();
-            var username = Guid.NewGuid().ToString();
-            var user = Model.CreateWith<User>(provider + "|" + username);
-
-            var accountStore = Substitute.For<IAccountStore>();
-            var profileStore = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
-
-            var sut = new AccountManager(accountStore, profileStore, cache);
-
-            using (var tokenSource = new CancellationTokenSource())
-            {
-                var actual = await sut.GetAccount(user, tokenSource.Token).ConfigureAwait(false);
-
-                await accountStore.Received(1).RegisterAccount(Arg.Any<Account>(), tokenSource.Token)
-                    .ConfigureAwait(false);
-                await accountStore.Received()
-                    .RegisterAccount(Arg.Is<Account>(x => x.Id != Guid.Empty), tokenSource.Token).ConfigureAwait(false);
-                await accountStore.Received()
-                    .RegisterAccount(Arg.Is<Account>(x => x.Provider == provider), tokenSource.Token)
-                    .ConfigureAwait(false);
-                await accountStore.Received()
-                    .RegisterAccount(Arg.Is<Account>(x => x.Username == username), tokenSource.Token)
-                    .ConfigureAwait(false);
-
-                actual.Id.Should().NotBeEmpty();
-                actual.Provider.Should().Be(provider);
-                actual.Username.Should().Be(username);
-            }
-        }
-
-        [Fact]
-        public async Task GetAccountRegistersNewAccountWithUnspecifiedProviderWhenNotFoundInStoreTest()
-        {
-            var user = Model.CreateWith<User>();
-
-            var accountStore = Substitute.For<IAccountStore>();
-            var profileStore = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
-
-            var sut = new AccountManager(accountStore, profileStore, cache);
-
-            using (var tokenSource = new CancellationTokenSource())
-            {
-                var actual = await sut.GetAccount(user, tokenSource.Token).ConfigureAwait(false);
-
-                await accountStore.Received(1).RegisterAccount(Arg.Any<Account>(), tokenSource.Token)
-                    .ConfigureAwait(false);
-                await accountStore.Received()
-                    .RegisterAccount(Arg.Is<Account>(x => x.Id != Guid.Empty), tokenSource.Token).ConfigureAwait(false);
-                await accountStore.Received()
-                    .RegisterAccount(Arg.Is<Account>(x => x.Provider == "Unspecified"), tokenSource.Token)
-                    .ConfigureAwait(false);
-                await accountStore.Received()
-                    .RegisterAccount(Arg.Is<Account>(x => x.Username == user.Username), tokenSource.Token)
-                    .ConfigureAwait(false);
-
-                actual.Id.Should().NotBeEmpty();
-                actual.Provider.Should().Be("Unspecified");
-                actual.Username.Should().Be(user.Username);
-            }
-        }
-
+        
         [Fact]
         public async Task GetAccountReturnsAccountByProviderAndUsernameTest()
         {
             var provider = Guid.NewGuid().ToString();
             var username = Guid.NewGuid().ToString();
             var user = Model.CreateWith<User>(provider + "|" + username);
-            var expected = Model.Create<Account>();
+            var expected = Model.Create<AccountResult>();
 
             var accountStore = Substitute.For<IAccountStore>();
             var profileStore = Substitute.For<IProfileStore>();
