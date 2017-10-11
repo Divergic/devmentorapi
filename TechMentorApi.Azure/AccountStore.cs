@@ -33,19 +33,23 @@
                 return account;
             }
 
-            // This account does not yet exist
-            // Attempt to create it
-            var newAccount = new AccountResult
-            {
-                Id = Guid.NewGuid(),
-                IsNewAccount = true,
-                Provider = provider,
-                Username = username
-            };
-
             try
             {
+                // This account does not yet exist
+                // Attempt to create it
+                var newAccount = new Account
+                {
+                    Id = Guid.NewGuid(),
+                    Provider = provider,
+                    Username = username
+                };
+
                 await RegisterAccount(newAccount, cancellationToken).ConfigureAwait(false);
+
+                account = new AccountResult(newAccount)
+                {
+                    IsNewAccount = true
+                };
             }
             catch (StorageException ex)
             {
@@ -61,7 +65,7 @@
                 throw;
             }
 
-            return newAccount;
+            return account;
         }
 
         protected virtual Task RegisterAccount(Account account, CancellationToken cancellationToken)
@@ -87,14 +91,11 @@
                 return null;
             }
 
-            var entity = (AccountAdapter) result.Result;
+            var entity = (AccountAdapter)result.Result;
 
-            var account = new AccountResult
+            var account = new AccountResult(entity.Value)
             {
-                Id = entity.Value.Id,
-                IsNewAccount = false,
-                Provider = entity.Value.Provider,
-                Username = entity.Value.Username
+                IsNewAccount = false
             };
 
             return account;
