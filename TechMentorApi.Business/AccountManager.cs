@@ -28,72 +28,30 @@
         {
             Ensure.That(user, nameof(user)).IsNotNull();
 
-            var account = _cache.GetAccount(user.Username);
+            var cachedAccount = _cache.GetAccount(user.Username);
 
-            if (account != null)
+            if (cachedAccount != null)
             {
-                return account;
+                return cachedAccount;
             }
 
-            // Split the provider and username from the username
-            var parts = user.Username.Split(
-                new[]
-                {
-                    '|'
-                },
-                StringSplitOptions.RemoveEmptyEntries);
-            var provider = "Unspecified";
-            var username = user.Username;
+            var parsedAccount = new Account(user.Username);
+            
+            var account = await _accountStore.GetAccount(parsedAccount.Provider, parsedAccount.Username, cancellationToken).ConfigureAwait(false);
 
-            if (parts.Length > 1)
+            if (account.IsNewAccount)
             {
-                provider = parts[0];
-                username = parts[1];
-            }
-
-            account = await _accountStore.GetAccount(provider, username, cancellationToken).ConfigureAwait(false);
-
-            if (account == null)
-            {
-                var profileId = Guid.NewGuid();
-
-                // This account doesn't exist so we will create it here
-                var accountTask = CreateAccount(profileId, provider, username, cancellationToken);
-                var profileTask = CreateProfile(profileId, user, cancellationToken);
-
-                // Run the tasks together to save time
-                await Task.WhenAll(accountTask, profileTask).ConfigureAwait(false);
-
-                var profile = profileTask.Result;
+                // This account has just been created
+                var profile = await CreateProfile(account.Id, user, cancellationToken).ConfigureAwait(false);
 
                 _cache.StoreProfile(profile);
-
-                account = accountTask.Result;
             }
 
             _cache.StoreAccount(account);
 
             return account;
         }
-
-        private async Task<Account> CreateAccount(
-            Guid profileId,
-            string provider,
-            string username,
-            CancellationToken cancellationToken)
-        {
-            var account = new Account
-            {
-                Id = profileId,
-                Provider = provider,
-                Username = username
-            };
-
-            await _accountStore.RegisterAccount(account, cancellationToken).ConfigureAwait(false);
-
-            return account;
-        }
-
+        
         private async Task<Profile> CreateProfile(Guid profileId, User user, CancellationToken cancellationToken)
         {
             var profile = new Profile

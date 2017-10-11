@@ -8,7 +8,6 @@
     using FluentAssertions;
     using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Table;
-    using ModelBuilder;
     using NSubstitute;
     using TechMentorApi.Model;
     using Xunit;
@@ -151,72 +150,6 @@
             action.ShouldThrow<ArgumentException>();
         }
 
-        [Fact]
-        public async Task RegisterAccountStoresNewAccountTest()
-        {
-            var account = Model.Create<Account>();
-
-            var sut = new AccountStore(Config.Storage);
-
-            await sut.RegisterAccount(account, CancellationToken.None).ConfigureAwait(false);
-
-            var actual = await sut.GetAccount(account.Provider, account.Username, CancellationToken.None)
-                .ConfigureAwait(false);
-
-            actual.ShouldBeEquivalentTo(account, opt => opt.ExcludingMissingMembers());
-        }
-
-        [Fact]
-        public async Task RegisterAccountStoresNewAccountWhenTableNotFoundTest()
-        {
-            // Retrieve storage account from connection-string
-            var storageAccount = CloudStorageAccount.Parse(Config.Storage.ConnectionString);
-
-            // Create the table client
-            var client = storageAccount.CreateCloudTableClient();
-
-            var table = client.GetTableReference("Accounts");
-
-            await table.DeleteIfExistsAsync().ConfigureAwait(false);
-
-            var account = Model.Create<Account>();
-
-            var sut = new AccountStore(Config.Storage);
-
-            await sut.RegisterAccount(account, CancellationToken.None).ConfigureAwait(false);
-
-            var actual = await sut.GetAccount(account.Provider, account.Username, CancellationToken.None)
-                .ConfigureAwait(false);
-
-            actual.ShouldBeEquivalentTo(account, opt => opt.ExcludingMissingMembers());
-        }
-
-        [Fact]
-        public async Task RegisterAccountThrowsExceptionWhenAccountAlreadyExistsTest()
-        {
-            var account = Model.Create<Account>();
-
-            var sut = new AccountStore(Config.Storage);
-
-            await sut.RegisterAccount(account, CancellationToken.None).ConfigureAwait(false);
-
-            Func<Task> action = async () => await sut.RegisterAccount(account, CancellationToken.None)
-                .ConfigureAwait(false);
-
-            action.ShouldThrow<StorageException>();
-        }
-
-        [Fact]
-        public void RegisterAccountThrowsExceptionWithNullAccountTest()
-        {
-            var sut = new AccountStore(Config.Storage);
-
-            Func<Task> action = async () => await sut.RegisterAccount(null, CancellationToken.None)
-                .ConfigureAwait(false);
-
-            action.ShouldThrow<ArgumentNullException>();
-        }
-
         [Theory]
         [InlineData(null)]
         [InlineData("")]
@@ -250,7 +183,7 @@
                 _expectedId = expectedId;
             }
 
-            public override async Task RegisterAccount(Account account, CancellationToken cancellationToken)
+            protected override async Task RegisterAccount(Account account, CancellationToken cancellationToken)
             {
                 var existingAccount = new Account
                 {
@@ -274,7 +207,7 @@
             {
             }
 
-            public override async Task RegisterAccount(Account account, CancellationToken cancellationToken)
+            protected override async Task RegisterAccount(Account account, CancellationToken cancellationToken)
             {
                 var table = GetTable("Accounts");
 

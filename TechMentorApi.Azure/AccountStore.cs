@@ -64,7 +64,7 @@
             return newAccount;
         }
 
-        public virtual Task RegisterAccount(Account account, CancellationToken cancellationToken)
+        protected virtual Task RegisterAccount(Account account, CancellationToken cancellationToken)
         {
             Ensure.That(account, nameof(account)).IsNotNull();
 
