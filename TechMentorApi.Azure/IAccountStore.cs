@@ -6,7 +6,7 @@
 
     public interface IAccountStore
     {
-        Task<Account> GetAccount(string provider, string username, CancellationToken cancellationToken);
+        Task<AccountResult> GetAccount(string provider, string username, CancellationToken cancellationToken);
 
         Task RegisterAccount(Account account, CancellationToken cancellationToken);
     }

@@ -37,6 +37,26 @@
         }
 
         [Fact]
+        public async Task GetForNewUserHandlesMultipleConcurrentRequestsWhenAccountCreationRequiredTest()
+        {
+            for (var index = 0; index < 3; index++)
+            {
+                _output.WriteLine("Executing attempt " + (index + 1));
+
+                // Try this a few times as it might not always work in a single attempt
+                var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>().Set(x => x.BannedAt = null);
+                var identity = ClaimsIdentityFactory.Build(null, profile);
+                var address = ApiLocation.AccountProfile;
+
+                var firstTask = Client.Get<Profile>(address, _logger, identity);
+                var secondTask = Client.Get<Profile>(address, _logger, identity);
+                var thirdTask = Client.Get<Profile>(address, _logger, identity);
+
+                await Task.WhenAll(firstTask, secondTask, thirdTask).ConfigureAwait(false);
+            }
+        }
+
+        [Fact]
         public async Task GetForNewUserCreatesProfileAsHiddenTest()
         {
             var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>().Set(x => x.BannedAt = null);
