@@ -5,13 +5,13 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Business;
-    using TechMentorApi.Controllers;
     using FluentAssertions;
     using Microsoft.AspNetCore.Mvc;
-    using Model;
     using ModelBuilder;
     using NSubstitute;
+    using TechMentorApi.Business.Queries;
+    using TechMentorApi.Controllers;
+    using TechMentorApi.Model;
     using Xunit;
 
     public class ProfilesControllerTests
@@ -22,7 +22,7 @@
             var expected = Model.Create<List<ProfileResult>>();
             var filters = Model.Create<List<ProfileFilter>>();
 
-            var manager = Substitute.For<IProfileSearchManager>();
+            var manager = Substitute.For<IProfileSearchQuery>();
 
             var sut = new ProfilesController(manager);
 
@@ -51,7 +51,7 @@
 
             var filters = new List<ProfileFilter>();
 
-            var manager = Substitute.For<IProfileSearchManager>();
+            var manager = Substitute.For<IProfileSearchQuery>();
 
             var sut = new ProfilesController(manager);
 
@@ -70,7 +70,7 @@
         }
 
         [Fact]
-        public void ThrowsExceptionWhenCreatedWithNullManagerTest()
+        public void ThrowsExceptionWhenCreatedWithNullQueryTest()
         {
             Action action = () => new ProfilesController(null);
 

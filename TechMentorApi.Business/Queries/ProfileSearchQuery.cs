@@ -1,21 +1,21 @@
-﻿namespace TechMentorApi.Business
+﻿namespace TechMentorApi.Business.Queries
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Azure;
     using EnsureThat;
-    using Model;
+    using TechMentorApi.Azure;
+    using TechMentorApi.Model;
 
-    public class ProfileSearchManager : IProfileSearchManager
+    public class ProfileSearchQuery : IProfileSearchQuery
     {
         private readonly ICacheManager _cache;
         private readonly ICategoryLinkStore _linkStore;
         private readonly IProfileStore _profileStore;
 
-        public ProfileSearchManager(IProfileStore profileStore, ICategoryLinkStore linkStore, ICacheManager cache)
+        public ProfileSearchQuery(IProfileStore profileStore, ICategoryLinkStore linkStore, ICacheManager cache)
         {
             Ensure.That(profileStore, nameof(profileStore)).IsNotNull();
             Ensure.That(linkStore, nameof(linkStore)).IsNotNull();

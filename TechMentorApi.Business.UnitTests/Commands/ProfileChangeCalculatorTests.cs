@@ -1,13 +1,14 @@
-﻿namespace TechMentorApi.Business.UnitTests
+﻿namespace TechMentorApi.Business.UnitTests.Commands
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
-    using Azure;
     using FluentAssertions;
-    using Model;
     using ModelBuilder;
+    using TechMentorApi.Azure;
+    using TechMentorApi.Business.Commands;
+    using TechMentorApi.Model;
     using Xunit;
     using Xunit.Abstractions;
 

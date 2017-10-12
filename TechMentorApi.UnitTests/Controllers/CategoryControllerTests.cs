@@ -4,14 +4,14 @@
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
-    using Business;
     using FluentAssertions;
     using Microsoft.AspNetCore.Mvc;
-    using Model;
     using ModelBuilder;
     using NSubstitute;
+    using TechMentorApi.Business.Commands;
     using TechMentorApi.Controllers;
     using TechMentorApi.Core;
+    using TechMentorApi.Model;
     using TechMentorApi.ViewModels;
     using Xunit;
 
@@ -24,11 +24,11 @@
             var name = Guid.NewGuid().ToString();
             var model = Model.Create<UpdateCategory>();
 
-            var manager = Substitute.For<ICategoryManager>();
+            var command = Substitute.For<ICategoryCommand>();
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                using (var target = new CategoryController(manager))
+                using (var target = new CategoryController(command))
                 {
                     var actual = await target.Put(group.ToString(), name, model, tokenSource.Token)
                         .ConfigureAwait(false);
@@ -39,19 +39,19 @@
 
                     result.StatusCode.Should().Be((int) HttpStatusCode.NoContent);
 
-                    await manager.Received(1).UpdateCategory(Arg.Any<Category>(), tokenSource.Token)
+                    await command.Received(1).UpdateCategory(Arg.Any<Category>(), tokenSource.Token)
                         .ConfigureAwait(false);
-                    await manager.Received().UpdateCategory(Arg.Is<Category>(x => x.Group == group), tokenSource.Token)
+                    await command.Received().UpdateCategory(Arg.Is<Category>(x => x.Group == group), tokenSource.Token)
                         .ConfigureAwait(false);
-                    await manager.Received().UpdateCategory(Arg.Is<Category>(x => x.Name == name), tokenSource.Token)
+                    await command.Received().UpdateCategory(Arg.Is<Category>(x => x.Name == name), tokenSource.Token)
                         .ConfigureAwait(false);
-                    await manager.Received()
+                    await command.Received()
                         .UpdateCategory(Arg.Is<Category>(x => x.Visible == model.Visible), tokenSource.Token)
                         .ConfigureAwait(false);
-                    await manager.Received()
+                    await command.Received()
                         .UpdateCategory(Arg.Is<Category>(x => x.Reviewed == false), tokenSource.Token)
                         .ConfigureAwait(false);
-                    await manager.Received().UpdateCategory(Arg.Is<Category>(x => x.LinkCount == 0), tokenSource.Token)
+                    await command.Received().UpdateCategory(Arg.Is<Category>(x => x.LinkCount == 0), tokenSource.Token)
                         .ConfigureAwait(false);
                 }
             }
@@ -66,11 +66,11 @@
             var name = Guid.NewGuid().ToString();
             var model = Model.Create<UpdateCategory>();
 
-            var manager = Substitute.For<ICategoryManager>();
+            var command = Substitute.For<ICategoryCommand>();
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                using (var target = new CategoryController(manager))
+                using (var target = new CategoryController(command))
                 {
                     var actual = await target.Put(group, name, model, tokenSource.Token).ConfigureAwait(false);
 
@@ -80,7 +80,7 @@
 
                     result.StatusCode.Should().Be((int) HttpStatusCode.NoContent);
 
-                    await manager.Received().UpdateCategory(Arg.Is<Category>(x => x.Group == CategoryGroup.Gender),
+                    await command.Received().UpdateCategory(Arg.Is<Category>(x => x.Group == CategoryGroup.Gender),
                             tokenSource.Token)
                         .ConfigureAwait(false);
                 }
@@ -97,9 +97,9 @@
             var name = Guid.NewGuid().ToString();
             var model = Model.Create<UpdateCategory>();
 
-            var manager = Substitute.For<ICategoryManager>();
+            var command = Substitute.For<ICategoryCommand>();
 
-            using (var target = new CategoryController(manager))
+            using (var target = new CategoryController(command))
             {
                 var actual = await target.Put(group, name, model, CancellationToken.None).ConfigureAwait(false);
 
@@ -116,9 +116,9 @@
             const CategoryGroup group = CategoryGroup.Gender;
             var model = Model.Create<UpdateCategory>();
 
-            var manager = Substitute.For<ICategoryManager>();
+            var command = Substitute.For<ICategoryCommand>();
 
-            using (var target = new CategoryController(manager))
+            using (var target = new CategoryController(command))
             {
                 var actual = await target.Put(group.ToString(), name, model, CancellationToken.None)
                     .ConfigureAwait(false);
@@ -133,9 +133,9 @@
             const CategoryGroup group = CategoryGroup.Gender;
             var name = Guid.NewGuid().ToString();
 
-            var manager = Substitute.For<ICategoryManager>();
+            var command = Substitute.For<ICategoryCommand>();
 
-            using (var target = new CategoryController(manager))
+            using (var target = new CategoryController(command))
             {
                 var actual = await target.Put(group.ToString(), name, null, CancellationToken.None)
                     .ConfigureAwait(false);
@@ -146,7 +146,7 @@
         }
 
         [Fact]
-        public void ThrowsExceptionWhenCreatedWithNullManagerTest()
+        public void ThrowsExceptionWhenCreatedWithNullCommandTest()
         {
             Action action = () => new CategoryController(null);
 

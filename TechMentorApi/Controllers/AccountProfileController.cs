@@ -4,23 +4,28 @@
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
-    using TechMentorApi.Business;
-    using TechMentorApi.Core;
-    using TechMentorApi.Model;
-    using TechMentorApi.Properties;
     using EnsureThat;
     using Microsoft.AspNetCore.Mvc;
     using Swashbuckle.AspNetCore.SwaggerGen;
+    using TechMentorApi.Business;
+    using TechMentorApi.Business.Commands;
+    using TechMentorApi.Business.Queries;
+    using TechMentorApi.Core;
+    using TechMentorApi.Model;
+    using TechMentorApi.Properties;
 
     public class AccountProfileController : Controller
     {
-        private readonly IProfileManager _manager;
+        private readonly IProfileCommand _command;
+        private readonly IProfileQuery _query;
 
-        public AccountProfileController(IProfileManager manager)
+        public AccountProfileController(IProfileQuery query, IProfileCommand command)
         {
-            Ensure.That(manager, nameof(manager)).IsNotNull();
+            Ensure.That(query, nameof(query)).IsNotNull();
+            Ensure.That(command, nameof(command)).IsNotNull();
 
-            _manager = manager;
+            _query = query;
+            _command = command;
         }
 
         /// <summary>
@@ -32,14 +37,14 @@
         /// </returns>
         [Route("profile")]
         [HttpGet]
-        [ProducesResponseType(typeof(Profile), (int)HttpStatusCode.OK)]
-        [SwaggerResponse((int)HttpStatusCode.OK, typeof(Profile))]
-        [SwaggerResponse((int)HttpStatusCode.NotFound, null, "The profile does not exist.")]
+        [ProducesResponseType(typeof(Profile), (int) HttpStatusCode.OK)]
+        [SwaggerResponse((int) HttpStatusCode.OK, typeof(Profile))]
+        [SwaggerResponse((int) HttpStatusCode.NotFound, null, "The profile does not exist.")]
         public async Task<IActionResult> Get(CancellationToken cancellationToken)
         {
             var profileId = User.Identity.GetClaimValue<Guid>(ClaimType.ProfileId);
 
-            var profile = await _manager.GetProfile(profileId, cancellationToken).ConfigureAwait(false);
+            var profile = await _query.GetProfile(profileId, cancellationToken).ConfigureAwait(false);
 
             if (profile == null)
             {
@@ -56,8 +61,8 @@
         /// <param name="cancellationToken">The cancellation token.</param>
         [Route("profile")]
         [HttpPut]
-        [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        [SwaggerResponse((int)HttpStatusCode.NoContent)]
+        [ProducesResponseType((int) HttpStatusCode.NoContent)]
+        [SwaggerResponse((int) HttpStatusCode.NoContent)]
         public async Task<IActionResult> Put([FromBody] UpdatableProfile model, CancellationToken cancellationToken)
         {
             if (model == null)
@@ -66,8 +71,8 @@
             }
 
             var profileId = User.Identity.GetClaimValue<Guid>(ClaimType.ProfileId);
-            
-            await _manager.UpdateProfile(profileId, model, cancellationToken).ConfigureAwait(false);
+
+            await _command.UpdateProfile(profileId, model, cancellationToken).ConfigureAwait(false);
 
             return new NoContentResult();
         }

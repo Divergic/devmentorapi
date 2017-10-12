@@ -1,15 +1,12 @@
-﻿namespace TechMentorApi.Business
+﻿namespace TechMentorApi.Business.Commands
 {
-    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
-    using Model;
+    using TechMentorApi.Model;
 
-    public interface ICategoryManager
+    public interface ICategoryCommand
     {
         Task CreateCategory(NewCategory newCategory, CancellationToken cancellationToken);
-
-        Task<IEnumerable<Category>> GetCategories(ReadType readType, CancellationToken cancellationToken);
 
         Task UpdateCategory(Category category, CancellationToken cancellationToken);
     }

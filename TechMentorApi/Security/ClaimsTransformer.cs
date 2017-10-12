@@ -10,19 +10,20 @@
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.Extensions.Logging;
     using Model;
+    using TechMentorApi.Business.Queries;
 
     public class ClaimsTransformer : IClaimsTransformation
     {
         private readonly ILogger<ClaimsTransformer> _logger;
-        private readonly IAccountManager _manager;
+        private readonly IAccountQuery _query;
 
-        public ClaimsTransformer(IAccountManager manager,
+        public ClaimsTransformer(IAccountQuery query,
             ILogger<ClaimsTransformer> logger)
         {
-            Ensure.That(manager, nameof(manager)).IsNotNull();
+            Ensure.That(query, nameof(query)).IsNotNull();
             Ensure.That(logger, nameof(logger)).IsNotNull();
 
-            _manager = manager;
+            _query = query;
             _logger = logger;
         }
 
@@ -85,7 +86,7 @@
                 LastName = lastName
             };
 
-            var account = await _manager.GetAccount(user, CancellationToken.None).ConfigureAwait(false);
+            var account = await _query.GetAccount(user, CancellationToken.None).ConfigureAwait(false);
 
             if (account == null)
             {

@@ -1,4 +1,4 @@
-﻿namespace TechMentorApi.Business
+﻿namespace TechMentorApi.Business.Commands
 {
     using System.Threading;
     using System.Threading.Tasks;

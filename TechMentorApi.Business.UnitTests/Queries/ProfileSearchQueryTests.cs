@@ -1,19 +1,20 @@
-﻿namespace TechMentorApi.Business.UnitTests
+﻿namespace TechMentorApi.Business.UnitTests.Queries
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using TechMentorApi.Azure;
-    using TechMentorApi.Business;
-    using TechMentorApi.Model;
     using FluentAssertions;
     using ModelBuilder;
     using NSubstitute;
+    using TechMentorApi.Azure;
+    using TechMentorApi.Business;
+    using TechMentorApi.Business.Queries;
+    using TechMentorApi.Model;
     using Xunit;
 
-    public class ProfileSearchManagerTests
+    public class ProfileSearchQueryTests
     {
         [Fact]
         public async Task GetProfileResultsCachesCategoryLinksTest()
@@ -29,7 +30,7 @@
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new ProfileSearchManager(profileStore, linkStore, cache);
+            var sut = new ProfileSearchQuery(profileStore, linkStore, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -74,7 +75,7 @@
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new ProfileSearchManager(profileStore, linkStore, cache);
+            var sut = new ProfileSearchQuery(profileStore, linkStore, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -102,7 +103,7 @@
 
             cache.GetProfileResults().Returns(expected);
 
-            var sut = new ProfileSearchManager(profileStore, linkStore, cache);
+            var sut = new ProfileSearchQuery(profileStore, linkStore, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -123,7 +124,7 @@
 
             cache.GetProfileResults().Returns(expected);
 
-            var sut = new ProfileSearchManager(profileStore, linkStore, cache);
+            var sut = new ProfileSearchQuery(profileStore, linkStore, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -143,7 +144,7 @@
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new ProfileSearchManager(profileStore, linkStore, cache);
+            var sut = new ProfileSearchQuery(profileStore, linkStore, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -180,7 +181,7 @@
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new ProfileSearchManager(profileStore, linkStore, cache);
+            var sut = new ProfileSearchQuery(profileStore, linkStore, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -223,7 +224,7 @@
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new ProfileSearchManager(profileStore, linkStore, cache);
+            var sut = new ProfileSearchQuery(profileStore, linkStore, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -280,7 +281,7 @@
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new ProfileSearchManager(profileStore, linkStore, cache);
+            var sut = new ProfileSearchQuery(profileStore, linkStore, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -310,7 +311,7 @@
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new ProfileSearchManager(profileStore, linkStore, cache);
+            var sut = new ProfileSearchQuery(profileStore, linkStore, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -339,7 +340,7 @@
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new ProfileSearchManager(profileStore, linkStore, cache);
+            var sut = new ProfileSearchQuery(profileStore, linkStore, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -379,7 +380,7 @@
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new ProfileSearchManager(profileStore, linkStore, cache);
+            var sut = new ProfileSearchQuery(profileStore, linkStore, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -436,7 +437,7 @@
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new ProfileSearchManager(profileStore, linkStore, cache);
+            var sut = new ProfileSearchQuery(profileStore, linkStore, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -475,7 +476,7 @@
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new ProfileSearchManager(profileStore, linkStore, cache);
+            var sut = new ProfileSearchQuery(profileStore, linkStore, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -520,7 +521,7 @@
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new ProfileSearchManager(profileStore, linkStore, cache);
+            var sut = new ProfileSearchQuery(profileStore, linkStore, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -581,7 +582,7 @@
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new ProfileSearchManager(profileStore, linkStore, cache);
+            var sut = new ProfileSearchQuery(profileStore, linkStore, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -620,7 +621,7 @@
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new ProfileSearchManager(profileStore, linkStore, cache);
+            var sut = new ProfileSearchQuery(profileStore, linkStore, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -649,7 +650,7 @@
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new ProfileSearchManager(profileStore, linkStore, cache);
+            var sut = new ProfileSearchQuery(profileStore, linkStore, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -677,7 +678,7 @@
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
 
-            Action action = () => new ProfileSearchManager(profileStore, linkStore, null);
+            Action action = () => new ProfileSearchQuery(profileStore, linkStore, null);
 
             action.ShouldThrow<ArgumentNullException>();
         }
@@ -688,7 +689,7 @@
             var profileStore = Substitute.For<IProfileStore>();
             var cache = Substitute.For<ICacheManager>();
 
-            Action action = () => new ProfileSearchManager(profileStore, null, cache);
+            Action action = () => new ProfileSearchQuery(profileStore, null, cache);
 
             action.ShouldThrow<ArgumentNullException>();
         }
@@ -699,7 +700,7 @@
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var cache = Substitute.For<ICacheManager>();
 
-            Action action = () => new ProfileSearchManager(null, linkStore, cache);
+            Action action = () => new ProfileSearchQuery(null, linkStore, cache);
 
             action.ShouldThrow<ArgumentNullException>();
         }

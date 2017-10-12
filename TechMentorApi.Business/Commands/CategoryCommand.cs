@@ -1,19 +1,17 @@
-﻿namespace TechMentorApi.Business
+﻿namespace TechMentorApi.Business.Commands
 {
-    using System.Collections.Generic;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Azure;
     using EnsureThat;
-    using Model;
+    using TechMentorApi.Azure;
+    using TechMentorApi.Model;
 
-    public class CategoryManager : ICategoryManager
+    public class CategoryCommand : ICategoryCommand
     {
         private readonly ICacheManager _cache;
         private readonly ICategoryStore _store;
 
-        public CategoryManager(ICategoryStore store, ICacheManager cache)
+        public CategoryCommand(ICategoryStore store, ICacheManager cache)
         {
             Ensure.That(store, nameof(store)).IsNotNull();
             Ensure.That(cache, nameof(cache)).IsNotNull();
@@ -36,48 +34,11 @@
             await StoreCategory(category, false, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<IEnumerable<Category>> GetCategories(ReadType readType, CancellationToken cancellationToken)
-        {
-            var categories = await GetCategoriesInternal(cancellationToken);
-
-            if (readType == ReadType.All)
-            {
-                return categories;
-            }
-
-            return from x in categories
-                where x.Visible
-                select x;
-        }
-
         public Task UpdateCategory(Category category, CancellationToken cancellationToken)
         {
             Ensure.That(category, nameof(category)).IsNotNull();
 
             return StoreCategory(category, true, cancellationToken);
-        }
-
-        private async Task<IEnumerable<Category>> GetCategoriesInternal(CancellationToken cancellationToken)
-        {
-            var categories = _cache.GetCategories();
-
-            if (categories != null)
-            {
-                return categories;
-            }
-
-            var results = await _store.GetAllCategories(cancellationToken).ConfigureAwait(false);
-
-            if (results == null)
-            {
-                return new List<Category>();
-            }
-
-            categories = results.ToList();
-
-            _cache.StoreCategories(categories);
-
-            return categories;
         }
 
         private async Task StoreCategory(Category category, bool mustExist, CancellationToken cancellationToken)

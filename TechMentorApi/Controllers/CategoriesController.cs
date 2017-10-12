@@ -5,26 +5,31 @@
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
+    using EnsureThat;
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Mvc;
+    using Swashbuckle.AspNetCore.SwaggerGen;
     using TechMentorApi.Business;
+    using TechMentorApi.Business.Commands;
+    using TechMentorApi.Business.Queries;
     using TechMentorApi.Core;
     using TechMentorApi.Model;
     using TechMentorApi.Properties;
     using TechMentorApi.Security;
     using TechMentorApi.ViewModels;
-    using EnsureThat;
-    using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Mvc;
-    using Swashbuckle.AspNetCore.SwaggerGen;
 
     public class CategoriesController : Controller
     {
-        private readonly ICategoryManager _manager;
+        private readonly ICategoryCommand _command;
+        private readonly ICategoryQuery _query;
 
-        public CategoriesController(ICategoryManager manager)
+        public CategoriesController(ICategoryQuery query, ICategoryCommand command)
         {
-            Ensure.That(manager, nameof(manager)).IsNotNull();
+            Ensure.That(query, nameof(query)).IsNotNull();
+            Ensure.That(command, nameof(command)).IsNotNull();
 
-            _manager = manager;
+            _query = query;
+            _command = command;
         }
 
         /// <summary>
@@ -37,8 +42,8 @@
         [Route("categories")]
         [HttpGet]
         [AllowAnonymous]
-        [ProducesResponseType(typeof(IEnumerable<PublicCategory>), (int)HttpStatusCode.OK)]
-        [SwaggerResponse((int)HttpStatusCode.OK, typeof(IEnumerable<PublicCategory>))]
+        [ProducesResponseType(typeof(IEnumerable<PublicCategory>), (int) HttpStatusCode.OK)]
+        [SwaggerResponse((int) HttpStatusCode.OK, typeof(IEnumerable<PublicCategory>))]
         public async Task<IActionResult> Get(CancellationToken cancellationToken)
         {
             var readType = ReadType.VisibleOnly;
@@ -54,7 +59,7 @@
                 readType = ReadType.All;
             }
 
-            var categories = await _manager.GetCategories(readType, cancellationToken).ConfigureAwait(false);
+            var categories = await _query.GetCategories(readType, cancellationToken).ConfigureAwait(false);
 
             if (isAdministrator)
             {
@@ -78,8 +83,8 @@
         [Route("categories")]
         [HttpPost]
         [Authorize(Policy = Role.Administrator)]
-        [ProducesResponseType((int)HttpStatusCode.Created)]
-        [SwaggerResponse((int)HttpStatusCode.Created)]
+        [ProducesResponseType((int) HttpStatusCode.Created)]
+        [SwaggerResponse((int) HttpStatusCode.Created)]
         public async Task<IActionResult> Post([FromBody] NewCategory model, CancellationToken cancellationToken)
         {
             if (model == null)
@@ -87,9 +92,9 @@
                 return new ErrorMessageResult(Resources.Controller_NoBodyDataProvided, HttpStatusCode.BadRequest);
             }
 
-            await _manager.CreateCategory(model, cancellationToken).ConfigureAwait(false);
+            await _command.CreateCategory(model, cancellationToken).ConfigureAwait(false);
 
-            return new StatusCodeResult((int)HttpStatusCode.Created);
+            return new StatusCodeResult((int) HttpStatusCode.Created);
         }
 
         private bool IsAdministrator()

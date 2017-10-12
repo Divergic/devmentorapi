@@ -1,12 +1,12 @@
-﻿namespace TechMentorApi.Business
+﻿namespace TechMentorApi.Business.Commands
 {
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using EnsureThat;
     using TechMentorApi.Azure;
     using TechMentorApi.Model;
-    using EnsureThat;
 
     public class ProfileChangeCalculator : IProfileChangeCalculator
     {

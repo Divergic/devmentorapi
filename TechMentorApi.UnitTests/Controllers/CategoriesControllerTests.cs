@@ -6,12 +6,6 @@
     using System.Security.Claims;
     using System.Threading;
     using System.Threading.Tasks;
-    using TechMentorApi.Business;
-    using TechMentorApi.Controllers;
-    using TechMentorApi.Core;
-    using TechMentorApi.Model;
-    using TechMentorApi.Security;
-    using TechMentorApi.ViewModels;
     using FluentAssertions;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
@@ -19,6 +13,14 @@
     using Microsoft.AspNetCore.Routing;
     using ModelBuilder;
     using NSubstitute;
+    using TechMentorApi.Business;
+    using TechMentorApi.Business.Commands;
+    using TechMentorApi.Business.Queries;
+    using TechMentorApi.Controllers;
+    using TechMentorApi.Core;
+    using TechMentorApi.Model;
+    using TechMentorApi.Security;
+    using TechMentorApi.ViewModels;
     using Xunit;
 
     public class CategoriesControllerTests
@@ -35,7 +37,8 @@
             var principal = new ClaimsPrincipal(identity);
             var categories = Model.Create<List<Category>>();
 
-            var manager = Substitute.For<ICategoryManager>();
+            var query = Substitute.For<ICategoryQuery>();
+            var command = Substitute.For<ICategoryCommand>();
             var httpContext = Substitute.For<HttpContext>();
 
             var routerData = new RouteData();
@@ -47,9 +50,9 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                manager.GetCategories(ReadType.All, tokenSource.Token).Returns(categories);
+                query.GetCategories(ReadType.All, tokenSource.Token).Returns(categories);
 
-                using (var target = new CategoriesController(manager))
+                using (var target = new CategoriesController(query, command))
                 {
                     target.ControllerContext = controllerContext;
 
@@ -70,7 +73,8 @@
         {
             var categories = Model.Create<List<Category>>();
 
-            var manager = Substitute.For<ICategoryManager>();
+            var query = Substitute.For<ICategoryQuery>();
+            var command = Substitute.For<ICategoryCommand>();
             var httpContext = Substitute.For<HttpContext>();
 
             var routerData = new RouteData();
@@ -82,9 +86,9 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                manager.GetCategories(ReadType.VisibleOnly, tokenSource.Token).Returns(categories);
+                query.GetCategories(ReadType.VisibleOnly, tokenSource.Token).Returns(categories);
 
-                using (var target = new CategoriesController(manager))
+                using (var target = new CategoriesController(query, command))
                 {
                     target.ControllerContext = controllerContext;
 
@@ -111,7 +115,8 @@
             var principal = new ClaimsPrincipal(identity);
             var categories = Model.Create<List<Category>>();
 
-            var manager = Substitute.For<ICategoryManager>();
+            var query = Substitute.For<ICategoryQuery>();
+            var command = Substitute.For<ICategoryCommand>();
             var httpContext = Substitute.For<HttpContext>();
 
             var routerData = new RouteData();
@@ -123,9 +128,9 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                manager.GetCategories(ReadType.VisibleOnly, tokenSource.Token).Returns(categories);
+                query.GetCategories(ReadType.VisibleOnly, tokenSource.Token).Returns(categories);
 
-                using (var target = new CategoriesController(manager))
+                using (var target = new CategoriesController(query, command))
                 {
                     target.ControllerContext = controllerContext;
 
@@ -148,7 +153,8 @@
             var principal = new ClaimsPrincipal(identity);
             var categories = Model.Create<List<Category>>();
 
-            var manager = Substitute.For<ICategoryManager>();
+            var query = Substitute.For<ICategoryQuery>();
+            var command = Substitute.For<ICategoryCommand>();
             var httpContext = Substitute.For<HttpContext>();
 
             var routerData = new RouteData();
@@ -160,9 +166,9 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                manager.GetCategories(ReadType.VisibleOnly, tokenSource.Token).Returns(categories);
+                query.GetCategories(ReadType.VisibleOnly, tokenSource.Token).Returns(categories);
 
-                using (var target = new CategoriesController(manager))
+                using (var target = new CategoriesController(query, command))
                 {
                     target.ControllerContext = controllerContext;
 
@@ -183,11 +189,12 @@
         {
             var expected = Model.Create<NewCategory>();
 
-            var manager = Substitute.For<ICategoryManager>();
+            var query = Substitute.For<ICategoryQuery>();
+            var command = Substitute.For<ICategoryCommand>();
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                using (var target = new CategoriesController(manager))
+                using (var target = new CategoriesController(query, command))
                 {
                     var actual = await target.Post(expected, tokenSource.Token).ConfigureAwait(false);
 
@@ -195,9 +202,9 @@
 
                     var result = actual.As<StatusCodeResult>();
 
-                    result.StatusCode.Should().Be((int)HttpStatusCode.Created);
+                    result.StatusCode.Should().Be((int) HttpStatusCode.Created);
 
-                    await manager.Received().CreateCategory(expected, tokenSource.Token).ConfigureAwait(false);
+                    await command.Received().CreateCategory(expected, tokenSource.Token).ConfigureAwait(false);
                 }
             }
         }
@@ -205,21 +212,34 @@
         [Fact]
         public async Task PostReturnsBadRequestWithNoPostDataTest()
         {
-            var manager = Substitute.For<ICategoryManager>();
+            var query = Substitute.For<ICategoryQuery>();
+            var command = Substitute.For<ICategoryCommand>();
 
-            using (var target = new CategoriesController(manager))
+            using (var target = new CategoriesController(query, command))
             {
                 var actual = await target.Post(null, CancellationToken.None).ConfigureAwait(false);
 
                 actual.Should().BeOfType<ErrorMessageResult>().Which.StatusCode.Should()
-                    .Be((int)HttpStatusCode.BadRequest);
+                    .Be((int) HttpStatusCode.BadRequest);
             }
         }
 
         [Fact]
-        public void ThrowsExceptionWhenCreatedWithNullManagerTest()
+        public void ThrowsExceptionWhenCreatedWithNullCommandTest()
         {
-            Action action = () => new CategoriesController(null);
+            var query = Substitute.For<ICategoryQuery>();
+
+            Action action = () => new CategoriesController(query, null);
+
+            action.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Fact]
+        public void ThrowsExceptionWhenCreatedWithNullQueryTest()
+        {
+            var command = Substitute.For<ICategoryCommand>();
+
+            Action action = () => new CategoriesController(null, command);
 
             action.ShouldThrow<ArgumentNullException>();
         }

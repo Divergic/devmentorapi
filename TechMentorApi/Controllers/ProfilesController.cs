@@ -12,16 +12,17 @@
     using Microsoft.AspNetCore.Mvc;
     using Model;
     using Swashbuckle.AspNetCore.SwaggerGen;
+    using TechMentorApi.Business.Queries;
 
     public class ProfilesController : Controller
     {
-        private readonly IProfileSearchManager _manager;
+        private readonly IProfileSearchQuery _query;
 
-        public ProfilesController(IProfileSearchManager manager)
+        public ProfilesController(IProfileSearchQuery query)
         {
-            Ensure.That(manager, nameof(manager)).IsNotNull();
+            Ensure.That(query, nameof(query)).IsNotNull();
 
-            _manager = manager;
+            _query = query;
         }
 
         /// <summary>
@@ -43,7 +44,7 @@
             IEnumerable<ProfileFilter> filters,
             CancellationToken cancellationToken)
         {
-            var results = await _manager.GetProfileResults(filters, cancellationToken).ConfigureAwait(false);
+            var results = await _query.GetProfileResults(filters, cancellationToken).ConfigureAwait(false);
 
             // Order by available first, highest number of years in tech then oldest by age
             var orderedResults = from x in results
