@@ -1,4 +1,4 @@
-﻿namespace TechMentorApi.Business
+﻿namespace TechMentorApi.Business.Commands
 {
     using TechMentorApi.Model;
 

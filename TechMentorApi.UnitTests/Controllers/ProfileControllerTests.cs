@@ -3,17 +3,19 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Business;
-    using TechMentorApi.Controllers;
-    using TechMentorApi.Core;
     using FluentAssertions;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Controllers;
     using Microsoft.AspNetCore.Routing;
-    using Model;
     using ModelBuilder;
     using NSubstitute;
+    using TechMentorApi.Business;
+    using TechMentorApi.Business.Commands;
+    using TechMentorApi.Business.Queries;
+    using TechMentorApi.Controllers;
+    using TechMentorApi.Core;
+    using TechMentorApi.Model;
     using Xunit;
 
     public class ProfileControllerTests
@@ -23,7 +25,8 @@
         {
             var profile = Model.Create<Profile>();
 
-            var manager = Substitute.For<IProfileManager>();
+            var query = Substitute.For<IProfileQuery>();
+            var command = Substitute.For<IProfileCommand>();
             var httpContext = Substitute.For<HttpContext>();
 
             var routerData = new RouteData();
@@ -33,17 +36,17 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                using (var target = new ProfileController(manager))
+                using (var target = new ProfileController(query, command))
                 {
                     target.ControllerContext = controllerContext;
 
-                    manager.BanProfile(profile.Id, Arg.Any<DateTimeOffset>(), tokenSource.Token).Returns(profile);
+                    command.BanProfile(profile.Id, Arg.Any<DateTimeOffset>(), tokenSource.Token).Returns(profile);
 
                     var actual = await target.Delete(profile.Id, tokenSource.Token).ConfigureAwait(false);
 
                     actual.Should().BeOfType<NoContentResult>();
 
-                    await manager.Received().BanProfile(profile.Id,
+                    await command.Received().BanProfile(profile.Id,
                         Verify.That<DateTimeOffset>(x => x.Should().BeCloseTo(DateTimeOffset.UtcNow, 1000)),
                         tokenSource.Token).ConfigureAwait(false);
                 }
@@ -55,7 +58,8 @@
         {
             var id = Guid.NewGuid();
 
-            var manager = Substitute.For<IProfileManager>();
+            var query = Substitute.For<IProfileQuery>();
+            var command = Substitute.For<IProfileCommand>();
             var httpContext = Substitute.For<HttpContext>();
 
             var routerData = new RouteData();
@@ -65,7 +69,7 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                using (var target = new ProfileController(manager))
+                using (var target = new ProfileController(query, command))
                 {
                     target.ControllerContext = controllerContext;
 
@@ -81,7 +85,8 @@
         {
             var id = Guid.Empty;
 
-            var manager = Substitute.For<IProfileManager>();
+            var query = Substitute.For<IProfileQuery>();
+            var command = Substitute.For<IProfileCommand>();
             var httpContext = Substitute.For<HttpContext>();
 
             var routerData = new RouteData();
@@ -91,7 +96,7 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                using (var target = new ProfileController(manager))
+                using (var target = new ProfileController(query, command))
                 {
                     target.ControllerContext = controllerContext;
 
@@ -107,7 +112,8 @@
         {
             var id = Guid.NewGuid();
 
-            var manager = Substitute.For<IProfileManager>();
+            var query = Substitute.For<IProfileQuery>();
+            var command = Substitute.For<IProfileCommand>();
             var httpContext = Substitute.For<HttpContext>();
 
             var routerData = new RouteData();
@@ -117,7 +123,7 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                using (var target = new ProfileController(manager))
+                using (var target = new ProfileController(query, command))
                 {
                     target.ControllerContext = controllerContext;
 
@@ -133,7 +139,8 @@
         {
             var id = Guid.Empty;
 
-            var manager = Substitute.For<IProfileManager>();
+            var query = Substitute.For<IProfileQuery>();
+            var command = Substitute.For<IProfileCommand>();
             var httpContext = Substitute.For<HttpContext>();
 
             var routerData = new RouteData();
@@ -143,7 +150,7 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                using (var target = new ProfileController(manager))
+                using (var target = new ProfileController(query, command))
                 {
                     target.ControllerContext = controllerContext;
 
@@ -159,7 +166,8 @@
         {
             var profile = Model.Create<PublicProfile>();
 
-            var manager = Substitute.For<IProfileManager>();
+            var query = Substitute.For<IProfileQuery>();
+            var command = Substitute.For<IProfileCommand>();
             var httpContext = Substitute.For<HttpContext>();
 
             var routerData = new RouteData();
@@ -169,9 +177,9 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                manager.GetPublicProfile(profile.Id, tokenSource.Token).Returns(profile);
+                query.GetPublicProfile(profile.Id, tokenSource.Token).Returns(profile);
 
-                using (var target = new ProfileController(manager))
+                using (var target = new ProfileController(query, command))
                 {
                     target.ControllerContext = controllerContext;
 
@@ -187,9 +195,21 @@
         }
 
         [Fact]
-        public void ThrowsExceptionWhenCreatedWithNullManagerTest()
+        public void ThrowsExceptionWhenCreatedWithNullCommandTest()
         {
-            Action action = () => new ProfileController(null);
+            var query = Substitute.For<IProfileQuery>();
+
+            Action action = () => new ProfileController(query, null);
+
+            action.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Fact]
+        public void ThrowsExceptionWhenCreatedWithNullQueryTest()
+        {
+            var command = Substitute.For<IProfileCommand>();
+
+            Action action = () => new ProfileController(null, command);
 
             action.ShouldThrow<ArgumentNullException>();
         }

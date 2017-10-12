@@ -1,15 +1,16 @@
-﻿namespace TechMentorApi.Business.UnitTests
+﻿namespace TechMentorApi.Business.UnitTests.Commands
 {
     using System;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
-    using TechMentorApi.Azure;
-    using TechMentorApi.Business;
-    using TechMentorApi.Model;
     using FluentAssertions;
     using ModelBuilder;
     using NSubstitute;
+    using TechMentorApi.Azure;
+    using TechMentorApi.Business;
+    using TechMentorApi.Business.Commands;
+    using TechMentorApi.Model;
     using Xunit;
 
     public class ProfileChangeProcessorTests

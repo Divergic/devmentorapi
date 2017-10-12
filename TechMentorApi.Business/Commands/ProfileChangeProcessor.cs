@@ -1,13 +1,13 @@
-﻿namespace TechMentorApi.Business
+﻿namespace TechMentorApi.Business.Commands
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using EnsureThat;
     using TechMentorApi.Azure;
     using TechMentorApi.Model;
-    using EnsureThat;
 
     public class ProfileChangeProcessor : IProfileChangeProcessor
     {

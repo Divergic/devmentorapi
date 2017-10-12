@@ -1,17 +1,18 @@
-﻿namespace TechMentorApi.Business.UnitTests
+﻿namespace TechMentorApi.Business.UnitTests.Queries
 {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using TechMentorApi.Azure;
-    using TechMentorApi.Business;
-    using TechMentorApi.Model;
     using FluentAssertions;
     using ModelBuilder;
     using NSubstitute;
+    using TechMentorApi.Azure;
+    using TechMentorApi.Business;
+    using TechMentorApi.Business.Queries;
+    using TechMentorApi.Model;
     using Xunit;
 
-    public class AccountManagerTests
+    public class AccountQueryTests
     {
         [Fact]
         public async Task GetAccountCachesAccountReturnedFromStoreTest()
@@ -25,7 +26,7 @@
             var profileStore = Substitute.For<IProfileStore>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new AccountManager(accountStore, profileStore, cache);
+            var sut = new AccountQuery(accountStore, profileStore, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -51,7 +52,7 @@
             var profileStore = Substitute.For<IProfileStore>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new AccountManager(accountStore, profileStore, cache);
+            var sut = new AccountQuery(accountStore, profileStore, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -79,7 +80,7 @@
             var profileStore = Substitute.For<IProfileStore>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new AccountManager(accountStore, profileStore, cache);
+            var sut = new AccountQuery(accountStore, profileStore, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -103,7 +104,7 @@
             var profileStore = Substitute.For<IProfileStore>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new AccountManager(accountStore, profileStore, cache);
+            var sut = new AccountQuery(accountStore, profileStore, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -140,7 +141,7 @@
             var profileStore = Substitute.For<IProfileStore>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new AccountManager(accountStore, profileStore, cache);
+            var sut = new AccountQuery(accountStore, profileStore, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -164,7 +165,7 @@
             var profileStore = Substitute.For<IProfileStore>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new AccountManager(accountStore, profileStore, cache);
+            var sut = new AccountQuery(accountStore, profileStore, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -186,7 +187,7 @@
             var profileStore = Substitute.For<IProfileStore>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new AccountManager(accountStore, profileStore, cache);
+            var sut = new AccountQuery(accountStore, profileStore, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -205,7 +206,7 @@
             var profileStore = Substitute.For<IProfileStore>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new AccountManager(accountStore, profileStore, cache);
+            var sut = new AccountQuery(accountStore, profileStore, cache);
 
             Func<Task> action = async () => await sut.GetAccount(null, CancellationToken.None).ConfigureAwait(false);
 
@@ -218,7 +219,7 @@
             var profileStore = Substitute.For<IProfileStore>();
             var cache = Substitute.For<ICacheManager>();
 
-            Action action = () => new AccountManager(null, profileStore, cache);
+            Action action = () => new AccountQuery(null, profileStore, cache);
 
             action.ShouldThrow<ArgumentNullException>();
         }
@@ -229,7 +230,7 @@
             var accountStore = Substitute.For<IAccountStore>();
             var profileStore = Substitute.For<IProfileStore>();
 
-            Action action = () => new AccountManager(accountStore, profileStore, null);
+            Action action = () => new AccountQuery(accountStore, profileStore, null);
 
             action.ShouldThrow<ArgumentNullException>();
         }
@@ -240,7 +241,7 @@
             var accountStore = Substitute.For<IAccountStore>();
             var cache = Substitute.For<ICacheManager>();
 
-            Action action = () => new AccountManager(accountStore, null, cache);
+            Action action = () => new AccountQuery(accountStore, null, cache);
 
             action.ShouldThrow<ArgumentNullException>();
         }

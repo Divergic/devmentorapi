@@ -1,19 +1,19 @@
-﻿namespace TechMentorApi.Business
+﻿namespace TechMentorApi.Business.Queries
 {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using EnsureThat;
     using TechMentorApi.Azure;
     using TechMentorApi.Model;
-    using EnsureThat;
 
-    public class AccountManager : IAccountManager
+    public class AccountQuery : IAccountQuery
     {
         private readonly IAccountStore _accountStore;
         private readonly ICacheManager _cache;
         private readonly IProfileStore _profileStore;
 
-        public AccountManager(IAccountStore accountStore, IProfileStore profileStore, ICacheManager cache)
+        public AccountQuery(IAccountStore accountStore, IProfileStore profileStore, ICacheManager cache)
         {
             Ensure.That(accountStore, nameof(accountStore)).IsNotNull();
             Ensure.That(profileStore, nameof(profileStore)).IsNotNull();

@@ -1,19 +1,19 @@
-﻿namespace TechMentorApi.Business.UnitTests
+﻿namespace TechMentorApi.Business.UnitTests.Commands
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using TechMentorApi.Azure;
-    using TechMentorApi.Business;
-    using TechMentorApi.Model;
     using FluentAssertions;
     using ModelBuilder;
     using NSubstitute;
+    using TechMentorApi.Azure;
+    using TechMentorApi.Business.Commands;
+    using TechMentorApi.Model;
     using Xunit;
 
-    public class ProfileManagerTests
+    public class ProfileCommandTests
     {
         [Fact]
         public async Task BanProfileCallsStoreWithBanInformationTest()
@@ -26,7 +26,7 @@
             var processor = Substitute.For<IProfileChangeProcessor>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new ProfileManager(store, calculator, processor, cache);
+            var sut = new ProfileCommand(store, calculator, processor, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -49,13 +49,13 @@
             var processor = Substitute.For<IProfileChangeProcessor>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new ProfileManager(store, calculator, processor, cache);
+            var sut = new ProfileCommand(store, calculator, processor, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
                 calculator.RemoveAllCategoryLinks(profile).Returns(new ProfileChangeResult());
                 store.BanProfile(profile.Id, profile.BannedAt.Value, tokenSource.Token).Returns(profile);
-                cache.GetProfileResults().Returns((ICollection<ProfileResult>)null);
+                cache.GetProfileResults().Returns((ICollection<ProfileResult>) null);
 
                 await sut.BanProfile(profile.Id, profile.BannedAt.Value, tokenSource.Token).ConfigureAwait(false);
 
@@ -74,7 +74,7 @@
             var processor = Substitute.For<IProfileChangeProcessor>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new ProfileManager(store, calculator, processor, cache);
+            var sut = new ProfileCommand(store, calculator, processor, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -102,7 +102,7 @@
             var processor = Substitute.For<IProfileChangeProcessor>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new ProfileManager(store, calculator, processor, cache);
+            var sut = new ProfileCommand(store, calculator, processor, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -126,7 +126,7 @@
             var processor = Substitute.For<IProfileChangeProcessor>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new ProfileManager(store, calculator, processor, cache);
+            var sut = new ProfileCommand(store, calculator, processor, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -153,7 +153,7 @@
             var processor = Substitute.For<IProfileChangeProcessor>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new ProfileManager(store, calculator, processor, cache);
+            var sut = new ProfileCommand(store, calculator, processor, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -179,7 +179,7 @@
             var processor = Substitute.For<IProfileChangeProcessor>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new ProfileManager(store, calculator, processor, cache);
+            var sut = new ProfileCommand(store, calculator, processor, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -200,388 +200,9 @@
             var processor = Substitute.For<IProfileChangeProcessor>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new ProfileManager(store, calculator, processor, cache);
+            var sut = new ProfileCommand(store, calculator, processor, cache);
 
             Func<Task> action = async () => await sut.BanProfile(Guid.Empty, bannedAt, CancellationToken.None)
-                .ConfigureAwait(false);
-
-            action.ShouldThrow<ArgumentException>();
-        }
-
-        [Fact]
-        public async Task GetProfileCachesProfileReturnedFromStoreTest()
-        {
-            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Unavailable);
-
-            var profileStore = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
-            var calculator = Substitute.For<IProfileChangeCalculator>();
-            var processor = Substitute.For<IProfileChangeProcessor>();
-
-            var sut = new ProfileManager(profileStore, calculator, processor, cache);
-
-            using (var tokenSource = new CancellationTokenSource())
-            {
-                profileStore.GetProfile(expected.Id, tokenSource.Token).Returns(expected);
-
-                var actual = await sut.GetProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
-
-                cache.Received().StoreProfile(actual);
-            }
-        }
-
-        [Fact]
-        public async Task GetProfileReturnsBannedProfileFromCachedTest()
-        {
-            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Available)
-                .Set(x => x.BannedAt = DateTimeOffset.UtcNow);
-
-            var profileStore = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
-            var calculator = Substitute.For<IProfileChangeCalculator>();
-            var processor = Substitute.For<IProfileChangeProcessor>();
-
-            var sut = new ProfileManager(profileStore, calculator, processor, cache);
-
-            using (var tokenSource = new CancellationTokenSource())
-            {
-                cache.GetProfile(expected.Id).Returns(expected);
-
-                var actual = await sut.GetProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
-
-                actual.ShouldBeEquivalentTo(expected, opt => opt.ExcludingMissingMembers());
-                cache.DidNotReceive().StoreProfile(Arg.Any<Profile>());
-            }
-        }
-
-        [Fact]
-        public async Task GetProfileReturnsBannedProfileFromStoreTest()
-        {
-            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Available)
-                .Set(x => x.BannedAt = DateTimeOffset.UtcNow);
-
-            var profileStore = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
-            var calculator = Substitute.For<IProfileChangeCalculator>();
-            var processor = Substitute.For<IProfileChangeProcessor>();
-
-            var sut = new ProfileManager(profileStore, calculator, processor, cache);
-
-            using (var tokenSource = new CancellationTokenSource())
-            {
-                profileStore.GetProfile(expected.Id, tokenSource.Token).Returns(expected);
-
-                var actual = await sut.GetProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
-
-                actual.ShouldBeEquivalentTo(expected, opt => opt.ExcludingMissingMembers());
-                cache.Received().StoreProfile(expected);
-            }
-        }
-
-        [Fact]
-        public async Task GetProfileReturnsCachedProfileTest()
-        {
-            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Unavailable);
-
-            var profileStore = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
-            var calculator = Substitute.For<IProfileChangeCalculator>();
-            var processor = Substitute.For<IProfileChangeProcessor>();
-
-            var sut = new ProfileManager(profileStore, calculator, processor, cache);
-
-            using (var tokenSource = new CancellationTokenSource())
-            {
-                cache.GetProfile(expected.Id).Returns(expected);
-
-                var actual = await sut.GetProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
-
-                actual.ShouldBeEquivalentTo(expected);
-            }
-        }
-
-        [Fact]
-        public async Task GetProfileReturnsHiddenProfileFromCachedTest()
-        {
-            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Hidden)
-                .Set(x => x.BannedAt = null);
-
-            var profileStore = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
-            var calculator = Substitute.For<IProfileChangeCalculator>();
-            var processor = Substitute.For<IProfileChangeProcessor>();
-
-            var sut = new ProfileManager(profileStore, calculator, processor, cache);
-
-            using (var tokenSource = new CancellationTokenSource())
-            {
-                cache.GetProfile(expected.Id).Returns(expected);
-
-                var actual = await sut.GetProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
-
-                actual.ShouldBeEquivalentTo(expected, opt => opt.ExcludingMissingMembers());
-                cache.DidNotReceive().StoreProfile(Arg.Any<Profile>());
-            }
-        }
-
-        [Fact]
-        public async Task GetProfileReturnsHiddenProfileFromStoreTest()
-        {
-            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Hidden)
-                .Set(x => x.BannedAt = null);
-
-            var profileStore = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
-            var calculator = Substitute.For<IProfileChangeCalculator>();
-            var processor = Substitute.For<IProfileChangeProcessor>();
-
-            var sut = new ProfileManager(profileStore, calculator, processor, cache);
-
-            using (var tokenSource = new CancellationTokenSource())
-            {
-                profileStore.GetProfile(expected.Id, tokenSource.Token).Returns(expected);
-
-                var actual = await sut.GetProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
-
-                actual.ShouldBeEquivalentTo(expected, opt => opt.ExcludingMissingMembers());
-                cache.Received().StoreProfile(expected);
-            }
-        }
-
-        [Fact]
-        public async Task GetProfileReturnsNullWhenProfileNotFoundTest()
-        {
-            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Unavailable);
-
-            var profileStore = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
-            var calculator = Substitute.For<IProfileChangeCalculator>();
-            var processor = Substitute.For<IProfileChangeProcessor>();
-
-            var sut = new ProfileManager(profileStore, calculator, processor, cache);
-
-            using (var tokenSource = new CancellationTokenSource())
-            {
-                var actual = await sut.GetProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
-
-                actual.Should().BeNull();
-                cache.DidNotReceive().StoreProfile(Arg.Any<Profile>());
-            }
-        }
-
-        [Fact]
-        public void GetProfileThrowsExceptionWithEmptyIdTest()
-        {
-            var store = Substitute.For<IProfileStore>();
-            var calculator = Substitute.For<IProfileChangeCalculator>();
-            var processor = Substitute.For<IProfileChangeProcessor>();
-            var cache = Substitute.For<ICacheManager>();
-
-            var sut = new ProfileManager(store, calculator, processor, cache);
-
-            Func<Task> action = async () => await sut.GetProfile(Guid.Empty, CancellationToken.None)
-                .ConfigureAwait(false);
-
-            action.ShouldThrow<ArgumentException>();
-        }
-
-        [Fact]
-        public async Task GetPublicProfileCachesHiddenProfileReturnedFromStoreTest()
-        {
-            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Hidden)
-                .Set(x => x.BannedAt = null);
-
-            var profileStore = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
-            var calculator = Substitute.For<IProfileChangeCalculator>();
-            var processor = Substitute.For<IProfileChangeProcessor>();
-
-            var sut = new ProfileManager(profileStore, calculator, processor, cache);
-
-            using (var tokenSource = new CancellationTokenSource())
-            {
-                profileStore.GetProfile(expected.Id, tokenSource.Token).Returns(expected);
-
-                var actual = await sut.GetPublicProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
-
-                actual.Should().BeNull();
-                cache.Received().StoreProfile(expected);
-            }
-        }
-
-        [Fact]
-        public async Task GetPublicProfileCachesProfileReturnedFromStoreTest()
-        {
-            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Unavailable)
-                .Set(x => x.BannedAt = null);
-
-            var profileStore = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
-            var calculator = Substitute.For<IProfileChangeCalculator>();
-            var processor = Substitute.For<IProfileChangeProcessor>();
-
-            var sut = new ProfileManager(profileStore, calculator, processor, cache);
-
-            using (var tokenSource = new CancellationTokenSource())
-            {
-                profileStore.GetProfile(expected.Id, tokenSource.Token).Returns(expected);
-
-                var actual = await sut.GetPublicProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
-
-                actual.ShouldBeEquivalentTo(expected, opt => opt.ExcludingMissingMembers());
-                cache.Received().StoreProfile(expected);
-            }
-        }
-
-        [Fact]
-        public async Task GetPublicProfileReturnsCachedProfileTest()
-        {
-            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Unavailable)
-                .Set(x => x.BannedAt = null);
-
-            var profileStore = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
-            var calculator = Substitute.For<IProfileChangeCalculator>();
-            var processor = Substitute.For<IProfileChangeProcessor>();
-
-            var sut = new ProfileManager(profileStore, calculator, processor, cache);
-
-            using (var tokenSource = new CancellationTokenSource())
-            {
-                cache.GetProfile(expected.Id).Returns(expected);
-
-                var actual = await sut.GetPublicProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
-
-                actual.ShouldBeEquivalentTo(expected, opt => opt.ExcludingMissingMembers());
-            }
-        }
-
-        [Fact]
-        public async Task GetPublicProfileReturnsNullWhenCachedProfileIsBannedTest()
-        {
-            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Available)
-                .Set(x => x.BannedAt = DateTimeOffset.UtcNow);
-
-            var profileStore = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
-            var calculator = Substitute.For<IProfileChangeCalculator>();
-            var processor = Substitute.For<IProfileChangeProcessor>();
-
-            var sut = new ProfileManager(profileStore, calculator, processor, cache);
-
-            using (var tokenSource = new CancellationTokenSource())
-            {
-                cache.GetProfile(expected.Id).Returns(expected);
-
-                var actual = await sut.GetPublicProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
-
-                actual.Should().BeNull();
-                cache.DidNotReceive().StoreProfile(Arg.Any<Profile>());
-            }
-        }
-
-        [Fact]
-        public async Task GetPublicProfileReturnsNullWhenCachedProfileIsHiddenTest()
-        {
-            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Hidden)
-                .Set(x => x.BannedAt = null);
-
-            var profileStore = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
-            var calculator = Substitute.For<IProfileChangeCalculator>();
-            var processor = Substitute.For<IProfileChangeProcessor>();
-
-            var sut = new ProfileManager(profileStore, calculator, processor, cache);
-
-            using (var tokenSource = new CancellationTokenSource())
-            {
-                cache.GetProfile(expected.Id).Returns(expected);
-
-                var actual = await sut.GetPublicProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
-
-                actual.Should().BeNull();
-                cache.DidNotReceive().StoreProfile(Arg.Any<Profile>());
-            }
-        }
-
-        [Fact]
-        public async Task GetPublicProfileReturnsNullWhenProfileNotFoundTest()
-        {
-            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Unavailable);
-
-            var profileStore = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
-            var calculator = Substitute.For<IProfileChangeCalculator>();
-            var processor = Substitute.For<IProfileChangeProcessor>();
-
-            var sut = new ProfileManager(profileStore, calculator, processor, cache);
-
-            using (var tokenSource = new CancellationTokenSource())
-            {
-                var actual = await sut.GetPublicProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
-
-                actual.Should().BeNull();
-                cache.DidNotReceive().StoreProfile(Arg.Any<Profile>());
-            }
-        }
-
-        [Fact]
-        public async Task GetPublicProfileReturnsNullWhenStoreProfileIsBannedTest()
-        {
-            var expected = Model.Create<Profile>().Set(x => x.BannedAt = DateTimeOffset.UtcNow);
-
-            var profileStore = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
-            var calculator = Substitute.For<IProfileChangeCalculator>();
-            var processor = Substitute.For<IProfileChangeProcessor>();
-
-            var sut = new ProfileManager(profileStore, calculator, processor, cache);
-
-            using (var tokenSource = new CancellationTokenSource())
-            {
-                profileStore.GetProfile(expected.Id, tokenSource.Token).Returns(expected);
-
-                var actual = await sut.GetPublicProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
-
-                actual.Should().BeNull();
-                cache.Received().StoreProfile(expected);
-            }
-        }
-
-        [Fact]
-        public async Task GetPublicProfileReturnsNullWhenStoreProfileIsHiddenTest()
-        {
-            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Hidden);
-
-            var profileStore = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
-            var calculator = Substitute.For<IProfileChangeCalculator>();
-            var processor = Substitute.For<IProfileChangeProcessor>();
-
-            var sut = new ProfileManager(profileStore, calculator, processor, cache);
-
-            using (var tokenSource = new CancellationTokenSource())
-            {
-                profileStore.GetProfile(expected.Id, tokenSource.Token).Returns(expected);
-
-                var actual = await sut.GetPublicProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
-
-                actual.Should().BeNull();
-                cache.Received().StoreProfile(expected);
-            }
-        }
-
-        [Fact]
-        public void GetPublicProfileThrowsExceptionWithEmptyIdTest()
-        {
-            var store = Substitute.For<IProfileStore>();
-            var calculator = Substitute.For<IProfileChangeCalculator>();
-            var processor = Substitute.For<IProfileChangeProcessor>();
-            var cache = Substitute.For<ICacheManager>();
-
-            var sut = new ProfileManager(store, calculator, processor, cache);
-
-            Func<Task> action = async () => await sut.GetPublicProfile(Guid.Empty, CancellationToken.None)
                 .ConfigureAwait(false);
 
             action.ShouldThrow<ArgumentException>();
@@ -594,7 +215,7 @@
             var calculator = Substitute.For<IProfileChangeCalculator>();
             var processor = Substitute.For<IProfileChangeProcessor>();
 
-            Action action = () => new ProfileManager(profileStore, calculator, processor, null);
+            Action action = () => new ProfileCommand(profileStore, calculator, processor, null);
 
             action.ShouldThrow<ArgumentNullException>();
         }
@@ -606,7 +227,7 @@
             var processor = Substitute.For<IProfileChangeProcessor>();
             var cache = Substitute.For<ICacheManager>();
 
-            Action action = () => new ProfileManager(profileStore, null, processor, cache);
+            Action action = () => new ProfileCommand(profileStore, null, processor, cache);
 
             action.ShouldThrow<ArgumentNullException>();
         }
@@ -618,7 +239,7 @@
             var calculator = Substitute.For<IProfileChangeCalculator>();
             var cache = Substitute.For<ICacheManager>();
 
-            Action action = () => new ProfileManager(profileStore, calculator, null, cache);
+            Action action = () => new ProfileCommand(profileStore, calculator, null, cache);
 
             action.ShouldThrow<ArgumentNullException>();
         }
@@ -630,7 +251,7 @@
             var calculator = Substitute.For<IProfileChangeCalculator>();
             var processor = Substitute.For<IProfileChangeProcessor>();
 
-            Action action = () => new ProfileManager(null, calculator, processor, cache);
+            Action action = () => new ProfileCommand(null, calculator, processor, cache);
 
             action.ShouldThrow<ArgumentNullException>();
         }
@@ -650,7 +271,7 @@
             var processor = Substitute.For<IProfileChangeProcessor>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new ProfileManager(store, calculator, processor, cache);
+            var sut = new ProfileCommand(store, calculator, processor, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -677,7 +298,7 @@
             var processor = Substitute.For<IProfileChangeProcessor>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new ProfileManager(store, calculator, processor, cache);
+            var sut = new ProfileCommand(store, calculator, processor, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -706,7 +327,7 @@
             var processor = Substitute.For<IProfileChangeProcessor>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new ProfileManager(store, calculator, processor, cache);
+            var sut = new ProfileCommand(store, calculator, processor, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -732,11 +353,11 @@
             var processor = Substitute.For<IProfileChangeProcessor>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new ProfileManager(store, calculator, processor, cache);
+            var sut = new ProfileCommand(store, calculator, processor, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                cache.GetProfileResults().Returns((ICollection<ProfileResult>)null);
+                cache.GetProfileResults().Returns((ICollection<ProfileResult>) null);
                 store.GetProfile(profile.Id, tokenSource.Token).Returns(profile);
                 calculator.CalculateChanges(profile, expected).Returns(changeResult);
 
@@ -758,7 +379,7 @@
             var processor = Substitute.For<IProfileChangeProcessor>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new ProfileManager(store, calculator, processor, cache);
+            var sut = new ProfileCommand(store, calculator, processor, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -790,7 +411,7 @@
             var processor = Substitute.For<IProfileChangeProcessor>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new ProfileManager(store, calculator, processor, cache);
+            var sut = new ProfileCommand(store, calculator, processor, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -816,7 +437,7 @@
             var processor = Substitute.For<IProfileChangeProcessor>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new ProfileManager(store, calculator, processor, cache);
+            var sut = new ProfileCommand(store, calculator, processor, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -842,7 +463,7 @@
             var processor = Substitute.For<IProfileChangeProcessor>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new ProfileManager(store, calculator, processor, cache);
+            var sut = new ProfileCommand(store, calculator, processor, cache);
 
             Func<Task> action = async () => await sut.UpdateProfile(profileId, profile, CancellationToken.None)
                 .ConfigureAwait(false);
@@ -859,7 +480,7 @@
             var processor = Substitute.For<IProfileChangeProcessor>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new ProfileManager(store, calculator, processor, cache);
+            var sut = new ProfileCommand(store, calculator, processor, cache);
 
             Func<Task> action = async () => await sut.UpdateProfile(profileId, null, CancellationToken.None)
                 .ConfigureAwait(false);
@@ -885,7 +506,7 @@
             var processor = Substitute.For<IProfileChangeProcessor>();
             var cache = Substitute.For<ICacheManager>();
 
-            var sut = new ProfileManager(store, calculator, processor, cache);
+            var sut = new ProfileCommand(store, calculator, processor, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {

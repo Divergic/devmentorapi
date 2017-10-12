@@ -1,21 +1,21 @@
-﻿namespace TechMentorApi.Business
+﻿namespace TechMentorApi.Business.Commands
 {
     using System;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Azure;
     using EnsureThat;
-    using Model;
+    using TechMentorApi.Azure;
+    using TechMentorApi.Model;
 
-    public class ProfileManager : IProfileManager
+    public class ProfileCommand : IProfileCommand
     {
         private readonly ICacheManager _cache;
         private readonly IProfileChangeCalculator _calculator;
         private readonly IProfileChangeProcessor _processor;
         private readonly IProfileStore _store;
 
-        public ProfileManager(
+        public ProfileCommand(
             IProfileStore store,
             IProfileChangeCalculator calculator,
             IProfileChangeProcessor processor,
@@ -58,38 +58,7 @@
 
             return profile;
         }
-
-        public Task<Profile> GetProfile(Guid id, CancellationToken cancellationToken)
-        {
-            Ensure.That(id, nameof(id)).IsNotEmpty();
-
-            return FindProfile(id, cancellationToken);
-        }
-
-        public async Task<PublicProfile> GetPublicProfile(Guid id, CancellationToken cancellationToken)
-        {
-            Ensure.That(id, nameof(id)).IsNotEmpty();
-
-            var profile = await FindProfile(id, cancellationToken).ConfigureAwait(false);
-
-            if (profile == null)
-            {
-                return null;
-            }
-
-            if (profile.Status == ProfileStatus.Hidden)
-            {
-                return null;
-            }
-
-            if (profile.BannedAt != null)
-            {
-                return null;
-            }
-
-            return new PublicProfile(profile);
-        }
-
+        
         public async Task UpdateProfile(Guid profileId, UpdatableProfile profile, CancellationToken cancellationToken)
         {
             Ensure.That(profileId, nameof(profileId)).IsNotEmpty();
@@ -156,27 +125,6 @@
             {
                 _cache.StoreProfileResults(results);
             }
-        }
-
-        private async Task<Profile> FindProfile(Guid id, CancellationToken cancellationToken)
-        {
-            var profile = _cache.GetProfile(id);
-
-            if (profile != null)
-            {
-                return profile;
-            }
-
-            profile = await _store.GetProfile(id, cancellationToken).ConfigureAwait(false);
-
-            if (profile == null)
-            {
-                return null;
-            }
-
-            _cache.StoreProfile(profile);
-
-            return profile;
         }
     }
 }

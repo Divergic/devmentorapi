@@ -10,6 +10,7 @@
     using Model;
     using ModelBuilder;
     using NSubstitute;
+    using TechMentorApi.Business.Queries;
     using TechMentorApi.Security;
     using Xunit;
     using Xunit.Abstractions;
@@ -26,7 +27,7 @@
         [Fact]
         public void ThrowsExceptionWhenCreatedWithNullLoggerTest()
         {
-            var manager = Substitute.For<IAccountManager>();
+            var manager = Substitute.For<IAccountQuery>();
 
             Action action = () => new ClaimsTransformer(manager, null);
 
@@ -53,7 +54,7 @@
 
             identity.AddClaim(new Claim(ClaimType.Subject, Guid.NewGuid().ToString()));
 
-            var manager = Substitute.For<IAccountManager>();
+            var manager = Substitute.For<IAccountQuery>();
 
             manager.GetAccount(Arg.Is<User>(x => x.Username == identity.Name), Arg.Any<CancellationToken>())
                 .Returns(account);
@@ -77,7 +78,7 @@
 
             identity.AddClaim(new Claim(ClaimType.Subject, Guid.NewGuid().ToString()));
 
-            var manager = Substitute.For<IAccountManager>();
+            var manager = Substitute.For<IAccountQuery>();
 
             manager.GetAccount(Arg.Is<User>(x => x.Username == identity.Name), Arg.Any<CancellationToken>())
                 .Returns(account);
@@ -102,7 +103,7 @@
             var identity = new ClaimsIdentity(claims, "Bearer", ClaimType.Subject, ClaimType.Role);
             var principal = new ClaimsPrincipal(identity);
 
-            var manager = Substitute.For<IAccountManager>();
+            var manager = Substitute.For<IAccountQuery>();
 
             var target = new ClaimsTransformer(manager, logger);
 
@@ -122,7 +123,7 @@
 
             identity.AddClaim(new Claim(ClaimType.Subject, Guid.NewGuid().ToString()));
 
-            var manager = Substitute.For<IAccountManager>();
+            var manager = Substitute.For<IAccountQuery>();
 
             var target = new ClaimsTransformer(manager, logger);
 
@@ -144,7 +145,7 @@
             identity.AddClaim(new Claim(ClaimType.Subject, Guid.NewGuid().ToString()));
             identity.AddClaim(new Claim(ClaimType.Auth0Roles, expectedRole));
 
-            var manager = Substitute.For<IAccountManager>();
+            var manager = Substitute.For<IAccountQuery>();
 
             manager.GetAccount(Arg.Is<User>(x => x.Username == identity.Name), Arg.Any<CancellationToken>())
                 .Returns(account);
@@ -176,7 +177,7 @@
             var principal = new ClaimsPrincipal(identity);
             var account = Model.Create<Account>();
             
-            var manager = Substitute.For<IAccountManager>();
+            var manager = Substitute.For<IAccountQuery>();
 
             manager.GetAccount(Arg.Is<User>(x => x.Username == identity.Name), Arg.Any<CancellationToken>())
                 .Returns(account);
@@ -201,7 +202,7 @@
             var identity = new ClaimsIdentity();
             var principal = new ClaimsPrincipal(identity);
 
-            var manager = Substitute.For<IAccountManager>();
+            var manager = Substitute.For<IAccountQuery>();
 
             var target = new ClaimsTransformer(manager, logger);
 

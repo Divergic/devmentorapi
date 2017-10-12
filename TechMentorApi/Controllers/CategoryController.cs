@@ -13,17 +13,18 @@
     using Properties;
     using Security;
     using Swashbuckle.AspNetCore.SwaggerGen;
+    using TechMentorApi.Business.Commands;
     using ViewModels;
 
     public class CategoryController : Controller
     {
-        private readonly ICategoryManager _manager;
+        private readonly ICategoryCommand _command;
 
-        public CategoryController(ICategoryManager manager)
+        public CategoryController(ICategoryCommand command)
         {
-            Ensure.That(manager, nameof(manager)).IsNotNull();
+            Ensure.That(command, nameof(command)).IsNotNull();
 
-            _manager = manager;
+            _command = command;
         }
 
         /// <summary>
@@ -71,7 +72,7 @@
                 Visible = model.Visible
             };
 
-            await _manager.UpdateCategory(category, cancellationToken).ConfigureAwait(false);
+            await _command.UpdateCategory(category, cancellationToken).ConfigureAwait(false);
 
             return new StatusCodeResult((int) HttpStatusCode.NoContent);
         }

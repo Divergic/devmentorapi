@@ -13,16 +13,21 @@
     using Properties;
     using Security;
     using Swashbuckle.AspNetCore.SwaggerGen;
+    using TechMentorApi.Business.Commands;
+    using TechMentorApi.Business.Queries;
 
     public class ProfileController : Controller
     {
-        private readonly IProfileManager _manager;
+        private readonly IProfileCommand _command;
+        private readonly IProfileQuery _query;
 
-        public ProfileController(IProfileManager manager)
+        public ProfileController(IProfileQuery query, IProfileCommand command)
         {
-            Ensure.That(manager, nameof(manager)).IsNotNull();
+            Ensure.That(query, nameof(query)).IsNotNull();
+            Ensure.That(command, nameof(command)).IsNotNull();
 
-            _manager = manager;
+            _query = query;
+            _command = command;
         }
 
         /// <summary>
@@ -48,7 +53,7 @@
 
             var bannedAt = DateTimeOffset.UtcNow;
 
-            var profile = await _manager.BanProfile(profileId, bannedAt, cancellationToken).ConfigureAwait(false);
+            var profile = await _command.BanProfile(profileId, bannedAt, cancellationToken).ConfigureAwait(false);
 
             if (profile == null)
             {
@@ -81,7 +86,7 @@
                 return new ErrorMessageResult(Resources.NotFound, HttpStatusCode.NotFound);
             }
 
-            var profile = await _manager.GetPublicProfile(profileId, cancellationToken).ConfigureAwait(false);
+            var profile = await _query.GetPublicProfile(profileId, cancellationToken).ConfigureAwait(false);
 
             if (profile == null)
             {
