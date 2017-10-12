@@ -1,12 +1,13 @@
 ﻿namespace TechMentorApi.AcceptanceTests
 {
     using System;
+    using System.Linq;
     using System.Net;
     using System.Threading.Tasks;
-    using TechMentorApi.Model;
     using FluentAssertions;
     using Microsoft.Extensions.Logging;
     using ModelBuilder;
+    using TechMentorApi.Model;
     using Xunit;
     using Xunit.Abstractions;
 
@@ -87,6 +88,116 @@
             actual.Email.Should().BeNull();
         }
 
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task GetOnlyIncludesApprovedGenderTest(bool approved)
+        {
+            var categoryName = Guid.NewGuid().ToString();
+
+            if (approved)
+            {
+                // Store the category as an administrator which will also make it approved by default
+                var category = new NewCategory
+                {
+                    Group = CategoryGroup.Gender,
+                    Name = categoryName
+                };
+
+                await category.Save(_logger).ConfigureAwait(false);
+            }
+
+            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Set(x => x.Gender = categoryName)
+                .Save(_logger).ConfigureAwait(false);
+
+            var address = ApiLocation.ProfileFor(profile.Id);
+
+            var actual = await Client.Get<PublicProfile>(address, _logger).ConfigureAwait(false);
+
+            if (approved)
+            {
+                actual.Gender.Should().Be(profile.Gender);
+            }
+            else
+            {
+                actual.Gender.Should().BeNull();
+            }
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task GetOnlyIncludesApprovedLanguageTest(bool approved)
+        {
+            var categoryName = Guid.NewGuid().ToString();
+
+            if (approved)
+            {
+                // Store the category as an administrator which will also make it approved by default
+                var category = new NewCategory
+                {
+                    Group = CategoryGroup.Language,
+                    Name = categoryName
+                };
+
+                await category.Save(_logger).ConfigureAwait(false);
+            }
+
+            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>()
+                .Set(x => x.Languages.Add(categoryName))
+                .Save(_logger).ConfigureAwait(false);
+
+            var address = ApiLocation.ProfileFor(profile.Id);
+
+            var actual = await Client.Get<PublicProfile>(address, _logger).ConfigureAwait(false);
+
+            if (approved)
+            {
+                actual.Languages.Should().Contain(x => x == categoryName);
+            }
+            else
+            {
+                actual.Languages.Should().NotContain(x => x == categoryName);
+            }
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task GetOnlyIncludesApprovedSkillTest(bool approved)
+        {
+            var categoryName = Guid.NewGuid().ToString();
+
+            if (approved)
+            {
+                // Store the category as an administrator which will also make it approved by default
+                var category = new NewCategory
+                {
+                    Group = CategoryGroup.Skill,
+                    Name = categoryName
+                };
+
+                await category.Save(_logger).ConfigureAwait(false);
+            }
+
+            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>()
+                .Set(x => x.Skills.First().Name = categoryName)
+                .Save(_logger).ConfigureAwait(false);
+
+            var address = ApiLocation.ProfileFor(profile.Id);
+
+            var actual = await Client.Get<PublicProfile>(address, _logger).ConfigureAwait(false);
+
+            if (approved)
+            {
+                actual.Skills.Should().Contain(x => x.Name == categoryName);
+            }
+            else
+            {
+                actual.Skills.Should().NotContain(x => x.Name == categoryName);
+            }
+        }
+
         [Fact]
         public async Task GetReturnsNotFoundForBannedProfileTest()
         {
@@ -119,7 +230,12 @@
         [Fact]
         public async Task GetReturnsOkForAnonymousUserTest()
         {
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save().ConfigureAwait(false);
+            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>();
+
+            await profile.SaveAllCategories().ConfigureAwait(false);
+
+            profile = await profile.Save().ConfigureAwait(false);
+
             var address = ApiLocation.ProfileFor(profile.Id);
 
             var actual = await Client.Get<PublicProfile>(address, _logger).ConfigureAwait(false);

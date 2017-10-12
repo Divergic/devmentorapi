@@ -2,9 +2,10 @@
 {
     using System.Collections.Generic;
     using System.Net;
+    using System.Security.Claims;
     using System.Threading.Tasks;
-    using TechMentorApi.Model;
     using Microsoft.Extensions.Logging;
+    using TechMentorApi.Model;
 
     public static class ModelExtensions
     {
@@ -50,14 +51,43 @@
             return results;
         }
 
-        public static async Task<NewCategory> Save(this NewCategory category, ILogger logger = null)
+        public static async Task<NewCategory> Save(this NewCategory category, ILogger logger = null,
+            ClaimsIdentity administrator = null)
         {
-            var administrator = ClaimsIdentityFactory.Build().AsAdministrator();
+            if (administrator == null)
+            {
+                administrator = ClaimsIdentityFactory.Build().AsAdministrator();
+            }
+
             var address = ApiLocation.Categories;
 
             await Client.Post(address, logger, category, administrator).ConfigureAwait(false);
 
             return category;
+        }
+
+        public static async Task SaveAllCategories(this Profile profile, ILogger logger = null,
+            Account account = null)
+        {
+            var administrator = ClaimsIdentityFactory.Build().AsAdministrator();
+
+            var tasks = new List<Task>
+            {
+                new NewCategory {Group = CategoryGroup.Gender, Name = profile.Gender}.Save(logger, administrator)
+            };
+
+            foreach (var language in profile.Languages)
+            {
+                tasks.Add(new NewCategory {Group = CategoryGroup.Language, Name = language}
+                    .Save(logger, administrator));
+            }
+
+            foreach (var skill in profile.Skills)
+            {
+                tasks.Add(new NewCategory {Group = CategoryGroup.Skill, Name = skill.Name}.Save(logger, administrator));
+            }
+
+            await Task.WhenAll(tasks).ConfigureAwait(false);
         }
     }
 }
