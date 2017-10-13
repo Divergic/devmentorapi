@@ -17,13 +17,13 @@
         {
         }
 
-        public async Task<AccountResult> GetAccount(string provider, string username,
+        public async Task<AccountResult> GetAccount(string provider, string subject,
             CancellationToken cancellationToken)
         {
             Ensure.That(provider, nameof(provider)).IsNotNullOrWhiteSpace();
-            Ensure.That(username, nameof(username)).IsNotNullOrWhiteSpace();
+            Ensure.That(subject, nameof(subject)).IsNotNullOrWhiteSpace();
 
-            var operation = TableOperation.Retrieve<AccountAdapter>(provider, username);
+            var operation = TableOperation.Retrieve<AccountAdapter>(provider, subject);
             var table = GetTable(TableName);
 
             var account = await RetrieveAccount(cancellationToken, table, operation).ConfigureAwait(false);
@@ -41,7 +41,7 @@
                 {
                     Id = Guid.NewGuid(),
                     Provider = provider,
-                    Username = username
+                    Subject = subject
                 };
 
                 await RegisterAccount(newAccount, cancellationToken).ConfigureAwait(false);

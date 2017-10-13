@@ -20,6 +20,7 @@
 
             sut.Id.Should().BeEmpty();
             sut.Provider.Should().BeNull();
+            sut.Subject.Should().BeNull();
             sut.Username.Should().BeNull();
         }
 
@@ -34,7 +35,8 @@
 
             sut.Id.Should().BeEmpty();
             sut.Provider.Should().Be(provider);
-            sut.Username.Should().Be(username);
+            sut.Subject.Should().Be(username);
+            sut.Username.Should().Be(sut.Provider + "|" + sut.Subject);
         }
     }
 }

@@ -88,7 +88,7 @@
             actual.Should().NotBeNull();
             actual.Id.Should().NotBeEmpty();
             actual.Provider.Should().Be(provider);
-            actual.Username.Should().Be(username);
+            actual.Subject.Should().Be(username);
             actual.IsNewAccount.Should().BeTrue();
         }
 
@@ -115,7 +115,7 @@
             actual.Should().NotBeNull();
             actual.Id.Should().NotBeEmpty();
             actual.Provider.Should().Be(provider);
-            actual.Username.Should().Be(username);
+            actual.Subject.Should().Be(username);
             actual.IsNewAccount.Should().BeTrue();
         }
 
@@ -189,7 +189,7 @@
                 {
                     Id = _expectedId,
                     Provider = account.Provider,
-                    Username = account.Username
+                    Subject = account.Subject
                 };
                 var adapter = new AccountAdapter(existingAccount);
 

@@ -29,7 +29,19 @@
 
             var cacheKey = BuildAccountCacheKey(username);
 
-            return _cache.Get<Account>(cacheKey);
+            var id = _cache.Get<Guid>(cacheKey);
+
+            if (id == Guid.Empty)
+            {
+                return null;
+            }
+
+            var account = new Account(username)
+            {
+                Id = id
+            };
+
+            return account;
         }
 
         public ICollection<Category> GetCategories()
@@ -94,7 +106,7 @@
                 SlidingExpiration = _config.AccountExpiration
             };
 
-            _cache.Set(cacheKey, account, options);
+            _cache.Set(cacheKey, account.Id, options);
         }
 
         public void StoreCategories(ICollection<Category> categories)

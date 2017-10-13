@@ -22,7 +22,7 @@
 
         protected override string BuildRowKey()
         {
-            return Value.Username;
+            return Value.Subject;
         }
 
         protected override void ReadValues(
@@ -30,7 +30,7 @@
             OperationContext operationContext)
         {
             Value.Provider = PartitionKey;
-            Value.Username = RowKey;
+            Value.Subject = RowKey;
 
             base.ReadValues(properties, operationContext);
         }
@@ -40,7 +40,7 @@
             OperationContext operationContext)
         {
             properties.Remove(nameof(Account.Provider));
-            properties.Remove(nameof(Account.Username));
+            properties.Remove(nameof(Account.Subject));
 
             base.WriteValues(properties, operationContext);
         }

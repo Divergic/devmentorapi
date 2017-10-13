@@ -111,7 +111,7 @@
             Ensure.That(propertyValue, nameof(propertyValue)).IsNotNull();
 
             var converter = GetTypeConverter(propertyInfo);
-
+            
             try
             {
                 var convertedValue = converter.ConvertFromInvariantString(propertyValue.StringValue);
@@ -207,8 +207,9 @@
         {
             var storageSupportedProperties = TableEntity.WriteUserObject(value, operationContext);
             var objectProperties = value.GetType().GetTypeInfo().GetProperties();
+            var supportedPropeties = objectProperties.Where(x => x.SetMethod != null && x.GetMethod != null);
             var infrastructureProperties = typeof(ITableEntity).GetTypeInfo().GetProperties();
-            var missingProperties = objectProperties.Where(
+            var missingProperties = supportedPropeties.Where(
                 objectProperty => storageSupportedProperties.ContainsKey(objectProperty.Name) == false);
 
             var additionalProperties = missingProperties.Select(
