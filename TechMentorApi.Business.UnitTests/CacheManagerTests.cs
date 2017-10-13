@@ -15,8 +15,14 @@
         [Fact]
         public void GetAccountReturnsCachedAccountTest()
         {
-            var expected = Model.Create<Account>();
-            var cacheKey = "Account|" + expected.Username;
+            var expected = new Account
+            {
+                Id = Guid.NewGuid(),
+                Provider = Guid.NewGuid().ToString(),
+                Subject = Guid.NewGuid().ToString()
+            };
+            var username = expected.Provider + "|" + expected.Subject;
+            var cacheKey = "Account|" + username;
 
             var cache = Substitute.For<IMemoryCache>();
             var config = Substitute.For<ICacheConfig>();
@@ -26,14 +32,14 @@
             cache.TryGetValue(cacheKey, out value).Returns(
                 x =>
                 {
-                    x[1] = expected;
+                    x[1] = expected.Id;
 
                     return true;
                 });
 
             var sut = new CacheManager(cache, config);
 
-            var actual = sut.GetAccount(expected.Username);
+            var actual = sut.GetAccount(username);
 
             actual.ShouldBeEquivalentTo(expected);
         }
@@ -386,7 +392,7 @@
 
             sut.StoreAccount(expected);
 
-            cacheEntry.Value.Should().Be(expected);
+            cacheEntry.Value.Should().Be(expected.Id);
             cacheEntry.SlidingExpiration.Should().Be(cacheExpiry);
         }
 

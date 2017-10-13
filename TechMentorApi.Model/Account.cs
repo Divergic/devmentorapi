@@ -23,22 +23,36 @@
                 },
                 StringSplitOptions.RemoveEmptyEntries);
             var providerPart = "Unspecified";
-            var usernamePart = username;
+            var subjectPart = username;
 
             if (parts.Length > 1)
             {
                 providerPart = parts[0];
-                usernamePart = parts[1];
+                subjectPart = parts[1];
             }
 
             Provider = providerPart;
-            Username = usernamePart;
+            Subject = subjectPart;
         }
 
         public Guid Id { get; set; }
 
         public string Provider { get; set; }
 
-        public string Username { get; set; }
+        public string Subject { get; set; }
+
+        public string Username
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(Provider) &&
+                    string.IsNullOrWhiteSpace(Subject))
+                {
+                    return null;
+                }
+
+                return Provider + "|" + Subject;
+            }
+        }
     }
 }

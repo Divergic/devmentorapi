@@ -37,7 +37,7 @@
 
             var parsedAccount = new Account(user.Username);
             
-            var account = await _accountStore.GetAccount(parsedAccount.Provider, parsedAccount.Username, cancellationToken).ConfigureAwait(false);
+            var account = await _accountStore.GetAccount(parsedAccount.Provider, parsedAccount.Subject, cancellationToken).ConfigureAwait(false);
 
             if (account.IsNewAccount)
             {

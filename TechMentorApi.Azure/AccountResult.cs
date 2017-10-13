@@ -11,7 +11,7 @@
 
             Id = source.Id;
             Provider = source.Provider;
-            Username = source.Username;
+            Subject = source.Subject;
         }
 
         public bool IsNewAccount { get; set; }

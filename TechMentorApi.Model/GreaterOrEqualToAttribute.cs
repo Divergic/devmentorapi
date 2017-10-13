@@ -16,8 +16,8 @@
             {
                 return ValidationResult.Success;
             }
-
-            var property = validationContext.ObjectType.GetTypeInfo().GetProperty(OtherProperty);
+            
+            var property = validationContext.ObjectType.GetRuntimeProperty(OtherProperty);
 
             if (property == null)
             {

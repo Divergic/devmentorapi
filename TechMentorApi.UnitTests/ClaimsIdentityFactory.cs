@@ -69,7 +69,7 @@
             IList<Claim> identities = new List<Claim>
             {
                 new Claim(ClaimType.ProfileId, account.Id.ToString()),
-                new Claim(ClaimTypes.NameIdentifier, account.Username)
+                new Claim(ClaimTypes.NameIdentifier, account.Subject)
             };
 
             return new ClaimsIdentity(identities, "Testing");
