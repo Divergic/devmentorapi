@@ -16,29 +16,45 @@
             Ensure.That(updated, nameof(updated)).IsNotNull();
 
             var result = new ProfileChangeResult();
+            var canUpdateCategoryLinks = true;
 
-            DetermineCategoryChanges(CategoryGroup.Gender, original.Gender, updated.Gender, result);
-
-            // Check for changes to languages
-            DetermineCategoryChanges(CategoryGroup.Language, original.Languages, updated.Languages, result);
-
-            // Check for changes to skills
-            var originalSkillNames = original.Skills.Select(x => x.Name).ToList();
-            var updatedSkillNames = updated.Skills.Select(x => x.Name).ToList();
-
-            DetermineCategoryChanges(CategoryGroup.Skill, originalSkillNames, updatedSkillNames, result);
-
-            // At this point all category add/remove operations have been determined
-            // If the profile is banned then we don't want to create any links to categories
-            if (original.BannedAt.HasValue)
+            if (original.Status == ProfileStatus.Hidden &&
+                updated.Status == ProfileStatus.Hidden)
             {
-                // Either the profile hasn't changed yet or it has and we have category changes to process
-                // Wiping out the category changes has the outcome we want by leaving ProfileChanged as is and not allowing any category changes
-                result.CategoryChanges.Clear();
+                // We don't calculate any changes to category links for a hidden profiles that are still hidden
+                // If we do look for category links to determine if the profile should be saved, we can exit once at least one is found
+                canUpdateCategoryLinks = false;
+            }
+            else if (original.BannedAt != null)
+            {
+                // We don't calculate any changes to category links for a banned profile
+                // If we do look for category links to determine if the profile should be saved, we can exit once at least one is found
+                canUpdateCategoryLinks = false;
             }
 
-            // Only thing remaining is to try to find a change to the profile data outside of categories
-            // If no changes found to categories by now, we just need to know whether the profile itself needs to be sent to storage
+            if (original.Status != ProfileStatus.Hidden &&
+                updated.Status == ProfileStatus.Hidden)
+            {
+                // The profile is being hidden
+                // Remove all the existing category links
+                // We will remove all the links from the original profile
+                // This is because if there are any changes from the original profile to the updated profile, 
+                // they aren't stored yet in the links so we don't care
+                DetermineAllCategoryRemovalChanges(original, result);
+            }
+            else if (original.Status == ProfileStatus.Hidden &&
+                     updated.Status != ProfileStatus.Hidden)
+            {
+                // The profile is being displayed after being hidden
+                // We need to add all the links to the updated profile
+                DetermineAllCategoryAddChanges(updated, result);
+            }
+            else
+            {
+                // Find the category changes between the original and updated profiles
+                DetermineCategoryChanges(original, updated, canUpdateCategoryLinks, result);
+            }
+
             if (result.ProfileChanged == false)
             {
                 result.ProfileChanged = HasProfileChanged(original, updated);
@@ -46,42 +62,102 @@
 
             if (result.ProfileChanged == false)
             {
-                // There haven't been any skills added or removed, but there could be changed to the skill information
+                // The profile properties have not changed
+                // We haven't checked for category items added or removed yet, but we also need to check
+                // if any skills have been changed
                 // Search for changes to skill metadata
                 result.ProfileChanged = HaveSkillsChanged(original.Skills, updated.Skills);
+            }
+
+            if (canUpdateCategoryLinks == false)
+            {
+                // We may have calculated category link changes in order to figure out if the profile should be saved
+                // but we are not going make any category link changes so we need to clear them out
+                result.CategoryChanges.Clear();
             }
 
             return result;
         }
 
-        public ProfileChangeResult RemoveAllCategoryLinks(Profile original)
+        public ProfileChangeResult RemoveAllCategoryLinks(UpdatableProfile profile)
         {
-            Ensure.That(original, nameof(original)).IsNotNull();
+            Ensure.That(profile, nameof(profile)).IsNotNull();
 
             var result = new ProfileChangeResult();
 
+            DetermineAllCategoryRemovalChanges(profile, result);
+
+            return result;
+        }
+
+        private static void DetermineAllCategoryAddChanges(UpdatableProfile profile, ProfileChangeResult result)
+        {
             // Remove gender link
-            DetermineCategoryChanges(CategoryGroup.Gender, original.Gender, null, result);
+            DetermineCategoryChanges(CategoryGroup.Gender, null, profile.Gender, result);
 
             // Check for changes to languages
             var emptyCategoryNames = new List<string>();
 
             // Remove all language links
-            DetermineCategoryChanges(CategoryGroup.Language, original.Languages, emptyCategoryNames, result);
+            DetermineCategoryChanges(CategoryGroup.Language, emptyCategoryNames, profile.Languages, true, result);
 
-            var originalSkillNames = original.Skills.Select(x => x.Name).ToList();
+            var skillNames = profile.Skills.Select(x => x.Name).ToList();
 
             // Remove all skill links
-            DetermineCategoryChanges(CategoryGroup.Skill, originalSkillNames, emptyCategoryNames, result);
-
-            return result;
+            DetermineCategoryChanges(CategoryGroup.Skill, emptyCategoryNames, skillNames, true, result);
         }
 
-        private static void DetermineCategoryChanges(
-            CategoryGroup categoryGroup,
-            ICollection<string> originalNames,
-            ICollection<string> updatedNames,
-            ProfileChangeResult result)
+        private static void DetermineAllCategoryRemovalChanges(UpdatableProfile profile, ProfileChangeResult result)
+        {
+            // Remove gender link
+            DetermineCategoryChanges(CategoryGroup.Gender, profile.Gender, null, result);
+
+            // Check for changes to languages
+            var emptyCategoryNames = new List<string>();
+
+            // Remove all language links
+            DetermineCategoryChanges(CategoryGroup.Language, profile.Languages, emptyCategoryNames, true, result);
+
+            var skillNames = profile.Skills.Select(x => x.Name).ToList();
+
+            // Remove all skill links
+            DetermineCategoryChanges(CategoryGroup.Skill, skillNames, emptyCategoryNames, true, result);
+        }
+
+        private static void DetermineCategoryChanges(Profile original, UpdatableProfile updated,
+            bool findAllCategoryChanges, ProfileChangeResult result)
+        {
+            // Find the category changes
+            DetermineCategoryChanges(CategoryGroup.Gender, original.Gender, updated.Gender, result);
+
+            if (findAllCategoryChanges == false &&
+                result.ProfileChanged)
+            {
+                // We only need to find a single change which we have
+                return;
+            }
+
+            // Check for changes to languages
+            DetermineCategoryChanges(CategoryGroup.Language, original.Languages, updated.Languages,
+                findAllCategoryChanges, result);
+
+            if (findAllCategoryChanges == false &&
+                result.ProfileChanged)
+            {
+                // We only need to find a single change which we have
+                return;
+            }
+
+            // Check for changes to skills
+            var originalSkillNames = original.Skills.Select(x => x.Name).ToList();
+            var updatedSkillNames = updated.Skills.Select(x => x.Name).ToList();
+
+            DetermineCategoryChanges(CategoryGroup.Skill, originalSkillNames, updatedSkillNames, findAllCategoryChanges,
+                result);
+        }
+
+        private static void DetermineCategoryChanges(CategoryGroup categoryGroup, ICollection<string> originalNames,
+            ICollection<string> updatedNames, bool findAllCategoryChanges, ProfileChangeResult result)
         {
             foreach (var originalName in originalNames)
             {
@@ -94,6 +170,13 @@
                     result.AddChange(categoryGroup, originalName, CategoryLinkChangeType.Remove);
 
                     result.ProfileChanged = true;
+                }
+
+                if (findAllCategoryChanges == false &&
+                    result.ProfileChanged)
+                {
+                    // We only need to find a single change which we have
+                    return;
                 }
             }
 
@@ -108,6 +191,13 @@
                     result.AddChange(categoryGroup, updatedName, CategoryLinkChangeType.Add);
 
                     result.ProfileChanged = true;
+                }
+
+                if (findAllCategoryChanges == false &&
+                    result.ProfileChanged)
+                {
+                    // We only need to find a single change which we have
+                    return;
                 }
             }
         }

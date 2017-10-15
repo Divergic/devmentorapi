@@ -7,9 +7,9 @@
     using System.Threading.Tasks;
     using FluentAssertions;
     using Microsoft.Extensions.Logging;
-    using Model;
     using ModelBuilder;
-    using ViewModels;
+    using TechMentorApi.Model;
+    using TechMentorApi.ViewModels;
     using Xunit;
     using Xunit.Abstractions;
 
@@ -161,6 +161,47 @@
             var category = actual.Single(x => x.Group == CategoryGroup.Skill && x.Name == newCategory.Name);
 
             category.LinkCount.Should().Be(2);
+        }
+
+        [Theory]
+        [InlineData(ProfileStatus.Available)]
+        [InlineData(ProfileStatus.Unavailable)]
+        public async Task GetReturnsCategoryWithCorrectLinkCountWhenProfileIsHiddenAndThenRestoredTest(
+            ProfileStatus status)
+        {
+            var account = Model.Create<Account>();
+            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Set(x => x.Status = status)
+                .Save(_logger, account)
+                .ConfigureAwait(false);
+            var newCategory = profile.Skills.First();
+            var address = ApiLocation.Categories;
+            var categoryApproval = new NewCategory
+            {
+                Group = CategoryGroup.Skill,
+                Name = newCategory.Name
+            };
+            var administrator = ClaimsIdentityFactory.Build().AsAdministrator();
+
+            await Client.Post(address, _logger, categoryApproval, administrator).ConfigureAwait(false);
+
+            var firstActual = await Client.Get<List<PublicCategory>>(address, _logger).ConfigureAwait(false);
+
+            firstActual.Single(x => x.Group == CategoryGroup.Skill && x.Name == newCategory.Name).LinkCount.Should()
+                .Be(1);
+
+            await profile.Set(x => x.Status = ProfileStatus.Hidden).Save(_logger, account).ConfigureAwait(false);
+
+            var secondActual = await Client.Get<List<PublicCategory>>(address, _logger).ConfigureAwait(false);
+
+            secondActual.Single(x => x.Group == CategoryGroup.Skill && x.Name == newCategory.Name).LinkCount.Should()
+                .Be(0);
+
+            await profile.Set(x => x.Status = status).Save(_logger, account).ConfigureAwait(false);
+
+            var thirdActual = await Client.Get<List<PublicCategory>>(address, _logger).ConfigureAwait(false);
+
+            thirdActual.Single(x => x.Group == CategoryGroup.Skill && x.Name == newCategory.Name).LinkCount.Should()
+                .Be(1);
         }
 
         [Fact]

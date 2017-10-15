@@ -7,9 +7,9 @@
     using System.Threading.Tasks;
     using FluentAssertions;
     using Microsoft.Extensions.Logging;
-    using Model;
     using ModelBuilder;
-    using ViewModels;
+    using TechMentorApi.Model;
+    using TechMentorApi.ViewModels;
     using Xunit;
     using Xunit.Abstractions;
 
@@ -37,6 +37,18 @@
         }
 
         [Fact]
+        public async Task GetForNewUserCreatesProfileAsHiddenTest()
+        {
+            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>().Set(x => x.BannedAt = null);
+            var identity = ClaimsIdentityFactory.Build(null, profile);
+            var address = ApiLocation.AccountProfile;
+
+            var actual = await Client.Get<Profile>(address, _logger, identity).ConfigureAwait(false);
+
+            actual.Status.Should().Be(ProfileStatus.Hidden);
+        }
+
+        [Fact]
         public async Task GetForNewUserHandlesMultipleConcurrentRequestsWhenAccountCreationRequiredTest()
         {
             for (var index = 0; index < 3; index++)
@@ -54,18 +66,6 @@
 
                 await Task.WhenAll(firstTask, secondTask, thirdTask).ConfigureAwait(false);
             }
-        }
-
-        [Fact]
-        public async Task GetForNewUserCreatesProfileAsHiddenTest()
-        {
-            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>().Set(x => x.BannedAt = null);
-            var identity = ClaimsIdentityFactory.Build(null, profile);
-            var address = ApiLocation.AccountProfile;
-
-            var actual = await Client.Get<Profile>(address, _logger, identity).ConfigureAwait(false);
-
-            actual.Status.Should().Be(ProfileStatus.Hidden);
         }
 
         [Fact]
@@ -394,6 +394,37 @@
 
             await Client.Put(ApiLocation.AccountProfile, _logger, profile, null, HttpStatusCode.Unauthorized)
                 .ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task PutUpdatesProfileInformationForBannedAccountTest()
+        {
+            var expected = Model.Using<ProfileBuildStrategy>().Create<UpdatableProfile>();
+            var user = ClaimsIdentityFactory.Build(null, expected);
+
+            // Create the profile
+            await Client.Put(ApiLocation.AccountProfile, _logger, expected, user, HttpStatusCode.NoContent)
+                .ConfigureAwait(false);
+
+            // Get the profile
+            var storedProfile =
+                await Client.Get<Profile>(ApiLocation.AccountProfile, _logger, user).ConfigureAwait(false);
+
+            var administrator = ClaimsIdentityFactory.Build().AsAdministrator();
+
+            // Ban the profile
+            await Client.Delete(ApiLocation.ProfileFor(storedProfile.Id), _logger, administrator).ConfigureAwait(false);
+
+            // Make a change to the profile
+            expected.FirstName = Guid.NewGuid().ToString();
+
+            // Update the profile again
+            await Client.Put(ApiLocation.AccountProfile, _logger, expected, user, HttpStatusCode.NoContent)
+                .ConfigureAwait(false);
+
+            var actual = await Client.Get<Profile>(ApiLocation.AccountProfile, _logger, user).ConfigureAwait(false);
+
+            actual.ShouldBeEquivalentTo(expected, opt => opt.ExcludingMissingMembers());
         }
 
         [Fact]

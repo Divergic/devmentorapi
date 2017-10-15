@@ -1,6 +1,7 @@
 ﻿namespace TechMentorApi.AcceptanceTests
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Net;
     using System.Threading.Tasks;
@@ -8,6 +9,7 @@
     using Microsoft.Extensions.Logging;
     using ModelBuilder;
     using TechMentorApi.Model;
+    using TechMentorApi.ViewModels;
     using Xunit;
     using Xunit.Abstractions;
 
@@ -38,6 +40,45 @@
                 .ConfigureAwait(false);
 
             actual.BannedAt.Should().BeCloseTo(DateTimeOffset.UtcNow, 5000);
+        }
+
+        [Fact]
+        public async Task DeleteReturnsNotFoundWhenProfileAlreadyBannedTest()
+        {
+            var account = Model.Create<Account>();
+            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>()
+                .Save(_logger, account)
+                .ConfigureAwait(false);
+            var newCategory = profile.Skills.First();
+            var address = ApiLocation.Categories;
+            var categoryApproval = new NewCategory
+            {
+                Group = CategoryGroup.Skill,
+                Name = newCategory.Name
+            };
+            var administrator = ClaimsIdentityFactory.Build().AsAdministrator();
+            var profileAddress = ApiLocation.ProfileFor(profile.Id);
+
+            await Client.Post(address, _logger, categoryApproval, administrator).ConfigureAwait(false);
+
+            var firstActual = await Client.Get<List<PublicCategory>>(address, _logger).ConfigureAwait(false);
+
+            firstActual.Single(x => x.Group == CategoryGroup.Skill && x.Name == newCategory.Name).LinkCount.Should()
+                .Be(1);
+
+            await Client.Delete(profileAddress, _logger, administrator).ConfigureAwait(false);
+
+            var secondActual = await Client.Get<List<PublicCategory>>(address, _logger).ConfigureAwait(false);
+
+            secondActual.Single(x => x.Group == CategoryGroup.Skill && x.Name == newCategory.Name).LinkCount.Should()
+                .Be(0);
+
+            await Client.Delete(profileAddress, _logger, administrator, HttpStatusCode.NotFound).ConfigureAwait(false);
+
+            var thirdActual = await Client.Get<List<PublicCategory>>(address, _logger).ConfigureAwait(false);
+
+            thirdActual.Single(x => x.Group == CategoryGroup.Skill && x.Name == newCategory.Name).LinkCount.Should()
+                .Be(0);
         }
 
         [Fact]

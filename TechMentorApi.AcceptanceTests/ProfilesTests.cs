@@ -449,6 +449,14 @@
         [InlineData("FEMALE")]
         public async Task GetReturnsProfileWithCaseInsensitiveFilterMatchTest(string filterName)
         {
+            var category = new NewCategory
+            {
+                Group = CategoryGroup.Gender,
+                Name = "Female"
+            };
+
+            await category.Save(_logger).ConfigureAwait(false);
+
             var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Set(x => x.Gender = "Female")
                 .Save(_logger).ConfigureAwait(false);
             var filters = new List<ProfileFilter>
