@@ -209,9 +209,144 @@
         }
 
         [Fact]
+        public void CalculateChangesAddingGenderOnAccountStillHiddenMarksProfileAsChangedTest()
+        {
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null)
+                .Set(x => x.Status = ProfileStatus.Hidden)
+                .Set(x => x.Gender = null);
+            var updated = original.Clone().Set(x => x.Gender = "Female");
+
+            var sut = new ProfileChangeCalculator();
+
+            var actual = sut.CalculateChanges(original, updated);
+
+            actual.ProfileChanged.Should().BeTrue();
+            actual.CategoryChanges.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void CalculateChangesAddingGenderOnBannedAccountMarksProfileAsChangedTest()
+        {
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = DateTimeOffset.UtcNow)
+                .Set(x => x.Status = ProfileStatus.Available)
+                .Set(x => x.Gender = null);
+            var updated = original.Clone().Set(x => x.Gender = "Female");
+
+            var sut = new ProfileChangeCalculator();
+
+            var actual = sut.CalculateChanges(original, updated);
+
+            actual.ProfileChanged.Should().BeTrue();
+            actual.CategoryChanges.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void CalculateChangesAddingLanguageOnAccountStillHiddenMarksProfileAsChangedTest()
+        {
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null)
+                .Set(x => x.Status = ProfileStatus.Hidden);
+            var updated = original.Clone();
+            var language = Guid.NewGuid().ToString();
+
+            updated.Languages.Add(language);
+
+            var sut = new ProfileChangeCalculator();
+
+            var actual = sut.CalculateChanges(original, updated);
+
+            actual.ProfileChanged.Should().BeTrue();
+            actual.CategoryChanges.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void CalculateChangesAddingLanguageOnBannedAccountMarksProfileAsChangedTest()
+        {
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = DateTimeOffset.UtcNow)
+                .Set(x => x.Status = ProfileStatus.Available);
+            var updated = original.Clone();
+            var language = Guid.NewGuid().ToString();
+
+            updated.Languages.Add(language);
+
+            var sut = new ProfileChangeCalculator();
+
+            var actual = sut.CalculateChanges(original, updated);
+
+            actual.ProfileChanged.Should().BeTrue();
+            actual.CategoryChanges.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void CalculateChangesAddingSkillOnAccountStillHiddenMarksProfileAsChangedTest()
+        {
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null)
+                .Set(x => x.Status = ProfileStatus.Hidden);
+            var updated = original.Clone();
+            var skill = Model.Create<Skill>();
+
+            updated.Skills.Add(skill);
+
+            var sut = new ProfileChangeCalculator();
+
+            var actual = sut.CalculateChanges(original, updated);
+
+            actual.ProfileChanged.Should().BeTrue();
+            actual.CategoryChanges.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void CalculateChangesAddingSkillOnBannedAccountMarksProfileAsChangedTest()
+        {
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = DateTimeOffset.UtcNow)
+                .Set(x => x.Status = ProfileStatus.Available);
+            var updated = original.Clone();
+            var skill = Model.Create<Skill>();
+
+            updated.Skills.Add(skill);
+
+            var sut = new ProfileChangeCalculator();
+
+            var actual = sut.CalculateChanges(original, updated);
+
+            actual.ProfileChanged.Should().BeTrue();
+            actual.CategoryChanges.Should().BeEmpty();
+        }
+
+        [Theory]
+        [InlineData(ProfileStatus.Available)]
+        [InlineData(ProfileStatus.Unavailable)]
+        public void CalculateChangesAddsAllUpdatedCategoriesWhenStatusChangedFromHiddenTest(ProfileStatus status)
+        {
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null)
+                .Set(x => x.Status = ProfileStatus.Hidden);
+            var updated = original.Clone().Set(x => x.Status = status);
+
+            var sut = new ProfileChangeCalculator();
+
+            var actual = sut.CalculateChanges(original, updated);
+
+            // + 1 for gender
+            var expectedChangeCount = updated.Skills.Count + updated.Languages.Count + 1;
+            actual.ProfileChanged.Should().BeTrue();
+            actual.CategoryChanges.Should().HaveCount(expectedChangeCount);
+
+            var skillsRemoved = updated.Skills.Select(x => x.Name);
+
+            actual.CategoryChanges.All(x => x.ChangeType == CategoryLinkChangeType.Add).Should().BeTrue();
+            actual.CategoryChanges.Where(x => x.CategoryGroup == CategoryGroup.Skill).Select(x => x.CategoryName)
+                .Should().BeEquivalentTo(skillsRemoved);
+            actual.CategoryChanges.Where(x => x.CategoryGroup == CategoryGroup.Language).Select(x => x.CategoryName)
+                .Should().BeEquivalentTo(updated.Languages);
+            actual.CategoryChanges.Where(x => x.CategoryGroup == CategoryGroup.Gender).Select(x => x.CategoryName)
+                .Single()
+                .Should().Be(updated.Gender);
+        }
+
+        [Fact]
         public void CalculateChangesAddsNewLanguageTest()
         {
-            var original = Model.Create<Profile>().Set(x => x.BannedAt = null);
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null)
+                .Set(x => x.Status = ProfileStatus.Available);
             var updated = original.Clone();
             var language = Guid.NewGuid().ToString();
 
@@ -234,7 +369,8 @@
         [Fact]
         public void CalculateChangesAddsNewSkillTest()
         {
-            var original = Model.Create<Profile>().Set(x => x.BannedAt = null);
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null)
+                .Set(x => x.Status = ProfileStatus.Available);
             var updated = original.Clone();
             var skill = Model.Create<Skill>();
 
@@ -294,7 +430,6 @@
 
             var actual = sut.CalculateChanges(original, updated);
 
-            actual.CategoryChanges.Should().BeEmpty();
             actual.ProfileChanged.Should().Be(expected);
         }
 
@@ -345,7 +480,8 @@
         {
             _output.WriteLine("{0}: [{1}], [{2}]", scenario, originalValue ?? "null", updatedValue ?? "null");
 
-            var original = Model.Create<Profile>().Set(x => x.Gender = originalValue).Set(x => x.BannedAt = null);
+            var original = Model.Create<Profile>().Set(x => x.Gender = originalValue).Set(x => x.BannedAt = null)
+                .Set(x => x.Status = ProfileStatus.Available);
             var updated = original.Clone().Set(x => x.Gender = updatedValue);
 
             var sut = new ProfileChangeCalculator();
@@ -357,7 +493,7 @@
             if (isAdded == false &&
                 isRemoved == false)
             {
-                actual.CategoryChanges.Should().HaveCount(0);
+                actual.CategoryChanges.Should().BeEmpty();
             }
             else if (isAdded && isRemoved)
             {
@@ -384,10 +520,60 @@
             }
         }
 
+        [Theory]
+        [InlineData(ProfileStatus.Available)]
+        [InlineData(ProfileStatus.Unavailable)]
+        public void CalculateChangesIdentifiesAllCategoriesRemovedWhenStatusChangedToHiddenTest(ProfileStatus status)
+        {
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null)
+                .Set(x => x.Status = status);
+            var updated = original.Clone().Set(x => x.Status = ProfileStatus.Hidden);
+
+            var sut = new ProfileChangeCalculator();
+
+            var actual = sut.CalculateChanges(original, updated);
+
+            // + 1 for gender
+            var expectedChangeCount = original.Skills.Count + original.Languages.Count + 1;
+            actual.ProfileChanged.Should().BeTrue();
+            actual.CategoryChanges.Should().HaveCount(expectedChangeCount);
+
+            var skillsRemoved = original.Skills.Select(x => x.Name);
+
+            actual.CategoryChanges.All(x => x.ChangeType == CategoryLinkChangeType.Remove).Should().BeTrue();
+            actual.CategoryChanges.Where(x => x.CategoryGroup == CategoryGroup.Skill).Select(x => x.CategoryName)
+                .Should().BeEquivalentTo(skillsRemoved);
+            actual.CategoryChanges.Where(x => x.CategoryGroup == CategoryGroup.Language).Select(x => x.CategoryName)
+                .Should().BeEquivalentTo(original.Languages);
+            actual.CategoryChanges.Where(x => x.CategoryGroup == CategoryGroup.Gender).Select(x => x.CategoryName)
+                .Single()
+                .Should().Be(original.Gender);
+        }
+
+        [Fact]
+        public void CalculateChangesIgnoresGenderDifferentByCaseOnlyTest()
+        {
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null)
+                .Set(x => x.Status = ProfileStatus.Available);
+            var updated = original.Clone();
+            var gender = Guid.NewGuid().ToString();
+
+            original.Gender = gender.ToLowerInvariant();
+            updated.Gender = gender.ToUpperInvariant();
+
+            var sut = new ProfileChangeCalculator();
+
+            var actual = sut.CalculateChanges(original, updated);
+
+            actual.ProfileChanged.Should().BeFalse();
+            actual.CategoryChanges.Should().BeEmpty();
+        }
+
         [Fact]
         public void CalculateChangesIgnoresLanguageDifferentByCaseOnlyTest()
         {
-            var original = Model.Create<Profile>().Set(x => x.BannedAt = null);
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null)
+                .Set(x => x.Status = ProfileStatus.Available);
             var updated = original.Clone();
             var language = Guid.NewGuid().ToString();
 
@@ -399,13 +585,74 @@
             var actual = sut.CalculateChanges(original, updated);
 
             actual.ProfileChanged.Should().BeFalse();
+            actual.CategoryChanges.Should().BeEmpty();
+        }
+
+        [Theory]
+        [InlineData(ProfileStatus.Available)]
+        [InlineData(ProfileStatus.Unavailable)]
+        public void CalculateChangesIgnoresNewCategoriesWhenStatusChangedToHiddenTest(ProfileStatus status)
+        {
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null)
+                .Set(x => x.Status = status)
+                .Set(x => x.Skills.Clear())
+                .Set(x => x.Languages.Clear())
+                .Set(x => x.Gender = null);
+            var updated = original.Clone().Set(x => x.Status = ProfileStatus.Hidden);
+            var skill = Model.Create<Skill>();
+
+            updated.Skills.Add(skill);
+            updated.Languages.Add(Guid.NewGuid().ToString());
+            updated.Gender = Guid.NewGuid().ToString();
+
+            var sut = new ProfileChangeCalculator();
+
+            var actual = sut.CalculateChanges(original, updated);
+
+            actual.ProfileChanged.Should().BeTrue();
             actual.CategoryChanges.Should().HaveCount(0);
+        }
+
+        [Theory]
+        [InlineData(ProfileStatus.Available)]
+        [InlineData(ProfileStatus.Unavailable)]
+        public void CalculateChangesIgnoresOriginalCategoriesWhenStatusChangedFromHiddenTest(ProfileStatus status)
+        {
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null)
+                .Set(x => x.Status = ProfileStatus.Hidden);
+            var updated = original.Clone().Set(x => x.Status = status);
+            var skill = Model.Create<Skill>();
+
+            original.Skills.Add(skill);
+            original.Languages.Add(Guid.NewGuid().ToString());
+            original.Gender = Guid.NewGuid().ToString();
+
+            var sut = new ProfileChangeCalculator();
+
+            var actual = sut.CalculateChanges(original, updated);
+
+            // + 1 for gender
+            var expectedChangeCount = updated.Skills.Count + updated.Languages.Count + 1;
+            actual.ProfileChanged.Should().BeTrue();
+            actual.CategoryChanges.Should().HaveCount(expectedChangeCount);
+
+            var skillsRemoved = updated.Skills.Select(x => x.Name);
+
+            actual.CategoryChanges.All(x => x.ChangeType == CategoryLinkChangeType.Add).Should().BeTrue();
+            actual.CategoryChanges.Where(x => x.CategoryGroup == CategoryGroup.Skill).Select(x => x.CategoryName)
+                .Should().BeEquivalentTo(skillsRemoved);
+            actual.CategoryChanges.Where(x => x.CategoryGroup == CategoryGroup.Language).Select(x => x.CategoryName)
+                .Should().BeEquivalentTo(updated.Languages);
+            actual.CategoryChanges.Where(x => x.CategoryGroup == CategoryGroup.Gender).Select(x => x.CategoryName)
+                .Single()
+                .Should().Be(updated.Gender);
         }
 
         [Fact]
         public void CalculateChangesIgnoresSkillNameDifferentByCaseOnlyTest()
         {
-            var original = Model.Create<Profile>().Set(x => x.BannedAt = null);
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null)
+                .Set(x => x.Status = ProfileStatus.Available);
             var updated = original.Clone();
             var oldSkill = Model.Create<Skill>().Set(x => x.Name = x.Name.ToLowerInvariant());
             var newSkill = oldSkill.Clone().Set(x => x.Name = oldSkill.Name.ToUpperInvariant());
@@ -418,13 +665,33 @@
             var actual = sut.CalculateChanges(original, updated);
 
             actual.ProfileChanged.Should().BeFalse();
-            actual.CategoryChanges.Should().HaveCount(0);
+            actual.CategoryChanges.Should().BeEmpty();
+        }
+
+        [Theory]
+        [InlineData(ProfileStatus.Available, ProfileStatus.Unavailable)]
+        [InlineData(ProfileStatus.Unavailable, ProfileStatus.Available)]
+        public void
+            CalculateChangesMarksProfileChangedWithNoCategoryChangesWhenStatusChangedBetweenAvailableAndUnavailableTest(
+                ProfileStatus originalValue,
+                ProfileStatus updatedValue)
+        {
+            var original = Model.Create<Profile>().Set(x => x.Status = originalValue);
+            var updated = original.Clone().Set(x => x.Status = updatedValue);
+
+            var sut = new ProfileChangeCalculator();
+
+            var actual = sut.CalculateChanges(original, updated);
+
+            actual.ProfileChanged.Should().BeTrue();
+            actual.CategoryChanges.Should().BeEmpty();
         }
 
         [Fact]
         public void CalculateChangesRemovesOldLanguageTest()
         {
-            var original = Model.Create<Profile>().Set(x => x.BannedAt = null);
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null)
+                .Set(x => x.Status = ProfileStatus.Available);
             var updated = original.Clone();
             var language = Guid.NewGuid().ToString();
 
@@ -447,7 +714,8 @@
         [Fact]
         public void CalculateChangesRemovesOldSkillTest()
         {
-            var original = Model.Create<Profile>().Set(x => x.BannedAt = null);
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null)
+                .Set(x => x.Status = ProfileStatus.Available);
             var updated = original.Clone();
             var skill = Model.Create<Skill>();
 
@@ -468,9 +736,112 @@
         }
 
         [Fact]
+        public void CalculateChangesRemovingOldGenderOnAccountStillHiddenMarksProfileAsChangedTest()
+        {
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null)
+                .Set(x => x.Status = ProfileStatus.Hidden);
+            var updated = original.Clone().Set(x => x.Gender = null);
+
+            var sut = new ProfileChangeCalculator();
+
+            var actual = sut.CalculateChanges(original, updated);
+
+            actual.ProfileChanged.Should().BeTrue();
+            actual.CategoryChanges.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void CalculateChangesRemovingOldGenderOnBannedAccountMarksProfileAsChangedTest()
+        {
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = DateTimeOffset.UtcNow)
+                .Set(x => x.Status = ProfileStatus.Available);
+            var updated = original.Clone().Set(x => x.Gender = null);
+
+            var sut = new ProfileChangeCalculator();
+
+            var actual = sut.CalculateChanges(original, updated);
+
+            actual.ProfileChanged.Should().BeTrue();
+            actual.CategoryChanges.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void CalculateChangesRemovingOldLanguageOnAccountStillHiddenMarksProfileAsChangedTest()
+        {
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null)
+                .Set(x => x.Status = ProfileStatus.Hidden);
+            var updated = original.Clone();
+            var language = Guid.NewGuid().ToString();
+
+            original.Languages.Add(language);
+
+            var sut = new ProfileChangeCalculator();
+
+            var actual = sut.CalculateChanges(original, updated);
+
+            actual.ProfileChanged.Should().BeTrue();
+            actual.CategoryChanges.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void CalculateChangesRemovingOldLanguageOnBannedAccountMarksProfileAsChangedTest()
+        {
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = DateTimeOffset.UtcNow)
+                .Set(x => x.Status = ProfileStatus.Available);
+            var updated = original.Clone();
+            var language = Guid.NewGuid().ToString();
+
+            original.Languages.Add(language);
+
+            var sut = new ProfileChangeCalculator();
+
+            var actual = sut.CalculateChanges(original, updated);
+
+            actual.ProfileChanged.Should().BeTrue();
+            actual.CategoryChanges.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void CalculateChangesRemovingOldSkillOnAccountStillHiddenMarksProfileAsChangedTest()
+        {
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null)
+                .Set(x => x.Status = ProfileStatus.Hidden);
+            var updated = original.Clone();
+            var skill = Model.Create<Skill>();
+
+            original.Skills.Add(skill);
+
+            var sut = new ProfileChangeCalculator();
+
+            var actual = sut.CalculateChanges(original, updated);
+
+            actual.ProfileChanged.Should().BeTrue();
+            actual.CategoryChanges.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void CalculateChangesRemovingOldSkillOnBannedAccountMarksProfileAsChangedTest()
+        {
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = DateTimeOffset.UtcNow)
+                .Set(x => x.Status = ProfileStatus.Available);
+            var updated = original.Clone();
+            var skill = Model.Create<Skill>();
+
+            original.Skills.Add(skill);
+
+            var sut = new ProfileChangeCalculator();
+
+            var actual = sut.CalculateChanges(original, updated);
+
+            actual.ProfileChanged.Should().BeTrue();
+            actual.CategoryChanges.Should().BeEmpty();
+        }
+
+        [Fact]
         public void CalculateChangesReturnsNoChangesWhenProfilesMatchTest()
         {
-            var original = Model.Create<Profile>().Set(x => x.BannedAt = null);
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null)
+                .Set(x => x.Status = ProfileStatus.Available);
             var updated = original.Clone();
 
             var sut = new ProfileChangeCalculator();
@@ -495,7 +866,7 @@
             var actual = sut.CalculateChanges(original, updated);
 
             actual.ProfileChanged.Should().BeTrue();
-            actual.CategoryChanges.Should().HaveCount(0);
+            actual.CategoryChanges.Should().BeEmpty();
         }
 
         [Theory]
@@ -506,7 +877,8 @@
             SkillLevel updatedLevel,
             bool expected)
         {
-            var original = Model.Create<Profile>().Set(x => x.BannedAt = null);
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null)
+                .Set(x => x.Status = ProfileStatus.Available);
             var updated = original.Clone();
             var originalSkill = Model.Create<Skill>().Set(x => x.Level = originalLevel);
             var updatedSkill = originalSkill.Clone().Set(x => x.Level = updatedLevel);
@@ -521,7 +893,7 @@
             var actual = sut.CalculateChanges(original, updated);
 
             actual.ProfileChanged.Should().Be(expected);
-            actual.CategoryChanges.Should().HaveCount(0);
+            actual.CategoryChanges.Should().BeEmpty();
         }
 
         [Theory]
@@ -535,7 +907,8 @@
             int? updatedValue,
             bool expected)
         {
-            var original = Model.Create<Profile>().Set(x => x.BannedAt = null);
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null)
+                .Set(x => x.Status = ProfileStatus.Available);
             var updated = original.Clone();
             var originalSkill = Model.Create<Skill>().Set(x => x.YearLastUsed = originalValue);
             var updatedSkill = originalSkill.Clone().Set(x => x.YearLastUsed = updatedValue);
@@ -548,7 +921,7 @@
             var actual = sut.CalculateChanges(original, updated);
 
             actual.ProfileChanged.Should().Be(expected);
-            actual.CategoryChanges.Should().HaveCount(0);
+            actual.CategoryChanges.Should().BeEmpty();
         }
 
         [Theory]
@@ -562,7 +935,8 @@
             int? updatedValue,
             bool expected)
         {
-            var original = Model.Create<Profile>().Set(x => x.BannedAt = null);
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null)
+                .Set(x => x.Status = ProfileStatus.Available);
             var updated = original.Clone();
             var originalSkill = Model.Create<Skill>().Set(x => x.YearStarted = originalValue);
             var updatedSkill = originalSkill.Clone().Set(x => x.YearStarted = updatedValue);
@@ -575,7 +949,7 @@
             var actual = sut.CalculateChanges(original, updated);
 
             actual.ProfileChanged.Should().Be(expected);
-            actual.CategoryChanges.Should().HaveCount(0);
+            actual.CategoryChanges.Should().BeEmpty();
         }
 
         [Fact]
@@ -593,7 +967,8 @@
         [Fact]
         public void CalculateChangesThrowsExceptionWithNullUpdatedProfileTest()
         {
-            var original = Model.Create<Profile>().Set(x => x.BannedAt = null);
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null)
+                .Set(x => x.Status = ProfileStatus.Available);
 
             var sut = new ProfileChangeCalculator();
 
@@ -689,7 +1064,8 @@
             string description)
         {
             // Return all the test evaluation scenarios for this property
-            var original = Model.Create<Profile>().Set(x => x.BannedAt = null);
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null)
+                .Set(x => x.Status = ProfileStatus.Available);
             var updated = original.Clone();
 
             property.SetValue(original, originalValue);

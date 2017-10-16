@@ -256,12 +256,10 @@
             action.ShouldThrow<ArgumentNullException>();
         }
 
-        [Theory]
-        [InlineData(ProfileStatus.Available)]
-        [InlineData(ProfileStatus.Unavailable)]
-        public async Task UpdateProfileAddsProfileToResultsCacheWhenNotPreviouslyCachedTest(ProfileStatus status)
+        [Fact]
+        public async Task UpdateProfileAddsProfileToResultsCacheWhenNotPreviouslyCachedTest()
         {
-            var expected = Model.Create<UpdatableProfile>().Set(x => x.Status = status);
+            var expected = Model.Create<UpdatableProfile>();
             var profile = Model.Create<Profile>().Set(x => x.BannedAt = null);
             var changeResult = Model.Create<ProfileChangeResult>().Set(x => x.ProfileChanged = true);
             var cacheResults = new List<ProfileResult>();
@@ -287,10 +285,10 @@
         }
 
         [Fact]
-        public async Task UpdateProfileCalculatesAndProcessesChangesForUpdatedProfileNotBannedTest()
+        public async Task UpdateProfileCalculatesAndProcessesChangesForUpdatedProfileTest()
         {
             var expected = Model.Create<UpdatableProfile>();
-            var profile = Model.Create<Profile>().Set(x => x.BannedAt = null);
+            var profile = Model.Create<Profile>();
             var changeResult = Model.Create<ProfileChangeResult>().Set(x => x.ProfileChanged = true);
 
             var store = Substitute.For<IProfileStore>();
@@ -311,6 +309,33 @@
                     Verify.That<Profile>(x => x.ShouldBeEquivalentTo(expected, opt => opt.ExcludingMissingMembers())),
                     changeResult,
                     tokenSource.Token).ConfigureAwait(false);
+            }
+        }
+
+        [Fact]
+        public async Task UpdateProfileDoesNotAddBannedProfileToResultsCacheWhenNotPreviouslyCachedTest()
+        {
+            var expected = Model.Create<UpdatableProfile>().Set(x => x.Status = ProfileStatus.Available);
+            var profile = Model.Create<Profile>().Set(x => x.BannedAt = DateTimeOffset.UtcNow);
+            var changeResult = Model.Create<ProfileChangeResult>().Set(x => x.ProfileChanged = true);
+            var cacheResults = new List<ProfileResult>();
+
+            var store = Substitute.For<IProfileStore>();
+            var calculator = Substitute.For<IProfileChangeCalculator>();
+            var processor = Substitute.For<IProfileChangeProcessor>();
+            var cache = Substitute.For<ICacheManager>();
+
+            var sut = new ProfileCommand(store, calculator, processor, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                cache.GetProfileResults().Returns(cacheResults);
+                store.GetProfile(profile.Id, tokenSource.Token).Returns(profile);
+                calculator.CalculateChanges(profile, expected).Returns(changeResult);
+
+                await sut.UpdateProfile(profile.Id, expected, tokenSource.Token).ConfigureAwait(false);
+
+                cache.DidNotReceive().StoreProfileResults(Arg.Any<ICollection<ProfileResult>>());
             }
         }
 
@@ -371,7 +396,7 @@
         public async Task UpdateProfileDoesNotProcessProfileChangesWhenNoChangeFoundTest()
         {
             var expected = Model.Create<UpdatableProfile>();
-            var profile = Model.Create<Profile>().Set(x => x.BannedAt = null);
+            var profile = Model.Create<Profile>();
             var changeResult = Model.Create<ProfileChangeResult>().Set(x => x.ProfileChanged = false);
 
             var store = Substitute.For<IProfileStore>();
@@ -392,6 +417,37 @@
                     Arg.Any<Profile>(),
                     Arg.Any<ProfileChangeResult>(),
                     Arg.Any<CancellationToken>()).ConfigureAwait(false);
+            }
+        }
+
+        [Fact]
+        public async Task UpdateProfileRemovesBannedProfileFromResultsCacheTest()
+        {
+            var expected = Model.Create<UpdatableProfile>().Set(x => x.Status = ProfileStatus.Available);
+            var profile = Model.Create<Profile>().Set(x => x.BannedAt = DateTimeOffset.UtcNow);
+            var changeResult = Model.Create<ProfileChangeResult>().Set(x => x.ProfileChanged = true);
+            var cacheResults = new List<ProfileResult>
+            {
+                Model.Create<ProfileResult>().Set(x => x.Id = profile.Id)
+            };
+
+            var store = Substitute.For<IProfileStore>();
+            var calculator = Substitute.For<IProfileChangeCalculator>();
+            var processor = Substitute.For<IProfileChangeProcessor>();
+            var cache = Substitute.For<ICacheManager>();
+
+            var sut = new ProfileCommand(store, calculator, processor, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                cache.GetProfileResults().Returns(cacheResults);
+                store.GetProfile(profile.Id, tokenSource.Token).Returns(profile);
+                calculator.CalculateChanges(profile, expected).Returns(changeResult);
+
+                await sut.UpdateProfile(profile.Id, expected, tokenSource.Token).ConfigureAwait(false);
+
+                cache.Received().StoreProfileResults(
+                    Verify.That<ICollection<ProfileResult>>(x => x.Should().NotContain(y => y.Id == profile.Id)));
             }
         }
 
@@ -431,6 +487,7 @@
         {
             var expected = Model.Create<UpdatableProfile>();
             var profile = Model.Create<Profile>().Set(x => x.BannedAt = DateTimeOffset.UtcNow);
+            var changeResult = Model.Create<ProfileChangeResult>().Set(x => x.ProfileChanged = true);
 
             var store = Substitute.For<IProfileStore>();
             var calculator = Substitute.For<IProfileChangeCalculator>();
@@ -442,11 +499,13 @@
             using (var tokenSource = new CancellationTokenSource())
             {
                 store.GetProfile(profile.Id, tokenSource.Token).Returns(profile);
+                calculator.CalculateChanges(profile, expected).Returns(changeResult);
 
                 await sut.UpdateProfile(profile.Id, expected, tokenSource.Token).ConfigureAwait(false);
 
-                await store.Received().StoreProfile(
+                await processor.Received().Execute(
                     Arg.Is<Profile>(x => x.BannedAt == profile.BannedAt),
+                    Arg.Any<ProfileChangeResult>(),
                     tokenSource.Token).ConfigureAwait(false);
                 cache.DidNotReceive().StoreProfile(Arg.Any<Profile>());
             }

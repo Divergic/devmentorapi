@@ -66,24 +66,16 @@
 
             var original = await _store.GetProfile(profileId, cancellationToken).ConfigureAwait(false);
 
-            var updated = new Profile(profile)
-            {
-                Id = original.Id,
-                BannedAt = original.BannedAt
-            };
-
-            if (original.BannedAt != null)
-            {
-                // We don't calculate any changes to category links for a banned profile
-                await _store.StoreProfile(updated, cancellationToken).ConfigureAwait(false);
-
-                return;
-            }
-
             var changes = _calculator.CalculateChanges(original, profile);
 
             if (changes.ProfileChanged)
             {
+                var updated = new Profile(profile)
+                {
+                    Id = original.Id,
+                    BannedAt = original.BannedAt
+                };
+
                 await _processor.Execute(updated, changes, cancellationToken).ConfigureAwait(false);
 
                 UpdateResultsCache(updated);
@@ -92,8 +84,7 @@
 
         private void UpdateResultsCache(Profile profile)
         {
-            // The status has changed such that the visibility of the profile has been changed
-            // We need to update cache information for the available profiles
+            // We need to update cache information for the publicly visible profiles
             var results = _cache.GetProfileResults();
 
             if (results == null)
@@ -107,6 +98,8 @@
 
             if (cachedResult != null)
             {
+                // We found this profile in the cache, the profile has been updated or is hidden or banned
+                // We need to start by removing the existing profile from the cache
                 results.Remove(cachedResult);
                 cacheRequiresUpdate = true;
             }

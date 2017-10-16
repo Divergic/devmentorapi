@@ -78,15 +78,15 @@
 
             actual.Should().Be(ValidationResult.Success);
         }
-
+        
         [Fact]
         public void IsValidThrowsExceptionWhenOtherPropertyNotFoundTest()
         {
-            var skill = Model.Create<Skill>();
+            var skill = Model.Create<Skill>().Set(x => x.YearLastUsed = 2015);
             var context = new ValidationContext(skill);
 
             var sut = new GreaterOrEqualToAttribute("NotHere");
-
+            
             Action action = () => sut.GetValidationResult(skill.YearLastUsed, context);
 
             action.ShouldThrow<InvalidOperationException>();

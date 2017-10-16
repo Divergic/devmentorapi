@@ -6,6 +6,6 @@
     {
         ProfileChangeResult CalculateChanges(Profile original, UpdatableProfile updated);
 
-        ProfileChangeResult RemoveAllCategoryLinks(Profile original);
+        ProfileChangeResult RemoveAllCategoryLinks(UpdatableProfile original);
     }
 }
