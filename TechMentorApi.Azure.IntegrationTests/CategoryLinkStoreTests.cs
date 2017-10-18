@@ -37,7 +37,7 @@
 
             var table = client.GetTableReference("CategoryLinks");
 
-            await table.DeleteIfExistsAsync();
+            await table.DeleteIfExistsAsync().ConfigureAwait(false);
 
             var categoryName = Guid.NewGuid().ToString();
 
@@ -120,7 +120,7 @@
 
             var table = client.GetTableReference("CategoryLinks");
 
-            await table.DeleteIfExistsAsync();
+            await table.DeleteIfExistsAsync().ConfigureAwait(false);
 
             const CategoryGroup group = CategoryGroup.Gender;
             var categoryName = Guid.NewGuid().ToString();
@@ -165,7 +165,7 @@
 
             var table = client.GetTableReference("CategoryLinks");
 
-            await table.DeleteIfExistsAsync();
+            await table.DeleteIfExistsAsync().ConfigureAwait(false);
 
             const CategoryGroup group = CategoryGroup.Gender;
             var categoryName = Guid.NewGuid().ToString();
@@ -309,7 +309,7 @@
 
             var table = client.GetTableReference("CategoryLinks");
 
-            await table.DeleteIfExistsAsync();
+            await table.DeleteIfExistsAsync().ConfigureAwait(false);
 
             const CategoryGroup group = CategoryGroup.Gender;
             var categoryName = Guid.NewGuid().ToString();

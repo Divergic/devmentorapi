@@ -28,11 +28,11 @@
 
             try
             {
-                await _next(context);
+                await _next(context).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                await HandleExceptionAsync(context, ex);
+                await HandleExceptionAsync(context, ex).ConfigureAwait(false);
 
                 throw;
             }
@@ -64,16 +64,13 @@
         private static StorageException FindStorageException(Exception ex)
         {
             var exception = ex;
-            var aggregateException = exception as AggregateException;
 
-            if (aggregateException != null)
+            if (exception is AggregateException aggregateException)
             {
                 exception = aggregateException.Flatten();
             }
 
-            var storageException = exception as StorageException;
-
-            if (storageException != null)
+            if (exception is StorageException storageException)
             {
                 return storageException;
             }

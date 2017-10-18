@@ -24,7 +24,7 @@
 
         public async Task<IEnumerable<Category>> GetCategories(ReadType readType, CancellationToken cancellationToken)
         {
-            var categories = await GetCategoriesInternal(cancellationToken);
+            var categories = await GetCategoriesInternal(cancellationToken).ConfigureAwait(false);
 
             if (readType == ReadType.All)
             {

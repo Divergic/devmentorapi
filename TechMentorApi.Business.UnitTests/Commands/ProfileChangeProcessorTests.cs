@@ -175,8 +175,8 @@
                     Arg.Any<CategoryGroup>(),
                     Arg.Any<string>(),
                     Arg.Any<CategoryLinkChange>(),
-                    Arg.Any<CancellationToken>());
-                await categoryStore.DidNotReceive().StoreCategory(Arg.Any<Category>(), Arg.Any<CancellationToken>());
+                    Arg.Any<CancellationToken>()).ConfigureAwait(false);
+                await categoryStore.DidNotReceive().StoreCategory(Arg.Any<Category>(), Arg.Any<CancellationToken>()).ConfigureAwait(false);
             }
         }
 

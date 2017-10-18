@@ -21,7 +21,7 @@
 
                 do
                 {
-                    var segment = await table.ExecuteQuerySegmentedAsync(query, token, null, null, cancellationToken);
+                    var segment = await table.ExecuteQuerySegmentedAsync(query, token, null, null, cancellationToken).ConfigureAwait(false);
 
                     if (segment == null)
                     {

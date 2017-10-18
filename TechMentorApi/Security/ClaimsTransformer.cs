@@ -74,6 +74,8 @@
             if (identity.HasClaim(x => x.Type == ClaimType.ProfileId))
             {
                 _logger.LogDebug("The identity on the request already has the ProfileId claim");
+
+                return;
             }
 
             var email = identity.GetClaimValue<string>(ClaimType.Email);

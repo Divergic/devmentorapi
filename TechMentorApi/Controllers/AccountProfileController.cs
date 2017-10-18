@@ -7,7 +7,6 @@
     using EnsureThat;
     using Microsoft.AspNetCore.Mvc;
     using Swashbuckle.AspNetCore.SwaggerGen;
-    using TechMentorApi.Business;
     using TechMentorApi.Business.Commands;
     using TechMentorApi.Business.Queries;
     using TechMentorApi.Core;
