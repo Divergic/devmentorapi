@@ -125,7 +125,7 @@
 
             var table = client.GetTableReference("Categories");
 
-            await table.DeleteIfExistsAsync();
+            await table.DeleteIfExistsAsync().ConfigureAwait(false);
 
             var sut = new CategoryStore(Config.Storage);
 
@@ -158,7 +158,7 @@
 
             var table = client.GetTableReference("Categories");
 
-            await table.DeleteIfExistsAsync();
+            await table.DeleteIfExistsAsync().ConfigureAwait(false);
 
             var category = Model.Create<Category>();
 
@@ -196,7 +196,7 @@
 
             var table = client.GetTableReference("Categories");
 
-            await table.DeleteIfExistsAsync();
+            await table.DeleteIfExistsAsync().ConfigureAwait(false);
 
             var expected = Model.Create<Category>();
 

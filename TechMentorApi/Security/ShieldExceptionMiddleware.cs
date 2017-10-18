@@ -36,7 +36,7 @@
 
             try
             {
-                await _next(context);
+                await _next(context).ConfigureAwait(false);
             }
             catch (NotFoundException ex)
             {
@@ -45,7 +45,7 @@
                     ex.Message,
                     HttpStatusCode.NotFound);
 
-                await _executor.Execute(context, result);
+                await _executor.Execute(context, result).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -63,7 +63,7 @@
                     Resources.WebApi_ExceptionShieldMessage,
                     HttpStatusCode.InternalServerError);
 
-                await _executor.Execute(context, result);
+                await _executor.Execute(context, result).ConfigureAwait(false);
             }
         }
     }

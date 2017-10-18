@@ -133,7 +133,7 @@
 
             var table = client.GetTableReference("Profiles");
 
-            await table.DeleteIfExistsAsync();
+            await table.DeleteIfExistsAsync().ConfigureAwait(false);
 
             var sut = new ProfileStore(Config.Storage);
 
@@ -150,7 +150,7 @@
 
             var sut = new ProfileStore(Config.Storage);
 
-            var actual = await sut.GetProfile(profileId, CancellationToken.None);
+            var actual = await sut.GetProfile(profileId, CancellationToken.None).ConfigureAwait(false);
 
             actual.Should().BeNull();
         }
@@ -166,7 +166,7 @@
 
             var table = client.GetTableReference("Profiles");
 
-            await table.DeleteIfExistsAsync();
+            await table.DeleteIfExistsAsync().ConfigureAwait(false);
 
             var sut = new ProfileStore(Config.Storage);
 
@@ -182,9 +182,9 @@
 
             var sut = new ProfileStore(Config.Storage);
 
-            await sut.StoreProfile(expected, CancellationToken.None);
+            await sut.StoreProfile(expected, CancellationToken.None).ConfigureAwait(false);
 
-            var actual = await sut.GetProfile(expected.Id, CancellationToken.None);
+            var actual = await sut.GetProfile(expected.Id, CancellationToken.None).ConfigureAwait(false);
 
             actual.ShouldBeEquivalentTo(expected);
         }
@@ -211,7 +211,7 @@
 
             var table = client.GetTableReference("Profiles");
 
-            await table.DeleteIfExistsAsync();
+            await table.DeleteIfExistsAsync().ConfigureAwait(false);
 
             var profile = Model.Create<Profile>().Set(x => x.BannedAt = null);
 

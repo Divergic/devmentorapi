@@ -112,6 +112,7 @@
             var expected = principal.Identity.As<ClaimsIdentity>().Claims.Where(x => x.Type == ClaimType.ProfileId);
 
             expected.Should().HaveCount(1);
+            await manager.DidNotReceive().GetAccount(Arg.Any<User>(), CancellationToken.None).ConfigureAwait(false);
         }
 
         [Fact]

@@ -39,7 +39,7 @@
         [Fact]
         public async Task GetForNewUserCreatesProfileAsHiddenTest()
         {
-            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>().Set(x => x.BannedAt = null);
+            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>();
             var identity = ClaimsIdentityFactory.Build(null, profile);
             var address = ApiLocation.AccountProfile;
 
@@ -107,6 +107,36 @@
             var actual = await Client.Get<Profile>(address, _logger, identity).ConfigureAwait(false);
 
             actual.ShouldBeEquivalentTo(profile, opt => opt.Excluding(x => x.Id));
+        }
+
+        [Fact]
+        public async Task GetHandlesRaceConditionWithMultipleCallsOnNewAccountTest()
+        {
+            // Related to Issue 35
+            for (var index = 0; index < 50; index++)
+            {
+                _output.WriteLine("Executing test " + (index + 1));
+
+                var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>();
+                var identity = ClaimsIdentityFactory.Build(null, profile);
+                var profileAddress = ApiLocation.AccountProfile;
+                var categoryAddress = ApiLocation.Categories;
+
+                var profileTask = Client.Get<Profile>(profileAddress, null, identity);
+                var tasks = new List<Task>
+                {
+                    profileTask
+                };
+
+                for (var categoryCount = 0; categoryCount < 10; categoryCount++)
+                {
+                    var categoryTask = Client.Get<List<Category>>(categoryAddress, null, identity);
+
+                    tasks.Add(categoryTask);
+                }
+
+                await Task.WhenAll(tasks).ConfigureAwait(false);
+            }
         }
 
         [Fact]

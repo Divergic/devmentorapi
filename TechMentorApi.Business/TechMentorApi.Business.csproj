@@ -6,7 +6,9 @@
 
   <ItemGroup>
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="4.2.0" />
+    <PackageReference Include="ConfigureAwaitChecker.Analyzer" Version="1.0.0" />
     <PackageReference Include="Ensure.That" Version="6.0.1" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="1.1.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="2.0.0" />
   </ItemGroup>
 
