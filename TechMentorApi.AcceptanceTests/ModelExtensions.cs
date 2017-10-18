@@ -71,10 +71,13 @@
         {
             var administrator = ClaimsIdentityFactory.Build().AsAdministrator();
 
-            var tasks = new List<Task>
+            var tasks = new List<Task>();
+
+            if (profile.Gender != null)
             {
-                new NewCategory {Group = CategoryGroup.Gender, Name = profile.Gender}.Save(logger, administrator)
-            };
+                tasks.Add(new NewCategory {Group = CategoryGroup.Gender, Name = profile.Gender}.Save(logger,
+                    administrator));
+            }
 
             foreach (var language in profile.Languages)
             {

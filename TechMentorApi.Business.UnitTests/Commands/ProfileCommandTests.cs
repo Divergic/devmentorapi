@@ -259,8 +259,9 @@
         [Fact]
         public async Task UpdateProfileAddsProfileToResultsCacheWhenNotPreviouslyCachedTest()
         {
-            var expected = Model.Create<UpdatableProfile>();
-            var profile = Model.Create<Profile>().Set(x => x.BannedAt = null);
+            var expected = Model.Create<UpdatableProfile>().Set(x => x.Status = ProfileStatus.Available);
+            var profile = Model.Create<Profile>().Set(x => x.BannedAt = null)
+                .Set(x => x.Status = ProfileStatus.Available);
             var changeResult = Model.Create<ProfileChangeResult>().Set(x => x.ProfileChanged = true);
             var cacheResults = new List<ProfileResult>();
 
