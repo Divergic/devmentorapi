@@ -188,6 +188,7 @@
         [InlineData(true, "male", "male")]
         [InlineData(true, "male", "Male")]
         [InlineData(true, "Male", "male")]
+        [InlineData(false, null, "male")]
         [InlineData(false, "male", "male")]
         [InlineData(false, "male", "Male")]
         [InlineData(false, "Male", "male")]
@@ -375,6 +376,84 @@
 
                 actual.ShouldBeEquivalentTo(expected, opt => opt.ExcludingMissingMembers());
                 cache.Received().StoreProfile(expected);
+            }
+        }
+
+        [Fact]
+        public async Task GetPublicProfileHandlesCategoryFilteringWhenGenderIsNullTest()
+        {
+            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Unavailable)
+                .Set(x => x.BannedAt = null).Set(x => x.Gender = null);
+            var categories = Model.Create<Collection<Category>>();
+
+            var visibleCategories = categories.Where(x => x.Visible);
+
+            var store = Substitute.For<IProfileStore>();
+            var cache = Substitute.For<ICacheManager>();
+            var query = Substitute.For<ICategoryQuery>();
+
+            var sut = new ProfileQuery(store, cache, query);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                store.GetProfile(expected.Id, tokenSource.Token).Returns(expected);
+                query.GetCategories(ReadType.VisibleOnly, tokenSource.Token).Returns(visibleCategories);
+
+                var actual = await sut.GetPublicProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
+
+                actual.Gender.Should().BeNullOrEmpty();
+            }
+        }
+
+        [Fact]
+        public async Task GetPublicProfileHandlesCategoryFilteringWhenLanguagesIsNullTest()
+        {
+            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Unavailable)
+                .Set(x => x.BannedAt = null).Set(x => x.Languages = null);
+            var categories = Model.Create<Collection<Category>>();
+
+            var visibleCategories = categories.Where(x => x.Visible);
+
+            var store = Substitute.For<IProfileStore>();
+            var cache = Substitute.For<ICacheManager>();
+            var query = Substitute.For<ICategoryQuery>();
+
+            var sut = new ProfileQuery(store, cache, query);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                store.GetProfile(expected.Id, tokenSource.Token).Returns(expected);
+                query.GetCategories(ReadType.VisibleOnly, tokenSource.Token).Returns(visibleCategories);
+
+                var actual = await sut.GetPublicProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
+
+                actual.Languages.Should().BeNullOrEmpty();
+            }
+        }
+
+        [Fact]
+        public async Task GetPublicProfileHandlesCategoryFilteringWhenSkillsIsNullTest()
+        {
+            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Unavailable)
+                .Set(x => x.BannedAt = null).Set(x => x.Skills = null);
+            var categories = Model.Create<Collection<Category>>();
+
+            var visibleCategories = categories.Where(x => x.Visible);
+
+            var store = Substitute.For<IProfileStore>();
+            var cache = Substitute.For<ICacheManager>();
+            var query = Substitute.For<ICategoryQuery>();
+
+            var sut = new ProfileQuery(store, cache, query);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                store.GetProfile(expected.Id, tokenSource.Token).Returns(expected);
+                query.GetCategories(ReadType.VisibleOnly, tokenSource.Token).Returns(visibleCategories);
+
+                var actual = await sut.GetPublicProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
+
+                actual.Skills.Should().BeNullOrEmpty();
             }
         }
 

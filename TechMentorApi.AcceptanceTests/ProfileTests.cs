@@ -43,6 +43,25 @@
         }
 
         [Fact]
+        public async Task DeleteReturnsForbiddenWhenUserNotAdministratorTest()
+        {
+            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save().ConfigureAwait(false);
+            var address = ApiLocation.ProfileFor(profile.Id);
+            var identity = ClaimsIdentityFactory.Build();
+
+            await Client.Delete(address, _logger, identity, HttpStatusCode.Forbidden).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task DeleteReturnsNotFoundForEmptyIdTest()
+        {
+            var administrator = ClaimsIdentityFactory.Build().AsAdministrator();
+            var profileUri = ApiLocation.ProfileFor(Guid.Empty);
+
+            await Client.Delete(profileUri, _logger, administrator, HttpStatusCode.NotFound).ConfigureAwait(false);
+        }
+
+        [Fact]
         public async Task DeleteReturnsNotFoundWhenProfileAlreadyBannedTest()
         {
             var account = Model.Create<Account>();
@@ -79,25 +98,6 @@
 
             thirdActual.Single(x => x.Group == CategoryGroup.Skill && x.Name == newCategory.Name).LinkCount.Should()
                 .Be(0);
-        }
-
-        [Fact]
-        public async Task DeleteReturnsForbiddenWhenUserNotAdministratorTest()
-        {
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save().ConfigureAwait(false);
-            var address = ApiLocation.ProfileFor(profile.Id);
-            var identity = ClaimsIdentityFactory.Build();
-
-            await Client.Delete(address, _logger, identity, HttpStatusCode.Forbidden).ConfigureAwait(false);
-        }
-
-        [Fact]
-        public async Task DeleteReturnsNotFoundForEmptyIdTest()
-        {
-            var administrator = ClaimsIdentityFactory.Build().AsAdministrator();
-            var profileUri = ApiLocation.ProfileFor(Guid.Empty);
-
-            await Client.Delete(profileUri, _logger, administrator, HttpStatusCode.NotFound).ConfigureAwait(false);
         }
 
         [Fact]
@@ -272,6 +272,54 @@
         public async Task GetReturnsOkForAnonymousUserTest()
         {
             var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>();
+
+            await profile.SaveAllCategories().ConfigureAwait(false);
+
+            profile = await profile.Save().ConfigureAwait(false);
+
+            var address = ApiLocation.ProfileFor(profile.Id);
+
+            var actual = await Client.Get<PublicProfile>(address, _logger).ConfigureAwait(false);
+
+            actual.ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+        }
+
+        [Fact]
+        public async Task GetReturnsOkForAnonymousUserWhenGenderIsNullTest()
+        {
+            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>().Set(x => x.Gender = null);
+
+            await profile.SaveAllCategories().ConfigureAwait(false);
+
+            profile = await profile.Save().ConfigureAwait(false);
+
+            var address = ApiLocation.ProfileFor(profile.Id);
+
+            var actual = await Client.Get<PublicProfile>(address, _logger).ConfigureAwait(false);
+
+            actual.ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+        }
+
+        [Fact]
+        public async Task GetReturnsOkForAnonymousUserWhenLanguagesIsNullTest()
+        {
+            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>().Set(x => x.Languages = null);
+
+            await profile.SaveAllCategories().ConfigureAwait(false);
+
+            profile = await profile.Save().ConfigureAwait(false);
+
+            var address = ApiLocation.ProfileFor(profile.Id);
+
+            var actual = await Client.Get<PublicProfile>(address, _logger).ConfigureAwait(false);
+
+            actual.ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+        }
+
+        [Fact]
+        public async Task GetReturnsOkForAnonymousUserWhenSkillsIsNullTest()
+        {
+            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>().Set(x => x.Skills = null);
 
             await profile.SaveAllCategories().ConfigureAwait(false);
 

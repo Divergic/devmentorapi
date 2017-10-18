@@ -111,7 +111,7 @@
         {
             var approvedGenders = categoryGroups[CategoryGroup.Gender];
             
-            if (approvedGenders.Contains(profile.Gender.ToUpperInvariant()) == false)
+            if (profile.Gender != null && approvedGenders.Contains(profile.Gender.ToUpperInvariant()) == false)
             {
                 // The gender is not an approved category
                 profile.Gender = null;
