@@ -98,7 +98,7 @@
                 stream.Position = 0;
 
                 avatar.Data = stream;
-                avatar.Extension = blockBlob.Metadata[nameof(Avatar.Extension)];
+                avatar.ContentType = blockBlob.Metadata[nameof(Avatar.ContentType)];
                 avatar.SetETag(blockBlob.Properties.ETag);
 
                 return avatar;
@@ -142,7 +142,7 @@
 
             try
             {
-                blockBlob.Metadata[nameof(Avatar.Extension)] = avatar.Extension;
+                blockBlob.Metadata[nameof(Avatar.ContentType)] = avatar.ContentType;
 
                 avatar.Data.Position = 0;
 

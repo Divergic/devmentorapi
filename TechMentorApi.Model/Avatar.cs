@@ -4,8 +4,22 @@
     using System.IO;
     using System.Text.RegularExpressions;
 
-    public class Avatar
+    public class Avatar : IDisposable
     {
+        private bool _disposed;
+
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            Data?.Dispose();
+
+            _disposed = true;
+        }
+
         public void SetETag(string etag)
         {
             if (etag == null)
@@ -21,11 +35,11 @@
             }
         }
 
+        public string ContentType { get; set; }
+
         public Stream Data { get; set; }
 
         public string ETag { get; private set; }
-
-        public string Extension { get; set; }
 
         public Guid Id { get; set; }
 

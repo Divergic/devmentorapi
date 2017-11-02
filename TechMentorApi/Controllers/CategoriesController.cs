@@ -73,12 +73,12 @@
         }
 
         /// <summary>
-        ///     Gets the available categories.
+        ///     Creates a new category.
         /// </summary>
         /// <param name="model">The new category.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>
-        ///     The categories.
+        ///     A created result.
         /// </returns>
         [Route("categories")]
         [HttpPost]

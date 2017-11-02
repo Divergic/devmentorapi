@@ -16,7 +16,7 @@
         [Fact]
         public async Task DeleteAvatarRemovesAvatarBlobTest()
         {
-            var avatar = Model.Ignoring<Avatar>(x => x.Data).Create<Avatar>().Set(x => x.Extension = ".jpg");
+            var avatar = Model.Ignoring<Avatar>(x => x.Data).Create<Avatar>().Set(x => x.ContentType = ".jpg");
             var expected = Model.Create<byte[]>();
 
             var sut = new AvatarStore(Config.Storage);
@@ -119,7 +119,7 @@
         [Fact]
         public async Task GetAvatarReturnsStoredAvatarTest()
         {
-            var avatar = Model.Ignoring<Avatar>(x => x.Data).Create<Avatar>().Set(x => x.Extension = ".jpg");
+            var avatar = Model.Ignoring<Avatar>(x => x.Data).Create<Avatar>().Set(x => x.ContentType = ".jpg");
             var expected = Model.Create<byte[]>();
 
             var sut = new AvatarStore(Config.Storage);
@@ -190,7 +190,7 @@
 
             await container.DeleteIfExistsAsync().ConfigureAwait(false);
 
-            var avatar = Model.Ignoring<Avatar>(x => x.Data).Create<Avatar>().Set(x => x.Extension = ".jpg");
+            var avatar = Model.Ignoring<Avatar>(x => x.Data).Create<Avatar>().Set(x => x.ContentType = ".jpg");
             var expected = Model.Create<byte[]>();
 
             var sut = new AvatarStore(Config.Storage);
@@ -229,7 +229,7 @@
         [Fact]
         public async Task StoreAvatarStoresNewAvatarTest()
         {
-            var avatar = Model.Ignoring<Avatar>(x => x.Data).Create<Avatar>().Set(x => x.Extension = ".jpg");
+            var avatar = Model.Ignoring<Avatar>(x => x.Data).Create<Avatar>().Set(x => x.ContentType = ".jpg");
             var expected = Model.Create<byte[]>();
 
             var sut = new AvatarStore(Config.Storage);
@@ -279,7 +279,7 @@
         [Fact]
         public async Task StoreAvatarUpdatesExistingAvatarTest()
         {
-            var avatar = Model.Ignoring<Avatar>(x => x.Data).Create<Avatar>().Set(x => x.Extension = ".jpg");
+            var avatar = Model.Ignoring<Avatar>(x => x.Data).Create<Avatar>().Set(x => x.ContentType = ".jpg");
             var original = Model.Create<byte[]>();
 
             var sut = new AvatarStore(Config.Storage);
@@ -301,7 +301,7 @@
             using (var secondInputStream = new MemoryStream(expected))
             {
                 avatar.Data = secondInputStream;
-                avatar.Extension = ".png";
+                avatar.ContentType = ".png";
 
                 secondStoredAvatar = await sut.StoreAvatar(avatar, CancellationToken.None).ConfigureAwait(false);
 
