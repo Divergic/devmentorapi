@@ -1,8 +1,11 @@
 ﻿namespace TechMentorApi.AcceptanceTests
 {
     using System;
+    using System.Globalization;
+    using System.IO;
     using System.Net;
     using System.Net.Http;
+    using System.Net.Http.Headers;
     using System.Security.Claims;
     using System.Text;
     using System.Threading;
@@ -63,8 +66,19 @@
             HttpStatusCode expectedCode = HttpStatusCode.OK,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            var content = await GetInternal(address, logger, identity, expectedCode, cancellationToken)
+            var data = await GetInternal(address, logger, identity, expectedCode, cancellationToken)
                 .ConfigureAwait(false);
+
+            if (typeof(T) == typeof(byte[]))
+            {
+                logger?.LogInformation("Get returned {0} bytes", data.Length);
+
+                return (T)(object)data;
+            }
+
+            var content = Encoding.UTF8.GetString(data);
+
+            logger?.LogInformation(content);
 
             var value = JsonConvert.DeserializeObject<T>(content);
 
@@ -128,6 +142,63 @@
             var value = JsonConvert.DeserializeObject<T>(content);
 
             return value;
+        }
+
+        public static async Task<Tuple<Uri, T>> PostFile<T>(
+            Uri address,
+            ILogger logger = null,
+            byte[] data = null,
+            ClaimsIdentity identity = null,
+            HttpStatusCode expectedCode = HttpStatusCode.Created,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, address);
+
+            if (identity != null)
+            {
+                var token = TokenFactory.GenerateToken(identity);
+
+                logger?.LogInformation("Identity: {0}", identity.Name);
+                logger?.LogInformation("Bearer: {0}", token);
+
+                request.Headers.Add("Authorization", "Bearer " + token);
+            }
+
+            var content = new MultipartFormDataContent();
+
+            if (data != null)
+            {
+                var arrayContent = new ByteArrayContent(data);
+                var fileName = "\"" + Guid.NewGuid().ToString("N") + ".jpg\"";
+
+                arrayContent.Headers.ContentType = MediaTypeHeaderValue.Parse("image/jpeg");
+                content.Add(arrayContent, "file", fileName);
+                
+                logger?.LogInformation("Post data: {0} bytes", data.Length);
+            }
+            
+            request.Content = content;
+
+            var response = await _client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+
+            logger?.LogInformation(
+                "{0} {1}: {2} - {3}",
+                request.Method,
+                Config.WebsiteAddress.MakeRelativeUri(address),
+                response.StatusCode,
+                response.ReasonPhrase);
+
+            var responseContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+            logger?.LogInformation(responseContent);
+
+            response.StatusCode.Should().Be(expectedCode);
+
+            var location = response.Headers.Location;
+            
+            var value = JsonConvert.DeserializeObject<T>(responseContent);
+
+            return new Tuple<Uri, T>(location, value);
         }
 
         public static Task Put(
@@ -222,7 +293,7 @@
             return content;
         }
 
-        private static async Task<string> GetInternal(
+        private static async Task<byte[]> GetInternal(
             Uri address,
             ILogger logger,
             ClaimsIdentity identity,
@@ -250,9 +321,7 @@
                 response.StatusCode,
                 response.ReasonPhrase);
 
-            var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-            logger?.LogInformation(content);
+            var content = await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
 
             response.StatusCode.Should().Be(expectedCode);
 

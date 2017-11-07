@@ -9,6 +9,15 @@
 
     public static class ModelExtensions
     {
+        public static Profile ClearCategories(this Profile profile)
+        {
+            profile.Skills.Clear();
+            profile.Languages.Clear();
+            profile.Gender = null;
+
+            return profile;
+        }
+
         public static async Task<Profile> Save(this Profile profile, ILogger logger = null, Account account = null)
         {
             var address = ApiLocation.AccountProfile;

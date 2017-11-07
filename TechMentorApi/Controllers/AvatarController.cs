@@ -12,7 +12,7 @@
     using TechMentorApi.Core;
     using TechMentorApi.Properties;
 
-    public class AvatarController
+    public class AvatarController : Controller
     {
         private readonly IAvatarQuery _query;
 
@@ -36,7 +36,7 @@
         /// <returns>
         ///     The avatar.
         /// </returns>
-        [Route("profiles/{profileId:guid}/avatars/{avatarId:guid}")]
+        [Route("profiles/{profileId:guid}/avatars/{avatarId:guid}", Name = "ProfileAvatar")]
         [HttpGet]
         [AllowAnonymous]
         [ProducesResponseType((int) HttpStatusCode.OK)]

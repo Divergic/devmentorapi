@@ -1,6 +1,7 @@
 ﻿namespace TechMentorApi.Controllers
 {
     using System;
+    using System.ComponentModel.DataAnnotations;
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
@@ -10,7 +11,9 @@
     using Microsoft.AspNetCore.Mvc;
     using Swashbuckle.AspNetCore.SwaggerGen;
     using TechMentorApi.Business.Commands;
+    using TechMentorApi.Core;
     using TechMentorApi.Model;
+    using TechMentorApi.Properties;
     using TechMentorApi.ViewModels;
 
     public class AvatarsController : Controller
@@ -27,25 +30,29 @@
         /// <summary>
         ///     Creates a new avatar.
         /// </summary>
-        /// <param name="model">The new avatar.</param>
+        /// <param name="file">The new avatar file.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>
         ///     A created result.
         /// </returns>
         [Route("profiles/avatars/")]
         [HttpPost]
-        [Authorize]
         [ProducesResponseType(typeof(AvatarDetails), (int) HttpStatusCode.Created)]
         [SwaggerResponse((int) HttpStatusCode.Created, typeof(AvatarDetails))]
         [SwaggerResponse((int) HttpStatusCode.NotFound)]
-        public async Task<IActionResult> Post(IFormFile model, CancellationToken cancellationToken)
+        public async Task<IActionResult> Post(IFormFile file, CancellationToken cancellationToken)
         {
+            if (file == null)
+            {
+                return new ErrorMessageResult(Resources.Controller_NoBodyDataProvided, HttpStatusCode.BadRequest);
+            }
+
             var profileId = User.Identity.GetClaimValue<Guid>(ClaimType.ProfileId);
 
             using (var avatar = new Avatar
             {
-                ContentType = model.ContentType,
-                Data = model.OpenReadStream(),
+                ContentType = file.ContentType,
+                Data = file.OpenReadStream(),
                 ProfileId = profileId,
                 Id = Guid.NewGuid()
             })
@@ -65,7 +72,9 @@
                     avatarId = details.Id
                 };
 
-                return new CreatedAtActionResult(nameof(AvatarController.Get), nameof(AvatarController), routeValues, details);
+                var result = new CreatedAtRouteResult("ProfileAvatar", routeValues, details);
+
+                return result;
             }
         }
     }
