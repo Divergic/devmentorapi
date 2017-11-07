@@ -24,6 +24,20 @@
         }
 
         [Fact]
+        public async Task PostReturnsBadRequestForUnsupportedContentTypeTest()
+        {
+            var account = Model.Using<ProfileBuildStrategy>().Create<Account>();
+            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearCategories()
+                .Save(_logger, account).ConfigureAwait(false);
+            var identity = ClaimsIdentityFactory.Build(account, profile);
+            var address = ApiLocation.AccountProfileAvatars;
+
+            await Client.PostFile<AvatarDetails>(address, _logger, Resources.avatar, identity,
+                    "application/octet-stream", HttpStatusCode.BadRequest)
+                .ConfigureAwait(false);
+        }
+
+        [Fact]
         public async Task PostReturnsBadRequestWhenFileTooLargeTest()
         {
             var account = Model.Using<ProfileBuildStrategy>().Create<Account>();
@@ -32,7 +46,7 @@
             var identity = ClaimsIdentityFactory.Build(account, profile);
             var address = ApiLocation.AccountProfileAvatars;
 
-            await Client.PostFile<AvatarDetails>(address, _logger, Resources.oversize, identity,
+            await Client.PostFile<AvatarDetails>(address, _logger, Resources.oversize, identity, "image/jpeg",
                     HttpStatusCode.BadRequest)
                 .ConfigureAwait(false);
         }
@@ -43,7 +57,9 @@
             var identity = ClaimsIdentityFactory.Build();
             var address = ApiLocation.AccountProfileAvatars;
 
-            await Client.Post(address, _logger, null, identity, HttpStatusCode.BadRequest).ConfigureAwait(false);
+            await Client
+                .Post(address, _logger, null, identity, HttpStatusCode.BadRequest)
+                .ConfigureAwait(false);
         }
 
         [Fact]

@@ -112,6 +112,7 @@
                         }
 
                         config.Filters.Add(new AuthorizeFilter("AuthenticatedUser"));
+                        config.Filters.Add(new ValidateActionParametersAttribute());
                         config.Filters.Add(new ValidateModelAttribute());
 
                         // add custom binder to beginning of collection

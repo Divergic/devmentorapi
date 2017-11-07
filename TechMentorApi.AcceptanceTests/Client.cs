@@ -3,6 +3,7 @@
     using System;
     using System.Globalization;
     using System.IO;
+    using System.Linq;
     using System.Net;
     using System.Net.Http;
     using System.Net.Http.Headers;
@@ -149,6 +150,7 @@
             ILogger logger = null,
             byte[] data = null,
             ClaimsIdentity identity = null,
+            string contentType = "image/jpeg",
             HttpStatusCode expectedCode = HttpStatusCode.Created,
             CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -166,12 +168,14 @@
 
             var content = new MultipartFormDataContent();
 
+            var fileExtension = contentType.Split('/', StringSplitOptions.RemoveEmptyEntries).Last();
+
             if (data != null)
             {
                 var arrayContent = new ByteArrayContent(data);
-                var fileName = "\"" + Guid.NewGuid().ToString("N") + ".jpg\"";
+                var fileName = "\"" + Guid.NewGuid().ToString("N") + "." + fileExtension + "\"";
 
-                arrayContent.Headers.ContentType = MediaTypeHeaderValue.Parse("image/jpeg");
+                arrayContent.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
                 content.Add(arrayContent, "file", fileName);
                 
                 logger?.LogInformation("Post data: {0} bytes", data.Length);

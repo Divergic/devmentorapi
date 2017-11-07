@@ -1,12 +1,10 @@
 ﻿namespace TechMentorApi.Controllers
 {
     using System;
-    using System.ComponentModel.DataAnnotations;
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
     using EnsureThat;
-    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Swashbuckle.AspNetCore.SwaggerGen;
@@ -14,6 +12,7 @@
     using TechMentorApi.Core;
     using TechMentorApi.Model;
     using TechMentorApi.Properties;
+    using TechMentorApi.Security;
     using TechMentorApi.ViewModels;
 
     public class AvatarsController : Controller
@@ -40,7 +39,7 @@
         [ProducesResponseType(typeof(AvatarDetails), (int) HttpStatusCode.Created)]
         [SwaggerResponse((int) HttpStatusCode.Created, typeof(AvatarDetails))]
         [SwaggerResponse((int) HttpStatusCode.NotFound)]
-        public async Task<IActionResult> Post(IFormFile file, CancellationToken cancellationToken)
+        public async Task<IActionResult> Post([ContentType] IFormFile file, CancellationToken cancellationToken)
         {
             if (file == null)
             {

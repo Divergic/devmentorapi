@@ -61,6 +61,15 @@ namespace TechMentorApi.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The content-type of the file is unsupported. You may only upload jpeg, png or gif files..
+        /// </summary>
+        internal static string ContentTypeAttribute_Message {
+            get {
+                return ResourceManager.GetString("ContentTypeAttribute_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No POST/PUT body data provided..
         /// </summary>
         internal static string Controller_NoBodyDataProvided {
