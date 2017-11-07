@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="ContentTypeAttribute_Message" xml:space="preserve">
-    <value>The content-type of the file is unsupported. You may only upload jpeg, png or gif files.</value>
+    <value>The content-type of the file is unsupported. You may only upload jpeg or png files.</value>
   </data>
   <data name="Controller_NoBodyDataProvided" xml:space="preserve">
     <value>No POST/PUT body data provided.</value>

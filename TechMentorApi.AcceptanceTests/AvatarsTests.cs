@@ -23,8 +23,10 @@
             _logger = output.BuildLoggerFor<AvatarsTests>();
         }
 
-        [Fact]
-        public async Task PostReturnsBadRequestForUnsupportedContentTypeTest()
+        [Theory]
+        [InlineData("application/octet-stream")]
+        [InlineData("image/gif")]
+        public async Task PostReturnsBadRequestForUnsupportedContentTypeTest(string contentType)
         {
             var account = Model.Using<ProfileBuildStrategy>().Create<Account>();
             var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearCategories()
@@ -33,7 +35,7 @@
             var address = ApiLocation.AccountProfileAvatars;
 
             await Client.PostFile<AvatarDetails>(address, _logger, Resources.avatar, identity,
-                    "application/octet-stream", HttpStatusCode.BadRequest)
+                    contentType, HttpStatusCode.BadRequest)
                 .ConfigureAwait(false);
         }
 

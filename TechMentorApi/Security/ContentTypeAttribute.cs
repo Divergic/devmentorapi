@@ -10,7 +10,7 @@
     public sealed class ContentTypeAttribute : ValidationAttribute
     {
         private static readonly List<string> _supportedContentTypes =
-            new List<string> {"image/jpeg", "image/png", "image/gif"};
+            new List<string> {"image/jpeg", "image/png"};
 
         public override string FormatErrorMessage(string name)
         {
