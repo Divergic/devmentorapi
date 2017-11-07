@@ -9,11 +9,11 @@
     using System.Threading.Tasks;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
-    using Core;
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
+    using Microsoft.AspNetCore.Http.Features;
     using Microsoft.AspNetCore.Mvc.Authorization;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
@@ -23,8 +23,9 @@
     using Microsoft.IdentityModel.Tokens;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
-    using Security;
     using Swashbuckle.AspNetCore.Swagger;
+    using TechMentorApi.Core;
+    using TechMentorApi.Security;
 
     public class Startup
     {
@@ -59,6 +60,8 @@
 
                 // This must be second because it calls all subsequent middleware and watches for failures
                 app.UseMiddleware<ExceptionMonitorMiddleware>();
+
+                app.UseMiddleware<OversizeDataExceptionMiddleware>();
 
                 app.UseCors(builder => builder.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
 
@@ -147,6 +150,11 @@
                             Role.Administrator,
                             policyBuilder => policyBuilder.RequireRole(Role.Administrator));
                     });
+
+                services.Configure<FormOptions>(options =>
+                {
+                    options.MultipartBodyLengthLimit = Configuration.Avatar.MaxLength;
+                });
 
                 services.AddCors();
 

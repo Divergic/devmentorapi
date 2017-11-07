@@ -69,5 +69,15 @@ namespace TechMentorApi.AcceptanceTests.Properties {
                 return ((byte[])(obj));
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] oversize {
+            get {
+                object obj = ResourceManager.GetObject("oversize", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
     }
 }

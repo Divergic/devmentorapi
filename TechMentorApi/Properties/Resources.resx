@@ -123,6 +123,9 @@
   <data name="NotFound" xml:space="preserve">
     <value>Not Found.</value>
   </data>
+  <data name="Post_PayloadTooLarge" xml:space="preserve">
+    <value>The post data is too large. Please restrict file size to {0}kb.</value>
+  </data>
   <data name="RequireHttpsAttribute_MustUseSsl" xml:space="preserve">
     <value>The requested resource can only be accessed via HTTPS.</value>
   </data>

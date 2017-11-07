@@ -24,6 +24,20 @@
         }
 
         [Fact]
+        public async Task PostReturnsBadRequestWhenFileTooLargeTest()
+        {
+            var account = Model.Using<ProfileBuildStrategy>().Create<Account>();
+            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearCategories()
+                .Save(_logger, account).ConfigureAwait(false);
+            var identity = ClaimsIdentityFactory.Build(account, profile);
+            var address = ApiLocation.AccountProfileAvatars;
+
+            await Client.PostFile<AvatarDetails>(address, _logger, Resources.oversize, identity,
+                    HttpStatusCode.BadRequest)
+                .ConfigureAwait(false);
+        }
+
+        [Fact]
         public async Task PostReturnsBadRequestWhenNoContentProvidedTest()
         {
             var identity = ClaimsIdentityFactory.Build();
@@ -36,7 +50,8 @@
         public async Task PostReturnsCreatedForNewAvatarTest()
         {
             var account = Model.Using<ProfileBuildStrategy>().Create<Account>();
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearCategories().Save(_logger, account).ConfigureAwait(false);
+            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearCategories()
+                .Save(_logger, account).ConfigureAwait(false);
             var identity = ClaimsIdentityFactory.Build(account, profile);
             var address = ApiLocation.AccountProfileAvatars;
 
@@ -54,7 +69,8 @@
         public async Task PostReturnsLocationOfCreatedAvatarTest()
         {
             var account = Model.Using<ProfileBuildStrategy>().Create<Account>();
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearCategories().Save(_logger, account).ConfigureAwait(false);
+            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearCategories()
+                .Save(_logger, account).ConfigureAwait(false);
             var identity = ClaimsIdentityFactory.Build(account, profile);
             var address = ApiLocation.AccountProfileAvatars;
             var expected = Resources.avatar;
@@ -68,7 +84,7 @@
 
             actual.SequenceEqual(expected).Should().BeTrue();
         }
-        
+
         [Fact]
         public async Task PostReturnsUnauthorizedForAnonymousUserTest()
         {
