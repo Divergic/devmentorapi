@@ -3,10 +3,27 @@
     using System;
     using System.IO;
     using System.Text.RegularExpressions;
+    using EnsureThat;
 
     public class Avatar : IDisposable
     {
         private bool _disposed;
+
+        public Avatar()
+        {
+        }
+
+        public Avatar(Avatar source, Stream data)
+        {
+            Ensure.That(source, nameof(source)).IsNotNull();
+            Ensure.That(data, nameof(data)).IsNotNull();
+
+            ContentType = source.ContentType;
+            Data = data;
+            ETag = source.ETag;
+            Id = source.Id;
+            ProfileId = source.ProfileId;
+        }
 
         public void Dispose()
         {

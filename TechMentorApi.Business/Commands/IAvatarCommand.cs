@@ -6,6 +6,6 @@
 
     public interface IAvatarCommand
     {
-        Task<Avatar> CreateAvatar(Avatar avatar, CancellationToken cancellationToken);
+        Task<AvatarDetails> CreateAvatar(Avatar avatar, CancellationToken cancellationToken);
     }
 }

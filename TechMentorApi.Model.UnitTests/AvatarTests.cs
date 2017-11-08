@@ -2,13 +2,29 @@
 {
     using System.IO;
     using FluentAssertions;
+    using ModelBuilder;
     using NSubstitute;
     using Xunit;
 
     public class AvatarTests
     {
         [Fact]
-        public void CreatesWithDefaultValues()
+        public void CopyConstructorCreatesInstanceWithSuppliedValuesTest()
+        {
+            var originalData = Substitute.For<Stream>();
+            var newData = Substitute.For<Stream>();
+
+            var source = Model.Ignoring<Avatar>(x => x.Data).Create<Avatar>().Set(x => x.Data = originalData);
+
+            using (var sut = new Avatar(source, newData))
+            {
+                sut.ShouldBeEquivalentTo(source, opt => opt.Excluding(x => x.Data));
+                sut.Data.Should().BeSameAs(newData);
+            }
+        }
+
+        [Fact]
+        public void CreatesWithDefaultValuesTest()
         {
             using (var sut = new Avatar())
             {

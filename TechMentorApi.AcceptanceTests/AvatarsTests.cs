@@ -6,9 +6,9 @@
     using FluentAssertions;
     using Microsoft.Extensions.Logging;
     using ModelBuilder;
+    using SixLabors.ImageSharp;
     using TechMentorApi.AcceptanceTests.Properties;
     using TechMentorApi.Model;
-    using TechMentorApi.ViewModels;
     using Xunit;
     using Xunit.Abstractions;
 
@@ -21,6 +21,52 @@
         {
             _output = output;
             _logger = output.BuildLoggerFor<AvatarsTests>();
+        }
+
+        [Fact]
+        public async Task PostResizedAvatarRetainingAspectRatioWhenTooLargeTest()
+        {
+            var account = Model.Using<ProfileBuildStrategy>().Create<Account>();
+            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearCategories()
+                .Save(_logger, account).ConfigureAwait(false);
+            var identity = ClaimsIdentityFactory.Build(account, profile);
+            var address = ApiLocation.AccountProfileAvatars;
+
+            var result = await Client.PostFile<AvatarDetails>(address, _logger, Resources.aspect, identity, "image/png")
+                .ConfigureAwait(false);
+
+            var location = result.Item1;
+
+            var actual = await Client.Get<byte[]>(location, _logger).ConfigureAwait(false);
+
+            using (var image = Image.Load(actual))
+            {
+                image.Height.Should().Be(300);
+                image.Width.Should().Be(200);
+            }
+        }
+
+        [Fact]
+        public async Task PostResizedAvatarWhenTooLargeTest()
+        {
+            var account = Model.Using<ProfileBuildStrategy>().Create<Account>();
+            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearCategories()
+                .Save(_logger, account).ConfigureAwait(false);
+            var identity = ClaimsIdentityFactory.Build(account, profile);
+            var address = ApiLocation.AccountProfileAvatars;
+
+            var result = await Client.PostFile<AvatarDetails>(address, _logger, Resources.resize, identity)
+                .ConfigureAwait(false);
+
+            var location = result.Item1;
+
+            var actual = await Client.Get<byte[]>(location, _logger).ConfigureAwait(false);
+
+            using (var image = Image.Load(actual))
+            {
+                image.Height.Should().Be(300);
+                image.Width.Should().Be(300);
+            }
         }
 
         [Theory]

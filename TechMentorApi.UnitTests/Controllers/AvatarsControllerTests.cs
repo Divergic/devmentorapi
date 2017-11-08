@@ -10,14 +10,12 @@
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Controllers;
     using Microsoft.AspNetCore.Routing;
-    using Microsoft.Extensions.Configuration;
     using ModelBuilder;
     using NSubstitute;
     using TechMentorApi.Business.Commands;
     using TechMentorApi.Controllers;
     using TechMentorApi.Core;
     using TechMentorApi.Model;
-    using TechMentorApi.ViewModels;
     using Xunit;
 
     public class AvatarsControllerTests
@@ -35,6 +33,7 @@
         {
             var account = Model.Create<Account>();
             var user = ClaimsIdentityFactory.BuildPrincipal(account);
+            var avatarDetails = Model.Create<AvatarDetails>();
 
             var command = Substitute.For<IAvatarCommand>();
             var model = Substitute.For<IFormFile>();
@@ -49,10 +48,6 @@
 
             using (var data = new MemoryStream())
             {
-                var avatar = Substitute.For<Avatar>();
-
-                Model.Ignoring<Avatar>(x => x.Data).Populate(avatar);
-
                 using (var tokenSource = new CancellationTokenSource())
                 {
                     model.OpenReadStream().Returns(data);
@@ -65,23 +60,19 @@
                                 Arg.Is<Avatar>(x =>
                                     x.ContentType == model.ContentType && x.ProfileId == account.Id && x.Data == data),
                                 tokenSource.Token)
-                            .Returns(avatar);
+                            .Returns(avatarDetails);
 
                         var actual = await sut.Post(model, tokenSource.Token).ConfigureAwait(false);
 
                         var result = actual.Should().BeOfType<CreatedAtRouteResult>().Which;
 
                         result.RouteName.Should().Be("ProfileAvatar");
-                        result.RouteValues["profileId"].Should().Be(avatar.ProfileId);
-                        result.RouteValues["avatarId"].Should().Be(avatar.Id);
+                        result.RouteValues["profileId"].Should().Be(avatarDetails.ProfileId);
+                        result.RouteValues["avatarId"].Should().Be(avatarDetails.Id);
 
                         var value = result.Value.Should().BeOfType<AvatarDetails>().Which;
 
-                        value.ETag.Should().Be(avatar.ETag);
-                        value.Id.Should().Be(avatar.Id);
-                        value.ProfileId.Should().Be(avatar.ProfileId);
-
-                        avatar.Received().Dispose();
+                        value.ShouldBeEquivalentTo(avatarDetails);
                     }
                 }
             }

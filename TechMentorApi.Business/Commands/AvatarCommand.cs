@@ -8,25 +8,32 @@
 
     public class AvatarCommand : IAvatarCommand
     {
-        private readonly IAvatarStore _store;
         private readonly IAvatarConfig _config;
+        private readonly IAvatarResizer _resizer;
+        private readonly IAvatarStore _store;
 
-        public AvatarCommand(IAvatarStore store, IAvatarConfig config)
+        public AvatarCommand(IAvatarStore store, IAvatarResizer resizer, IAvatarConfig config)
         {
             Ensure.That(store, nameof(store)).IsNotNull();
+            Ensure.That(resizer, nameof(resizer)).IsNotNull();
             Ensure.That(config, nameof(config)).IsNotNull();
 
             _store = store;
+            _resizer = resizer;
             _config = config;
         }
 
-        public Task<Avatar> CreateAvatar(Avatar avatar, CancellationToken cancellationToken)
+        public async Task<AvatarDetails> CreateAvatar(Avatar avatar, CancellationToken cancellationToken)
         {
             Ensure.That(avatar, nameof(avatar)).IsNotNull();
 
-            // Resize the image to the maximum boundaries
+            using (var updatedAvatar = _resizer.Resize(avatar, _config.MaxHeight, _config.MaxWidth))
+            {
+                // Need async here so that the updated avatar can be disposed
+                var avatarDetails = await _store.StoreAvatar(updatedAvatar, cancellationToken).ConfigureAwait(false);
 
-            return _store.StoreAvatar(avatar, cancellationToken);
+                return avatarDetails;
+            }
         }
     }
 }

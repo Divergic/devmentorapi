@@ -1,4 +1,4 @@
-﻿namespace TechMentorApi.ViewModels
+﻿namespace TechMentorApi.Model
 {
     using System;
 

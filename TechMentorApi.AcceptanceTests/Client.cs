@@ -43,7 +43,7 @@
             logger?.LogInformation(
                 "{0} {1}: {2} - {3}",
                 request.Method,
-                Config.WebsiteAddress.MakeRelativeUri(address),
+                address,
                 response.StatusCode,
                 response.ReasonPhrase);
 
@@ -98,7 +98,7 @@
             logger?.LogInformation(
                 "{0} {1}: {2} - {3}",
                 request.Method,
-                Config.WebsiteAddress.MakeRelativeUri(address),
+                address,
                 response.StatusCode,
                 response.ReasonPhrase);
 
@@ -188,7 +188,7 @@
             logger?.LogInformation(
                 "{0} {1}: {2} - {3}",
                 request.Method,
-                Config.WebsiteAddress.MakeRelativeUri(address),
+                address,
                 response.StatusCode,
                 response.ReasonPhrase);
 
@@ -284,7 +284,7 @@
             logger?.LogInformation(
                 "{0} {1}: {2} - {3}",
                 request.Method,
-                Config.WebsiteAddress.MakeRelativeUri(address),
+                address,
                 response.StatusCode,
                 response.ReasonPhrase);
 
@@ -321,7 +321,7 @@
             logger?.LogInformation(
                 "{0} {1}: {2} - {3}",
                 request.Method,
-                Config.WebsiteAddress.MakeRelativeUri(address),
+                address,
                 response.StatusCode,
                 response.ReasonPhrase);
 

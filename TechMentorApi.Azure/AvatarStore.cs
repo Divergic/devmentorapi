@@ -127,7 +127,7 @@
             }
         }
 
-        public async Task<Avatar> StoreAvatar(Avatar avatar,
+        public async Task<AvatarDetails> StoreAvatar(Avatar avatar,
             CancellationToken cancellationToken)
         {
             Ensure.That(avatar, nameof(avatar)).IsNotNull();
@@ -180,7 +180,14 @@
                 }
             }
 
-            return avatar;
+            var details = new AvatarDetails
+            {
+                Id = avatar.Id,
+                ProfileId = avatar.ProfileId,
+                ETag = avatar.ETag
+            };
+            
+            return details;
         }
 
         private static string GetBlobReference(Avatar avatar)

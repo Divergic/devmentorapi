@@ -63,6 +63,16 @@ namespace TechMentorApi.AcceptanceTests.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] aspect {
+            get {
+                object obj = ResourceManager.GetObject("aspect", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] avatar {
             get {
                 object obj = ResourceManager.GetObject("avatar", resourceCulture);
@@ -76,6 +86,16 @@ namespace TechMentorApi.AcceptanceTests.Properties {
         internal static byte[] oversize {
             get {
                 object obj = ResourceManager.GetObject("oversize", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] resize {
+            get {
+                object obj = ResourceManager.GetObject("resize", resourceCulture);
                 return ((byte[])(obj));
             }
         }

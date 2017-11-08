@@ -1,6 +1,7 @@
 ﻿namespace TechMentorApi.Business.UnitTests.Commands
 {
     using System;
+    using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
     using FluentAssertions;
@@ -14,19 +15,46 @@
     public class AvatarCommandTests
     {
         [Fact]
-        public void ThrowsExceptionWithNullStoreTest()
+        public async Task CreateAvatarStoresResizedAvatarTest()
         {
-            Action action = () => new AvatarCommand(null);
+            var expected = Model.Ignoring<Avatar>(x => x.Data).Create<Avatar>();
+            var details = Model.Create<AvatarDetails>();
 
-            action.ShouldThrow<ArgumentNullException>();
+            var store = Substitute.For<IAvatarStore>();
+            var resizer = Substitute.For<IAvatarResizer>();
+            var config = Substitute.For<IAvatarConfig>();
+            var resizedAvatar = Substitute.For<Avatar>();
+
+            config.MaxHeight.Returns(Environment.TickCount);
+            config.MaxWidth = config.MaxHeight + 1;
+
+            var sut = new AvatarCommand(store, resizer, config);
+
+            using (resizedAvatar)
+            {
+                resizer.Resize(expected, config.MaxHeight, config.MaxWidth).Returns(resizedAvatar);
+
+                using (var tokenSource = new CancellationTokenSource())
+                {
+                    store.StoreAvatar(resizedAvatar, tokenSource.Token).Returns(details);
+
+                    var actual = await sut.CreateAvatar(expected, tokenSource.Token).ConfigureAwait(false);
+
+                    actual.ShouldBeEquivalentTo(details);
+
+                    resizedAvatar.Received().Dispose();
+                }
+            }
         }
 
         [Fact]
         public void CreateAvatarThrowsExceptionWithNullAvatarTest()
         {
             var store = Substitute.For<IAvatarStore>();
+            var resizer = Substitute.For<IAvatarResizer>();
+            var config = Substitute.For<IAvatarConfig>();
 
-            var sut = new AvatarCommand(store);
+            var sut = new AvatarCommand(store, resizer, config);
 
             Func<Task> action = async () => await sut.CreateAvatar(null, CancellationToken.None).ConfigureAwait(false);
 
@@ -34,22 +62,36 @@
         }
 
         [Fact]
-        public async Task CreateAvatarStoresAvatarTest()
+        public void ThrowsExceptionWithNullConfigTest()
         {
-            var expected = Model.Ignoring<Avatar>(x => x.Data).Create<Avatar>();
-
             var store = Substitute.For<IAvatarStore>();
+            var resizer = Substitute.For<IAvatarResizer>();
 
-            var sut = new AvatarCommand(store);
+            Action action = () => new AvatarCommand(store, resizer, null);
 
-            using (var tokenSource = new CancellationTokenSource())
-            {
-                store.StoreAvatar(expected, tokenSource.Token).Returns(expected);
+            action.ShouldThrow<ArgumentNullException>();
+        }
 
-                var actual = await sut.CreateAvatar(expected, tokenSource.Token).ConfigureAwait(false);
+        [Fact]
+        public void ThrowsExceptionWithNullResizerTest()
+        {
+            var store = Substitute.For<IAvatarStore>();
+            var config = Substitute.For<IAvatarConfig>();
 
-                actual.ShouldBeEquivalentTo(expected);
-            }
+            Action action = () => new AvatarCommand(store, null, config);
+
+            action.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Fact]
+        public void ThrowsExceptionWithNullStoreTest()
+        {
+            var resizer = Substitute.For<IAvatarResizer>();
+            var config = Substitute.For<IAvatarConfig>();
+
+            Action action = () => new AvatarCommand(null, resizer, config);
+
+            action.ShouldThrow<ArgumentNullException>();
         }
     }
 }

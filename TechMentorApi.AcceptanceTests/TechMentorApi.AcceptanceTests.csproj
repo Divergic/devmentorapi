@@ -21,6 +21,7 @@
     <PackageReference Include="ModelBuilder" Version="3.2.0" />
     <PackageReference Include="Neovolve.UnitTest" Version="0.1.0-ci0007" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0001" />
     <PackageReference Include="xunit" Version="2.3.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.3.0" />
   </ItemGroup>

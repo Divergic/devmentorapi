@@ -56,24 +56,15 @@
                 Id = Guid.NewGuid()
             })
             {
-                var storedAvatar = await _command.CreateAvatar(avatar, cancellationToken).ConfigureAwait(false);
-
-                var details = new AvatarDetails
-                {
-                    ETag = storedAvatar.ETag,
-                    Id = storedAvatar.Id,
-                    ProfileId = storedAvatar.ProfileId
-                };
-
+                var details = await _command.CreateAvatar(avatar, cancellationToken).ConfigureAwait(false);
+                
                 var routeValues = new
                 {
                     profileId = details.ProfileId,
                     avatarId = details.Id
                 };
 
-                var result = new CreatedAtRouteResult("ProfileAvatar", routeValues, details);
-
-                return result;
+                return new CreatedAtRouteResult("ProfileAvatar", routeValues, details);
             }
         }
     }

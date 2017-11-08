@@ -124,34 +124,33 @@
 
             var sut = new AvatarStore(Config.Storage);
 
-            Avatar storedAvatar;
-
             using (var inputStream = new MemoryStream(expected))
             {
                 avatar.Data = inputStream;
 
-                storedAvatar = await sut.StoreAvatar(avatar, CancellationToken.None).ConfigureAwait(false);
+                var avatarDetails = await sut.StoreAvatar(avatar, CancellationToken.None).ConfigureAwait(false);
 
-                storedAvatar.ShouldBeEquivalentTo(avatar, opt => opt.Excluding(x => x.ETag));
-                storedAvatar.ETag.Should().NotBeNullOrWhiteSpace();
-            }
+                avatarDetails.ShouldBeEquivalentTo(avatar, opt => opt.ExcludingMissingMembers().Excluding(x => x.ETag));
+                avatarDetails.ETag.Should().NotBeNullOrWhiteSpace();
 
-            var retrievedAvatar = await sut.GetAvatar(avatar.ProfileId, avatar.Id, CancellationToken.None)
-                .ConfigureAwait(false);
+                using (var retrievedAvatar = await sut.GetAvatar(avatar.ProfileId, avatar.Id, CancellationToken.None)
+                    .ConfigureAwait(false))
+                {
+                    retrievedAvatar.ShouldBeEquivalentTo(avatarDetails, opt => opt.ExcludingMissingMembers());
 
-            retrievedAvatar.ShouldBeEquivalentTo(storedAvatar, opt => opt.Excluding(x => x.Data));
+                    using (var outputStream = retrievedAvatar.Data)
+                    {
+                        outputStream.Position.Should().Be(0);
+                        outputStream.Length.Should().Be(expected.Length);
 
-            using (var outputStream = retrievedAvatar.Data)
-            {
-                outputStream.Position.Should().Be(0);
-                outputStream.Length.Should().Be(expected.Length);
+                        var actual = new byte[expected.Length];
 
-                var actual = new byte[expected.Length];
+                        var length = outputStream.Read(actual, 0, expected.Length);
 
-                var length = outputStream.Read(actual, 0, expected.Length);
-
-                length.Should().Be(expected.Length);
-                expected.SequenceEqual(actual).Should().BeTrue();
+                        length.Should().Be(expected.Length);
+                        expected.SequenceEqual(actual).Should().BeTrue();
+                    }
+                }
             }
         }
 
@@ -195,34 +194,32 @@
 
             var sut = new AvatarStore(Config.Storage);
 
-            Avatar storedAvatar;
-
             using (var inputStream = new MemoryStream(expected))
             {
                 avatar.Data = inputStream;
 
-                storedAvatar = await sut.StoreAvatar(avatar, CancellationToken.None).ConfigureAwait(false);
+                var avatarDetails = await sut.StoreAvatar(avatar, CancellationToken.None).ConfigureAwait(false);
 
-                storedAvatar.ShouldBeEquivalentTo(avatar, opt => opt.Excluding(x => x.ETag));
-                storedAvatar.ETag.Should().NotBeNullOrWhiteSpace();
-            }
+                avatarDetails.ShouldBeEquivalentTo(avatar, opt => opt.ExcludingMissingMembers().Excluding(x => x.ETag));
+                avatarDetails.ETag.Should().NotBeNullOrWhiteSpace();
 
-            var retrievedAvatar = await sut.GetAvatar(avatar.ProfileId, avatar.Id, CancellationToken.None)
-                .ConfigureAwait(false);
+                var retrievedAvatar = await sut.GetAvatar(avatar.ProfileId, avatar.Id, CancellationToken.None)
+                    .ConfigureAwait(false);
 
-            retrievedAvatar.ShouldBeEquivalentTo(storedAvatar, opt => opt.Excluding(x => x.Data));
+                retrievedAvatar.ShouldBeEquivalentTo(avatarDetails, opt => opt.ExcludingMissingMembers());
 
-            using (var outputStream = retrievedAvatar.Data)
-            {
-                outputStream.Position.Should().Be(0);
-                outputStream.Length.Should().Be(expected.Length);
+                using (var outputStream = retrievedAvatar.Data)
+                {
+                    outputStream.Position.Should().Be(0);
+                    outputStream.Length.Should().Be(expected.Length);
 
-                var actual = new byte[expected.Length];
+                    var actual = new byte[expected.Length];
 
-                var length = outputStream.Read(actual, 0, expected.Length);
+                    var length = outputStream.Read(actual, 0, expected.Length);
 
-                length.Should().Be(expected.Length);
-                expected.SequenceEqual(actual).Should().BeTrue();
+                    length.Should().Be(expected.Length);
+                    expected.SequenceEqual(actual).Should().BeTrue();
+                }
             }
         }
 
@@ -234,34 +231,31 @@
 
             var sut = new AvatarStore(Config.Storage);
 
-            Avatar storedAvatar;
-
             using (var inputStream = new MemoryStream(expected))
             {
                 avatar.Data = inputStream;
 
-                storedAvatar = await sut.StoreAvatar(avatar, CancellationToken.None).ConfigureAwait(false);
+                var avatarDetails = await sut.StoreAvatar(avatar, CancellationToken.None).ConfigureAwait(false);
 
-                storedAvatar.ShouldBeEquivalentTo(avatar, opt => opt.Excluding(x => x.ETag));
-                storedAvatar.ETag.Should().NotBeNullOrWhiteSpace();
-            }
+                avatarDetails.ShouldBeEquivalentTo(avatar, opt => opt.ExcludingMissingMembers().Excluding(x => x.ETag));
+                avatarDetails.ETag.Should().NotBeNullOrWhiteSpace();
+                var retrievedAvatar = await sut.GetAvatar(avatar.ProfileId, avatar.Id, CancellationToken.None)
+                    .ConfigureAwait(false);
 
-            var retrievedAvatar = await sut.GetAvatar(avatar.ProfileId, avatar.Id, CancellationToken.None)
-                .ConfigureAwait(false);
+                retrievedAvatar.ShouldBeEquivalentTo(avatarDetails, opt => opt.ExcludingMissingMembers());
 
-            retrievedAvatar.ShouldBeEquivalentTo(storedAvatar, opt => opt.Excluding(x => x.Data));
+                using (var outputStream = retrievedAvatar.Data)
+                {
+                    outputStream.Position.Should().Be(0);
+                    outputStream.Length.Should().Be(expected.Length);
 
-            using (var outputStream = retrievedAvatar.Data)
-            {
-                outputStream.Position.Should().Be(0);
-                outputStream.Length.Should().Be(expected.Length);
+                    var actual = new byte[expected.Length];
 
-                var actual = new byte[expected.Length];
+                    var length = outputStream.Read(actual, 0, expected.Length);
 
-                var length = outputStream.Read(actual, 0, expected.Length);
-
-                length.Should().Be(expected.Length);
-                expected.SequenceEqual(actual).Should().BeTrue();
+                    length.Should().Be(expected.Length);
+                    expected.SequenceEqual(actual).Should().BeTrue();
+                }
             }
         }
 
@@ -295,37 +289,35 @@
             }
 
             var expected = Model.Create<byte[]>();
-
-            Avatar secondStoredAvatar;
-
+            
             using (var secondInputStream = new MemoryStream(expected))
             {
                 avatar.Data = secondInputStream;
                 avatar.ContentType = ".png";
 
-                secondStoredAvatar = await sut.StoreAvatar(avatar, CancellationToken.None).ConfigureAwait(false);
+                var avatarDetails = await sut.StoreAvatar(avatar, CancellationToken.None).ConfigureAwait(false);
 
-                secondStoredAvatar.ShouldBeEquivalentTo(avatar, opt => opt.Excluding(x => x.ETag));
-                secondStoredAvatar.ETag.Should().NotBeNullOrWhiteSpace();
-            }
+                avatarDetails.ShouldBeEquivalentTo(avatar, opt => opt.ExcludingMissingMembers().Excluding(x => x.ETag));
+                avatarDetails.ETag.Should().NotBeNullOrWhiteSpace();
 
-            var retrievedAvatar = await sut.GetAvatar(avatar.ProfileId, avatar.Id, CancellationToken.None)
-                .ConfigureAwait(false);
+                var retrievedAvatar = await sut.GetAvatar(avatar.ProfileId, avatar.Id, CancellationToken.None)
+                    .ConfigureAwait(false);
 
-            retrievedAvatar.ShouldBeEquivalentTo(secondStoredAvatar, opt => opt.Excluding(x => x.Data));
+                retrievedAvatar.ShouldBeEquivalentTo(avatarDetails, opt => opt.ExcludingMissingMembers());
 
-            using (var outputStream = retrievedAvatar.Data)
-            {
-                outputStream.Position.Should().Be(0);
-                outputStream.Length.Should().Be(expected.Length);
+                using (var outputStream = retrievedAvatar.Data)
+                {
+                    outputStream.Position.Should().Be(0);
+                    outputStream.Length.Should().Be(expected.Length);
 
-                var actual = new byte[expected.Length];
+                    var actual = new byte[expected.Length];
 
-                var length = outputStream.Read(actual, 0, expected.Length);
+                    var length = outputStream.Read(actual, 0, expected.Length);
 
-                length.Should().Be(expected.Length);
-                expected.SequenceEqual(actual).Should().BeTrue();
-                original.SequenceEqual(actual).Should().BeFalse();
+                    length.Should().Be(expected.Length);
+                    expected.SequenceEqual(actual).Should().BeTrue();
+                    original.SequenceEqual(actual).Should().BeFalse();
+                }
             }
         }
     }

@@ -11,6 +11,6 @@
 
         Task<Avatar> GetAvatar(Guid profileId, Guid avatarId, CancellationToken cancellationToken);
 
-        Task<Avatar> StoreAvatar(Avatar avatar, CancellationToken cancellationToken);
+        Task<AvatarDetails> StoreAvatar(Avatar avatar, CancellationToken cancellationToken);
     }
 }
