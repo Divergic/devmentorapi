@@ -3,8 +3,6 @@
     using System;
     using FluentAssertions;
     using Microsoft.AspNetCore.Http;
-    using Microsoft.AspNetCore.Http.Internal;
-    using ModelBuilder;
     using NSubstitute;
     using TechMentorApi.Security;
     using Xunit;
@@ -14,10 +12,10 @@
         [Theory]
         [InlineData("image/jpeg", true)]
         [InlineData("image/png", true)]
-        [InlineData("image/gif", true)]
         [InlineData("IMAGE/JPEG", true)]
         [InlineData("image/PNG", true)]
-        [InlineData("Image/gif", true)]
+        [InlineData("Image/png", true)]
+        [InlineData("image/gif", false)]
         [InlineData("application/octet-stream", false)]
         public void IsValidReturnsExpectedValueTest(string contentType, bool expected)
         {
