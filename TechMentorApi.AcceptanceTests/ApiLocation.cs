@@ -4,7 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
-    using Model;
+    using TechMentorApi.Model;
 
     public static class ApiLocation
     {
@@ -51,6 +51,8 @@
         }
 
         public static Uri AccountProfile => new Uri(Config.WebsiteAddress, "/profile");
+
+        public static Uri AccountProfileAvatars => new Uri(Config.WebsiteAddress, "/profiles/avatars/");
 
         public static Uri Categories => new Uri(Config.WebsiteAddress, "/categories");
 

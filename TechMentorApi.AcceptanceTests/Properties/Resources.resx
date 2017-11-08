@@ -117,25 +117,17 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ContentTypeAttribute_Message" xml:space="preserve">
-    <value>The content-type of the file is unsupported. You may only upload jpeg or png files.</value>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="aspect" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aspect.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="Controller_NoBodyDataProvided" xml:space="preserve">
-    <value>No POST/PUT body data provided.</value>
+  <data name="avatar" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>avatar.jpg;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="NotFound" xml:space="preserve">
-    <value>Not Found.</value>
+  <data name="oversize" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>oversize.jpg;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="Post_PayloadTooLarge" xml:space="preserve">
-    <value>The post data is too large. Please restrict file size to {0}kb.</value>
-  </data>
-  <data name="RequireHttpsAttribute_MustUseSsl" xml:space="preserve">
-    <value>The requested resource can only be accessed via HTTPS.</value>
-  </data>
-  <data name="ResultExecutor_ResponseStarted" xml:space="preserve">
-    <value>Unable to set result as response has already started.</value>
-  </data>
-  <data name="WebApi_ExceptionShieldMessage" xml:space="preserve">
-    <value>The server encountered an error while processing this request. The details have been logged and we will look into it.</value>
+  <data name="resize" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>resize.jpg;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
 </root>

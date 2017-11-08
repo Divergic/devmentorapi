@@ -5,7 +5,7 @@
     using TechMentorApi.Model.Properties;
     using EnsureThat;
 
-    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter)]
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter)]
     public class ValidPastYearAttribute : ValidationAttribute
     {
         private readonly bool _allowNull;

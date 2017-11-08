@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace TechMentorApi.Properties {
+namespace TechMentorApi.AcceptanceTests.Properties {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace TechMentorApi.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("TechMentorApi.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("TechMentorApi.AcceptanceTests.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -61,65 +61,42 @@ namespace TechMentorApi.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The content-type of the file is unsupported. You may only upload jpeg or png files..
+        ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
-        internal static string ContentTypeAttribute_Message {
+        internal static byte[] aspect {
             get {
-                return ResourceManager.GetString("ContentTypeAttribute_Message", resourceCulture);
+                object obj = ResourceManager.GetObject("aspect", resourceCulture);
+                return ((byte[])(obj));
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No POST/PUT body data provided..
+        ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
-        internal static string Controller_NoBodyDataProvided {
+        internal static byte[] avatar {
             get {
-                return ResourceManager.GetString("Controller_NoBodyDataProvided", resourceCulture);
+                object obj = ResourceManager.GetObject("avatar", resourceCulture);
+                return ((byte[])(obj));
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Not Found..
+        ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
-        internal static string NotFound {
+        internal static byte[] oversize {
             get {
-                return ResourceManager.GetString("NotFound", resourceCulture);
+                object obj = ResourceManager.GetObject("oversize", resourceCulture);
+                return ((byte[])(obj));
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The post data is too large. Please restrict file size to {0}kb..
+        ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
-        internal static string Post_PayloadTooLarge {
+        internal static byte[] resize {
             get {
-                return ResourceManager.GetString("Post_PayloadTooLarge", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The requested resource can only be accessed via HTTPS..
-        /// </summary>
-        internal static string RequireHttpsAttribute_MustUseSsl {
-            get {
-                return ResourceManager.GetString("RequireHttpsAttribute_MustUseSsl", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unable to set result as response has already started..
-        /// </summary>
-        internal static string ResultExecutor_ResponseStarted {
-            get {
-                return ResourceManager.GetString("ResultExecutor_ResponseStarted", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The server encountered an error while processing this request. The details have been logged and we will look into it..
-        /// </summary>
-        internal static string WebApi_ExceptionShieldMessage {
-            get {
-                return ResourceManager.GetString("WebApi_ExceptionShieldMessage", resourceCulture);
+                object obj = ResourceManager.GetObject("resize", resourceCulture);
+                return ((byte[])(obj));
             }
         }
     }

@@ -23,6 +23,10 @@
             YearStartedInTech = profile.YearStartedInTech;
         }
 
+        public string AvatarETag { get; set; }
+
+        public Guid? AvatarId { get; set; }
+
         public int? BirthYear { get; set; }
 
         public string FirstName { get; set; }

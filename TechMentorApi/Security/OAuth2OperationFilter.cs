@@ -9,11 +9,11 @@
     {
         public void Apply(Operation operation, OperationFilterContext context)
         {
-            var controllerAttributes = context.ApiDescription.ControllerAttributes().OfType<AllowAnonymousAttribute>();
-            var actionAttributes = context.ApiDescription.ActionAttributes().OfType<AllowAnonymousAttribute>();
-            var attributes = controllerAttributes.Union(actionAttributes);
+            var anonymousControllerAttributes = context.ApiDescription.ControllerAttributes().OfType<AllowAnonymousAttribute>();
+            var anonymousActionAttributes = context.ApiDescription.ActionAttributes().OfType<AllowAnonymousAttribute>();
+            var anonymousAttributes = anonymousControllerAttributes.Union(anonymousActionAttributes);
 
-            if (attributes.Any())
+            if (anonymousAttributes.Any())
             {
                 // This action allows anonymous requests
                 return;
@@ -25,12 +25,21 @@
                 {
                     Description = "Unauthorized"
                 });
-            operation.Responses.Add(
-                "403",
-                new Response
-                {
-                    Description = "Forbidden"
-                });
+
+            var authorizeControllerAttributes = context.ApiDescription.ControllerAttributes().OfType<AuthorizeAttribute>();
+            var authorizeActionAttributes = context.ApiDescription.ActionAttributes().OfType<AuthorizeAttribute>();
+            var authorizeAttributes = authorizeControllerAttributes.Union(authorizeActionAttributes);
+
+            if (authorizeAttributes.Any(x => string.IsNullOrWhiteSpace(x.Roles) == false))
+            {
+                // This action requires a role so Forbidden is also a possibility
+                operation.Responses.Add(
+                    "403",
+                    new Response
+                    {
+                        Description = "Forbidden"
+                    });
+            }
 
             //operation.Security = new List<IDictionary<string, IEnumerable<string>>>();
             //operation.Security.Add(
