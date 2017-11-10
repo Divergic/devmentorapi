@@ -17,6 +17,10 @@
 
         public string About { get; set; }
 
+        public string AvatarETag { get; set; }
+
+        public Guid? AvatarId { get; set; }
+
         public int? BirthYear { get; set; }
 
         [Required]

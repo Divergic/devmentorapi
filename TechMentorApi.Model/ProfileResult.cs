@@ -13,6 +13,8 @@
         {
             Ensure.That(profile, nameof(profile)).IsNotNull();
 
+            AvatarETag = profile.AvatarETag;
+            AvatarId = profile.AvatarId;
             BirthYear = profile.BirthYear;
             FirstName = profile.FirstName;
             Gender = profile.Gender;
