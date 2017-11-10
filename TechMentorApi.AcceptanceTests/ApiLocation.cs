@@ -50,14 +50,14 @@
             return WebUtility.UrlEncode(value).Replace("+", "%20");
         }
 
-        public static Uri AccountProfile => new Uri(Config.WebsiteAddress, "/profile");
+        public static Uri AccountProfile => new Uri(Config.WebsiteAddress, "/profile/");
 
-        public static Uri AccountProfileAvatars => new Uri(Config.WebsiteAddress, "/profiles/avatars/");
+        public static Uri AccountProfileAvatars => new Uri(Config.WebsiteAddress, "/profile/avatars/");
 
-        public static Uri Categories => new Uri(Config.WebsiteAddress, "/categories");
+        public static Uri Categories => new Uri(Config.WebsiteAddress, "/categories/");
 
-        public static Uri Ping => new Uri(Config.WebsiteAddress, "/ping");
+        public static Uri Ping => new Uri(Config.WebsiteAddress, "/ping/");
 
-        public static Uri Profiles => new Uri(Config.WebsiteAddress, "/profiles");
+        public static Uri Profiles => new Uri(Config.WebsiteAddress, "/profiles/");
     }
 }

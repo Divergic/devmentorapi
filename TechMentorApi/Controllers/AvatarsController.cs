@@ -13,7 +13,6 @@
     using TechMentorApi.Model;
     using TechMentorApi.Properties;
     using TechMentorApi.Security;
-    using TechMentorApi.ViewModels;
 
     public class AvatarsController : Controller
     {
@@ -34,7 +33,7 @@
         /// <returns>
         ///     A created result.
         /// </returns>
-        [Route("profiles/avatars/")]
+        [Route("profile/avatars/")]
         [HttpPost]
         [ProducesResponseType(typeof(AvatarDetails), (int) HttpStatusCode.Created)]
         [SwaggerResponse((int) HttpStatusCode.Created, typeof(AvatarDetails))]
@@ -57,7 +56,7 @@
             })
             {
                 var details = await _command.CreateAvatar(avatar, cancellationToken).ConfigureAwait(false);
-                
+
                 var routeValues = new
                 {
                     profileId = details.ProfileId,
