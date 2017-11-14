@@ -230,6 +230,31 @@
             }
         }
 
+        private static bool HasGuidChanged(Guid? original, Guid? updated)
+        {
+            if (original == null &&
+                updated == null)
+            {
+                // Nothing has changed
+                return false;
+            }
+
+            if (original == null ||
+                updated == null)
+            {
+                // One of the values has a value and the other doesn't
+                return true;
+            }
+
+            // Both strings have a value
+            if (original.Equals(updated))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
         private static bool HasIntChanged(int? original, int? updated)
         {
             if (original == null &&
@@ -261,6 +286,16 @@
             Debug.Assert(updated != null, "No updated profile provided");
 
             if (HasStringChanged(original.About, updated.About))
+            {
+                return true;
+            }
+
+            if (HasStringChanged(original.AvatarETag, updated.AvatarETag))
+            {
+                return true;
+            }
+
+            if (HasGuidChanged(original.AvatarId, updated.AvatarId))
             {
                 return true;
             }
