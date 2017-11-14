@@ -20,6 +20,8 @@
             Ensure.That(profile, nameof(profile)).IsNotNull();
 
             About = profile.About;
+            AvatarETag = profile.AvatarETag;
+            AvatarId = profile.AvatarId;
             Id = profile.Id;
             BirthYear = profile.BirthYear;
             FirstName = profile.FirstName;
@@ -36,6 +38,10 @@
         }
 
         public string About { get; set; }
+
+        public string AvatarETag { get; set; }
+
+        public Guid? AvatarId { get; set; }
 
         public int? BirthYear { get; set; }
 
