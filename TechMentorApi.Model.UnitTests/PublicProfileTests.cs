@@ -14,8 +14,8 @@
             var sut = new PublicProfile();
 
             sut.About.Should().BeNull();
-            sut.AvatarETag.Should().BeNull();
-            sut.AvatarETag.Should().BeNull();
+            sut.PhotoHash.Should().BeNull();
+            sut.PhotoHash.Should().BeNull();
             sut.BirthYear.Should().BeNull();
             sut.FirstName.Should().BeNull();
             sut.Gender.Should().BeNull();

@@ -32,7 +32,7 @@
                 sut.Data.Should().BeNull();
                 sut.Id.Should().BeEmpty();
                 sut.ProfileId.Should().BeEmpty();
-                sut.ETag.Should().BeNull();
+                sut.Hash.Should().BeNull();
             }
         }
 
@@ -64,25 +64,6 @@
                 sut.Dispose();
 
                 data.Received().Dispose();
-            }
-        }
-
-        [Theory]
-        [InlineData(null, null)]
-        [InlineData("", "")]
-        [InlineData("8D5212A33BF95D0", "8D5212A33BF95D0")]
-        [InlineData("0x8D5212A33BF95D0", "0x8D5212A33BF95D0")]
-        [InlineData("\"0x8D5212A33BF95D0\"", "0x8D5212A33BF95D0")]
-        [InlineData("\"0x8D52  12A33BF95D0\"", "0x8D5212A33BF95D0")]
-        public void SetETagCanSetValueTest(string input, string output)
-        {
-            using (var sut = new Photo())
-            {
-                sut.SetETag(input);
-
-                var actual = sut.ETag;
-
-                actual.Should().Be(output);
             }
         }
     }

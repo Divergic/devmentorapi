@@ -130,8 +130,8 @@
 
                 var photoDetails = await sut.StorePhoto(photo, CancellationToken.None).ConfigureAwait(false);
 
-                photoDetails.ShouldBeEquivalentTo(photo, opt => opt.ExcludingMissingMembers().Excluding(x => x.ETag));
-                photoDetails.ETag.Should().NotBeNullOrWhiteSpace();
+                photoDetails.ShouldBeEquivalentTo(photo, opt => opt.ExcludingMissingMembers().Excluding(x => x.Hash));
+                photoDetails.Hash.Should().NotBeNullOrWhiteSpace();
 
                 using (var retrievedPhoto = await sut.GetPhoto(photo.ProfileId, photo.Id, CancellationToken.None)
                     .ConfigureAwait(false))
@@ -200,8 +200,8 @@
 
                 var photoDetails = await sut.StorePhoto(photo, CancellationToken.None).ConfigureAwait(false);
 
-                photoDetails.ShouldBeEquivalentTo(photo, opt => opt.ExcludingMissingMembers().Excluding(x => x.ETag));
-                photoDetails.ETag.Should().NotBeNullOrWhiteSpace();
+                photoDetails.ShouldBeEquivalentTo(photo, opt => opt.ExcludingMissingMembers().Excluding(x => x.Hash));
+                photoDetails.Hash.Should().NotBeNullOrWhiteSpace();
 
                 var retrievedPhoto = await sut.GetPhoto(photo.ProfileId, photo.Id, CancellationToken.None)
                     .ConfigureAwait(false);
@@ -237,8 +237,8 @@
 
                 var photoDetails = await sut.StorePhoto(photo, CancellationToken.None).ConfigureAwait(false);
 
-                photoDetails.ShouldBeEquivalentTo(photo, opt => opt.ExcludingMissingMembers().Excluding(x => x.ETag));
-                photoDetails.ETag.Should().NotBeNullOrWhiteSpace();
+                photoDetails.ShouldBeEquivalentTo(photo, opt => opt.ExcludingMissingMembers().Excluding(x => x.Hash));
+                photoDetails.Hash.Should().NotBeNullOrWhiteSpace();
                 var retrievedPhoto = await sut.GetPhoto(photo.ProfileId, photo.Id, CancellationToken.None)
                     .ConfigureAwait(false);
 
@@ -284,8 +284,8 @@
 
                 var firstStoredPhoto = await sut.StorePhoto(photo, CancellationToken.None).ConfigureAwait(false);
 
-                firstStoredPhoto.ShouldBeEquivalentTo(photo, opt => opt.Excluding(x => x.ETag));
-                firstStoredPhoto.ETag.Should().NotBeNullOrWhiteSpace();
+                firstStoredPhoto.ShouldBeEquivalentTo(photo, opt => opt.Excluding(x => x.Hash));
+                firstStoredPhoto.Hash.Should().NotBeNullOrWhiteSpace();
             }
 
             var expected = Model.Create<byte[]>();
@@ -297,8 +297,8 @@
 
                 var photoDetails = await sut.StorePhoto(photo, CancellationToken.None).ConfigureAwait(false);
 
-                photoDetails.ShouldBeEquivalentTo(photo, opt => opt.ExcludingMissingMembers().Excluding(x => x.ETag));
-                photoDetails.ETag.Should().NotBeNullOrWhiteSpace();
+                photoDetails.ShouldBeEquivalentTo(photo, opt => opt.ExcludingMissingMembers().Excluding(x => x.Hash));
+                photoDetails.Hash.Should().NotBeNullOrWhiteSpace();
 
                 var retrievedPhoto = await sut.GetPhoto(photo.ProfileId, photo.Id, CancellationToken.None)
                     .ConfigureAwait(false);

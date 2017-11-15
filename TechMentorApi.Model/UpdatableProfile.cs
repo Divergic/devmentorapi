@@ -17,8 +17,6 @@
 
         public string About { get; set; }
 
-        public string AvatarETag { get; set; }
-
         public int? BirthYear { get; set; }
 
         [Required]
@@ -48,6 +46,8 @@
 
         [Required]
         public string LastName { get; set; }
+
+        public string PhotoHash { get; set; }
 
         public Guid? PhotoId { get; set; }
 

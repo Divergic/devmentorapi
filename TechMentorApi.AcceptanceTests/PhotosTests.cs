@@ -124,7 +124,7 @@
 
             var details = actual.Item2;
 
-            details.ETag.Should().NotBeNullOrWhiteSpace();
+            details.Hash.Should().NotBeNullOrWhiteSpace();
             details.Id.Should().NotBeEmpty();
             details.ProfileId.Should().Be(profile.Id);
         }
@@ -144,7 +144,7 @@
 
             var location = result.Item1;
 
-            var actual = await Client.Get<byte[]>(location, _logger).ConfigureAwait(false);
+            var actual = await Client.Get<byte[]>(location, _logger, identity).ConfigureAwait(false);
 
             actual.SequenceEqual(expected).Should().BeTrue();
         }

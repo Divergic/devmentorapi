@@ -2,6 +2,8 @@
 {
     using System;
     using System.IO;
+    using System.Security.Cryptography;
+    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
     using EnsureThat;
@@ -100,7 +102,7 @@
 
                 photo.Data = stream;
                 photo.ContentType = blockBlob.Metadata[nameof(Photo.ContentType)];
-                photo.SetETag(blockBlob.Properties.ETag);
+                photo.Hash = blockBlob.Metadata[nameof(Photo.Hash)];
 
                 return photo;
             }
@@ -141,17 +143,22 @@
 
             var blockBlob = container.GetBlockBlobReference(blobReference);
 
+            photo.Data.Position = 0;
+
+            var buffer = new byte[photo.Data.Length];
+
+            await photo.Data.ReadAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false);
+
+            var hash = GetBlobHash(buffer);
+
+            blockBlob.Metadata[nameof(Photo.ContentType)] = photo.ContentType;
+            blockBlob.Metadata[nameof(Photo.Hash)] = hash;
+            photo.Hash = hash;
+
             try
             {
-                blockBlob.Metadata[nameof(Photo.ContentType)] = photo.ContentType;
-
-                photo.Data.Position = 0;
-
-                await blockBlob.UploadFromStreamAsync(photo.Data, null, null, null, cancellationToken)
+                await blockBlob.UploadFromByteArrayAsync(buffer, 0, buffer.Length, null, null, null, cancellationToken)
                     .ConfigureAwait(false);
-                await blockBlob.SetPropertiesAsync(null, null, null, cancellationToken).ConfigureAwait(false);
-
-                photo.SetETag(blockBlob.Properties.ETag);
             }
             catch (StorageException ex)
             {
@@ -166,13 +173,9 @@
                     await container.CreateAsync(BlobContainerPublicAccessType.Container, null, null, cancellationToken)
                         .ConfigureAwait(false);
 
-                    photo.Data.Position = 0;
-
-                    await blockBlob.UploadFromStreamAsync(photo.Data, null, null, null, cancellationToken)
+                    await blockBlob
+                        .UploadFromByteArrayAsync(buffer, 0, buffer.Length, null, null, null, cancellationToken)
                         .ConfigureAwait(false);
-                    await blockBlob.SetPropertiesAsync(null, null, null, cancellationToken).ConfigureAwait(false);
-
-                    photo.SetETag(blockBlob.Properties.ETag);
                 }
                 else
                 {
@@ -185,10 +188,20 @@
             {
                 Id = photo.Id,
                 ProfileId = photo.ProfileId,
-                ETag = photo.ETag
+                Hash = photo.Hash
             };
-            
+
             return details;
+        }
+
+        private static string GetBlobHash(byte[] data)
+        {
+            using (var hashAlgorithm = SHA1.Create())
+            {
+                var hashBytes = hashAlgorithm.ComputeHash(data);
+
+                return HexStringFromBytes(hashBytes);
+            }
         }
 
         private static string GetBlobReference(Photo photo)
@@ -199,6 +212,19 @@
             var blobReference = partition + "\\" + profileSegment + "\\" + photoFilename;
 
             return blobReference;
+        }
+
+        private static string HexStringFromBytes(byte[] bytes)
+        {
+            var sb = new StringBuilder();
+
+            foreach (var b in bytes)
+            {
+                var hex = b.ToString("x2");
+                sb.Append(hex);
+            }
+
+            return sb.ToString();
         }
 
         private CloudBlobClient GetClient()

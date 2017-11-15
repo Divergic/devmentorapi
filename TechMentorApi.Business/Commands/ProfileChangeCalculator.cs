@@ -290,7 +290,7 @@
                 return true;
             }
 
-            if (HasStringChanged(original.AvatarETag, updated.AvatarETag))
+            if (HasStringChanged(original.PhotoHash, updated.PhotoHash))
             {
                 return true;
             }

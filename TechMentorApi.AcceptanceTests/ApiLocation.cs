@@ -20,6 +20,20 @@
                 "/categories/" + category.Group + "/" + UrlEncode(category.Name));
         }
 
+        public static Uri PhotoFor(PhotoDetails details)
+        {
+            var photoUri = new Uri(Config.WebsiteAddress, "/profiles/" + details.ProfileId + "/photos/" + details.Id);
+
+            var location = photoUri.ToString();
+
+            if (string.IsNullOrEmpty(details.Hash) == false)
+            {
+                location += "?hash=" + details.Hash;
+            }
+
+            return new Uri(location);
+        }
+
         public static Uri ProfileFor(Guid profileId)
         {
             return new Uri(Config.WebsiteAddress, "/profiles/" + profileId);

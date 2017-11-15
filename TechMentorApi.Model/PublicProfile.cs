@@ -20,7 +20,6 @@
             Ensure.That(profile, nameof(profile)).IsNotNull();
 
             About = profile.About;
-            AvatarETag = profile.AvatarETag;
             Id = profile.Id;
             BirthYear = profile.BirthYear;
             FirstName = profile.FirstName;
@@ -28,6 +27,7 @@
             GitHubUsername = profile.GitHubUsername;
             Languages = profile.Languages;
             LastName = profile.LastName;
+            PhotoHash = profile.PhotoHash;
             PhotoId = profile.PhotoId;
             Skills = profile.Skills;
             Status = profile.Status;
@@ -38,8 +38,6 @@
         }
 
         public string About { get; set; }
-
-        public string AvatarETag { get; set; }
 
         public int? BirthYear { get; set; }
 
@@ -66,6 +64,8 @@
         }
 
         public string LastName { get; set; }
+
+        public string PhotoHash { get; set; }
 
         public Guid? PhotoId { get; set; }
 

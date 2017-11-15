@@ -15,7 +15,7 @@
             Ensure.That(profile, nameof(profile)).IsNotNull();
 
             About = profile.About;
-            AvatarETag = profile.AvatarETag;
+            PhotoHash = profile.PhotoHash;
             PhotoId = profile.PhotoId;
             BirthYear = profile.BirthYear;
             Email = profile.Email;
