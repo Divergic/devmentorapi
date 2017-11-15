@@ -52,7 +52,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Properties\avatar.jpg">
+    <None Update="Properties\photo.jpg">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
     <None Update="Avatar2017.jpg">

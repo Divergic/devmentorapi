@@ -16,7 +16,7 @@
 
             About = profile.About;
             AvatarETag = profile.AvatarETag;
-            AvatarId = profile.AvatarId;
+            PhotoId = profile.PhotoId;
             BirthYear = profile.BirthYear;
             Email = profile.Email;
             FirstName = profile.FirstName;

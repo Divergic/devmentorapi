@@ -5,15 +5,15 @@
     using System.Text.RegularExpressions;
     using EnsureThat;
 
-    public class Avatar : IDisposable
+    public class Photo : IDisposable
     {
         private bool _disposed;
 
-        public Avatar()
+        public Photo()
         {
         }
 
-        public Avatar(Avatar source, Stream data)
+        public Photo(Photo source, Stream data)
         {
             Ensure.That(source, nameof(source)).IsNotNull();
             Ensure.That(data, nameof(data)).IsNotNull();

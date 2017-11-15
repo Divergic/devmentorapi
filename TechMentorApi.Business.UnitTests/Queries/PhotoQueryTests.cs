@@ -11,22 +11,22 @@
     using TechMentorApi.Model;
     using Xunit;
 
-    public class AvatarQueryTests
+    public class PhotoQueryTests
     {
         [Fact]
-        public async Task GetAvatarReturnsAvatarFromStoreTest()
+        public async Task GetPhotoReturnsPhotoFromStoreTest()
         {
-            var expected = Model.Ignoring<Avatar>(x => x.Data).Create<Avatar>();
+            var expected = Model.Ignoring<Photo>(x => x.Data).Create<Photo>();
 
-            var store = Substitute.For<IAvatarStore>();
+            var store = Substitute.For<IPhotoStore>();
 
-            var sut = new AvatarQuery(store);
+            var sut = new PhotoQuery(store);
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                store.GetAvatar(expected.ProfileId, expected.Id, tokenSource.Token).Returns(expected);
+                store.GetPhoto(expected.ProfileId, expected.Id, tokenSource.Token).Returns(expected);
 
-                var actual = await sut.GetAvatar(expected.ProfileId, expected.Id, tokenSource.Token)
+                var actual = await sut.GetPhoto(expected.ProfileId, expected.Id, tokenSource.Token)
                     .ConfigureAwait(false);
 
                 actual.ShouldBeEquivalentTo(expected);
@@ -36,7 +36,7 @@
         [Fact]
         public void ThrowsExceptionWhenCreatedWithNullStoreTest()
         {
-            Action action = () => new AvatarQuery(null);
+            Action action = () => new PhotoQuery(null);
 
             action.ShouldThrow<ArgumentNullException>();
         }

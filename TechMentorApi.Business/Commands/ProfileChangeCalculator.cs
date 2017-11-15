@@ -295,7 +295,7 @@
                 return true;
             }
 
-            if (HasGuidChanged(original.AvatarId, updated.AvatarId))
+            if (HasGuidChanged(original.PhotoId, updated.PhotoId))
             {
                 return true;
             }

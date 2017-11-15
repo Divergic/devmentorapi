@@ -19,8 +19,6 @@
 
         public string AvatarETag { get; set; }
 
-        public Guid? AvatarId { get; set; }
-
         public int? BirthYear { get; set; }
 
         [Required]
@@ -50,6 +48,8 @@
 
         [Required]
         public string LastName { get; set; }
+
+        public Guid? PhotoId { get; set; }
 
         public ICollection<Skill> Skills
         {

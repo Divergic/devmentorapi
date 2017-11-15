@@ -14,12 +14,12 @@
             Ensure.That(profile, nameof(profile)).IsNotNull();
 
             AvatarETag = profile.AvatarETag;
-            AvatarId = profile.AvatarId;
             BirthYear = profile.BirthYear;
             FirstName = profile.FirstName;
             Gender = profile.Gender;
             Id = profile.Id;
             LastName = profile.LastName;
+            PhotoId = profile.PhotoId;
             Status = profile.Status;
             TimeZone = profile.TimeZone;
             YearStartedInTech = profile.YearStartedInTech;
@@ -27,7 +27,7 @@
 
         public string AvatarETag { get; set; }
 
-        public Guid? AvatarId { get; set; }
+        public Guid? PhotoId { get; set; }
 
         public int? BirthYear { get; set; }
 

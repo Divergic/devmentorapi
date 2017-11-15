@@ -7,7 +7,7 @@
     {
         public AuthenticationConfig Authentication { get; set; }
 
-        public AvatarConfig Avatar { get; set; }
+        public PhotoConfig Photo { get; set; }
 
         public CacheConfig Cache { get; set; }
 

@@ -52,7 +52,7 @@
 
         public static Uri AccountProfile => new Uri(Config.WebsiteAddress, "/profile/");
 
-        public static Uri AccountProfileAvatars => new Uri(Config.WebsiteAddress, "/profile/avatars/");
+        public static Uri AccountProfilePhotos => new Uri(Config.WebsiteAddress, "/profile/photos/");
 
         public static Uri Categories => new Uri(Config.WebsiteAddress, "/categories/");
 

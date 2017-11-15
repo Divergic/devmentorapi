@@ -2,7 +2,7 @@
 {
     using System;
 
-    public class AvatarDetails
+    public class PhotoDetails
     {
         public string ETag { get; set; }
 

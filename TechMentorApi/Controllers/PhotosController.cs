@@ -14,11 +14,11 @@
     using TechMentorApi.Properties;
     using TechMentorApi.Security;
 
-    public class AvatarsController : Controller
+    public class PhotosController : Controller
     {
-        private readonly IAvatarCommand _command;
+        private readonly IPhotoCommand _command;
 
-        public AvatarsController(IAvatarCommand command)
+        public PhotosController(IPhotoCommand command)
         {
             Ensure.That(command, nameof(command)).IsNotNull();
 
@@ -26,17 +26,17 @@
         }
 
         /// <summary>
-        ///     Creates a new avatar.
+        ///     Creates a new photo.
         /// </summary>
-        /// <param name="file">The new avatar file.</param>
+        /// <param name="file">The new photo file.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>
         ///     A created result.
         /// </returns>
-        [Route("profile/avatars/")]
+        [Route("profile/photos/")]
         [HttpPost]
-        [ProducesResponseType(typeof(AvatarDetails), (int) HttpStatusCode.Created)]
-        [SwaggerResponse((int) HttpStatusCode.Created, typeof(AvatarDetails))]
+        [ProducesResponseType(typeof(PhotoDetails), (int) HttpStatusCode.Created)]
+        [SwaggerResponse((int) HttpStatusCode.Created, typeof(PhotoDetails))]
         [SwaggerResponse((int) HttpStatusCode.NotFound)]
         public async Task<IActionResult> Post([ContentType] IFormFile file, CancellationToken cancellationToken)
         {
@@ -47,7 +47,7 @@
 
             var profileId = User.Identity.GetClaimValue<Guid>(ClaimType.ProfileId);
 
-            using (var avatar = new Avatar
+            using (var photo = new Photo
             {
                 ContentType = file.ContentType,
                 Data = file.OpenReadStream(),
@@ -55,15 +55,15 @@
                 Id = Guid.NewGuid()
             })
             {
-                var details = await _command.CreateAvatar(avatar, cancellationToken).ConfigureAwait(false);
+                var details = await _command.CreatePhoto(photo, cancellationToken).ConfigureAwait(false);
 
                 var routeValues = new
                 {
                     profileId = details.ProfileId,
-                    avatarId = details.Id
+                    photoId = details.Id
                 };
 
-                return new CreatedAtRouteResult("ProfileAvatar", routeValues, details);
+                return new CreatedAtRouteResult("ProfilePhoto", routeValues, details);
             }
         }
     }
