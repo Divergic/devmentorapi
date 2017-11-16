@@ -154,7 +154,7 @@
 
                 services.Configure<FormOptions>(options =>
                 {
-                    options.MultipartBodyLengthLimit = Configuration.Avatar.MaxLength;
+                    options.MultipartBodyLengthLimit = Configuration.Photo.MaxLength;
                 });
 
                 services.AddCors();

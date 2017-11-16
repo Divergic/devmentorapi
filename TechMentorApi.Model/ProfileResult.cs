@@ -18,14 +18,12 @@
             Gender = profile.Gender;
             Id = profile.Id;
             LastName = profile.LastName;
+            PhotoHash = profile.PhotoHash;
+            PhotoId = profile.PhotoId;
             Status = profile.Status;
             TimeZone = profile.TimeZone;
             YearStartedInTech = profile.YearStartedInTech;
         }
-
-        public string AvatarETag { get; set; }
-
-        public Guid? AvatarId { get; set; }
 
         public int? BirthYear { get; set; }
 
@@ -36,6 +34,10 @@
         public Guid Id { get; set; }
 
         public string LastName { get; set; }
+
+        public string PhotoHash { get; set; }
+
+        public Guid? PhotoId { get; set; }
 
         public ProfileStatus Status { get; set; }
 

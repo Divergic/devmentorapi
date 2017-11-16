@@ -18,24 +18,24 @@
     using TechMentorApi.Model;
     using Xunit;
 
-    public class AvatarsControllerTests
+    public class PhotosControllerTests
     {
         [Fact]
         public void CreateThrowsExceptionWithNullCommandTest()
         {
-            Action action = () => new AvatarsController(null);
+            Action action = () => new PhotosController(null);
 
             action.ShouldThrow<ArgumentNullException>();
         }
 
         [Fact]
-        public async Task PostCreatesNewAvatarTest()
+        public async Task PostCreatesNewPhotoTest()
         {
             var account = Model.Create<Account>();
             var user = ClaimsIdentityFactory.BuildPrincipal(account);
-            var avatarDetails = Model.Create<AvatarDetails>();
+            var photoDetails = Model.Create<PhotoDetails>();
 
-            var command = Substitute.For<IAvatarCommand>();
+            var command = Substitute.For<IPhotoCommand>();
             var model = Substitute.For<IFormFile>();
             var httpContext = Substitute.For<HttpContext>();
 
@@ -52,27 +52,27 @@
                 {
                     model.OpenReadStream().Returns(data);
 
-                    using (var sut = new AvatarsController(command))
+                    using (var sut = new PhotosController(command))
                     {
                         sut.ControllerContext = controllerContext;
 
-                        command.CreateAvatar(
-                                Arg.Is<Avatar>(x =>
+                        command.CreatePhoto(
+                                Arg.Is<Photo>(x =>
                                     x.ContentType == model.ContentType && x.ProfileId == account.Id && x.Data == data),
                                 tokenSource.Token)
-                            .Returns(avatarDetails);
+                            .Returns(photoDetails);
 
                         var actual = await sut.Post(model, tokenSource.Token).ConfigureAwait(false);
 
                         var result = actual.Should().BeOfType<CreatedAtRouteResult>().Which;
 
-                        result.RouteName.Should().Be("ProfileAvatar");
-                        result.RouteValues["profileId"].Should().Be(avatarDetails.ProfileId);
-                        result.RouteValues["avatarId"].Should().Be(avatarDetails.Id);
+                        result.RouteName.Should().Be("ProfilePhoto");
+                        result.RouteValues["profileId"].Should().Be(photoDetails.ProfileId);
+                        result.RouteValues["photoId"].Should().Be(photoDetails.Id);
 
-                        var value = result.Value.Should().BeOfType<AvatarDetails>().Which;
+                        var value = result.Value.Should().BeOfType<PhotoDetails>().Which;
 
-                        value.ShouldBeEquivalentTo(avatarDetails);
+                        value.ShouldBeEquivalentTo(photoDetails);
                     }
                 }
             }
@@ -81,9 +81,9 @@
         [Fact]
         public async Task PostReturnsBadRequestWithNullProfileIdTest()
         {
-            var command = Substitute.For<IAvatarCommand>();
+            var command = Substitute.For<IPhotoCommand>();
 
-            var sut = new AvatarsController(command);
+            var sut = new PhotosController(command);
 
             using (var tokenSource = new CancellationTokenSource())
             {

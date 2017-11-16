@@ -12,11 +12,11 @@
     using TechMentorApi.Core;
     using TechMentorApi.Properties;
 
-    public class AvatarController : Controller
+    public class PhotoController : Controller
     {
-        private readonly IAvatarQuery _query;
+        private readonly IPhotoQuery _query;
 
-        public AvatarController(IAvatarQuery query)
+        public PhotoController(IPhotoQuery query)
         {
             Ensure.That(query, nameof(query)).IsNotNull();
 
@@ -24,44 +24,44 @@
         }
 
         /// <summary>
-        ///     Gets the profile avatar by its identifier.
+        ///     Gets the profile photo by its identifier.
         /// </summary>
         /// <param name="profileId">
         ///     The profile identifier.
         /// </param>
-        /// <param name="avatarId">
-        ///     The avatar identifier.
+        /// <param name="photoId">
+        ///     The photo identifier.
         /// </param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>
-        ///     The avatar.
+        ///     The photo.
         /// </returns>
-        [Route("profiles/{profileId:guid}/avatars/{avatarId:guid}", Name = "ProfileAvatar")]
+        [Route("profiles/{profileId:guid}/photos/{photoId:guid}", Name = "ProfilePhoto")]
         [HttpGet]
         [AllowAnonymous]
         [ProducesResponseType((int) HttpStatusCode.OK)]
         [SwaggerResponse((int) HttpStatusCode.OK)]
-        [SwaggerResponse((int) HttpStatusCode.NotFound, null, "The avatar does not exist.")]
-        public async Task<IActionResult> Get(Guid profileId, Guid avatarId, CancellationToken cancellationToken)
+        [SwaggerResponse((int) HttpStatusCode.NotFound, null, "The photo does not exist.")]
+        public async Task<IActionResult> Get(Guid profileId, Guid photoId, CancellationToken cancellationToken)
         {
             if (profileId == Guid.Empty)
             {
                 return new ErrorMessageResult(Resources.NotFound, HttpStatusCode.NotFound);
             }
 
-            if (avatarId == Guid.Empty)
+            if (photoId == Guid.Empty)
             {
                 return new ErrorMessageResult(Resources.NotFound, HttpStatusCode.NotFound);
             }
 
-            var avatar = await _query.GetAvatar(profileId, avatarId, cancellationToken).ConfigureAwait(false);
+            var photo = await _query.GetPhoto(profileId, photoId, cancellationToken).ConfigureAwait(false);
 
-            if (avatar == null)
+            if (photo == null)
             {
                 return new ErrorMessageResult(Resources.NotFound, HttpStatusCode.NotFound);
             }
 
-            return new FileStreamResult(avatar.Data, avatar.ContentType);
+            return new FileStreamResult(photo.Data, photo.ContentType);
         }
     }
 }

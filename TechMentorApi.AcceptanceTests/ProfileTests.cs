@@ -8,6 +8,7 @@
     using FluentAssertions;
     using Microsoft.Extensions.Logging;
     using ModelBuilder;
+    using TechMentorApi.AcceptanceTests.Properties;
     using TechMentorApi.Model;
     using TechMentorApi.ViewModels;
     using Xunit;
@@ -238,7 +239,7 @@
                 actual.Skills.Should().NotContain(x => x.Name == categoryName);
             }
         }
-
+        
         [Fact]
         public async Task GetReturnsNotFoundForBannedProfileTest()
         {

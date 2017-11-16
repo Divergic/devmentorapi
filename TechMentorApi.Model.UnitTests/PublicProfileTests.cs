@@ -13,12 +13,22 @@
         {
             var sut = new PublicProfile();
 
-            sut.Id.Should().BeEmpty();
+            sut.About.Should().BeNull();
+            sut.PhotoHash.Should().BeNull();
+            sut.PhotoHash.Should().BeNull();
+            sut.BirthYear.Should().BeNull();
             sut.FirstName.Should().BeNull();
-            sut.LastName.Should().BeNull();
-            sut.Status.Should().Be(ProfileStatus.Hidden);
+            sut.Gender.Should().BeNull();
+            sut.GitHubUsername.Should().BeNull();
+            sut.Id.Should().BeEmpty();
             sut.Languages.Should().BeEmpty();
+            sut.LastName.Should().BeNull();
             sut.Skills.Should().BeEmpty();
+            sut.Status.Should().Be(ProfileStatus.Hidden);
+            sut.TimeZone.Should().BeNull();
+            sut.TwitterUsername.Should().BeNull();
+            sut.Website.Should().BeNull();
+            sut.YearStartedInTech.Should().BeNull();
         }
 
         [Fact]

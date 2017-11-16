@@ -14,52 +14,52 @@
     using TechMentorApi.Model;
     using Xunit;
 
-    public class AvatarControllerTests
+    public class PhotoControllerTests
     {
         [Fact]
-        public async Task GetReturnsAvatarDataTest()
+        public async Task GetReturnsPhotoDataTest()
         {
             var profileId = Guid.NewGuid();
-            var avatarId = Guid.NewGuid();
+            var photoId = Guid.NewGuid();
             var buffer = Model.Create<byte[]>();
 
-            var query = Substitute.For<IAvatarQuery>();
+            var query = Substitute.For<IPhotoQuery>();
 
             using (var data = new MemoryStream(buffer))
             {
-                var avatar = Model.Ignoring<Avatar>(x => x.Data).Create<Avatar>().Set(x => x.Data = data)
+                var photo = Model.Ignoring<Photo>(x => x.Data).Create<Photo>().Set(x => x.Data = data)
                     .Set(x => x.ContentType = "image/jpg");
 
                 using (var tokenSource = new CancellationTokenSource())
                 {
-                    query.GetAvatar(profileId, avatarId, tokenSource.Token).Returns(avatar);
+                    query.GetPhoto(profileId, photoId, tokenSource.Token).Returns(photo);
 
-                    using (var target = new AvatarController(query))
+                    using (var target = new PhotoController(query))
                     {
-                        var actual = await target.Get(profileId, avatarId, tokenSource.Token).ConfigureAwait(false);
+                        var actual = await target.Get(profileId, photoId, tokenSource.Token).ConfigureAwait(false);
 
                         var result = actual.Should().BeOfType<FileStreamResult>().Which;
 
                         result.FileStream.Should().BeSameAs(data);
-                        result.ContentType.Should().Be(avatar.ContentType);
+                        result.ContentType.Should().Be(photo.ContentType);
                     }
                 }
             }
         }
 
         [Fact]
-        private async Task GetReturnsNotFoundWhenAvatarNotFoundTest()
+        private async Task GetReturnsNotFoundWhenPhotoNotFoundTest()
         {
             var profileId = Guid.NewGuid();
-            var avatarId = Guid.NewGuid();
+            var photoId = Guid.NewGuid();
 
-            var query = Substitute.For<IAvatarQuery>();
+            var query = Substitute.For<IPhotoQuery>();
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                using (var target = new AvatarController(query))
+                using (var target = new PhotoController(query))
                 {
-                    var actual = await target.Get(profileId, avatarId, tokenSource.Token).ConfigureAwait(false);
+                    var actual = await target.Get(profileId, photoId, tokenSource.Token).ConfigureAwait(false);
 
                     actual.Should().BeOfType<ErrorMessageResult>();
                 }
@@ -67,18 +67,18 @@
         }
 
         [Fact]
-        private async Task GetReturnsNotFoundWithEmptyAvatarIdTest()
+        private async Task GetReturnsNotFoundWithEmptyPhotoIdTest()
         {
             var profileId = Guid.NewGuid();
-            var avatarId = Guid.Empty;
+            var photoId = Guid.Empty;
 
-            var query = Substitute.For<IAvatarQuery>();
+            var query = Substitute.For<IPhotoQuery>();
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                using (var target = new AvatarController(query))
+                using (var target = new PhotoController(query))
                 {
-                    var actual = await target.Get(profileId, avatarId, tokenSource.Token).ConfigureAwait(false);
+                    var actual = await target.Get(profileId, photoId, tokenSource.Token).ConfigureAwait(false);
 
                     actual.Should().BeOfType<ErrorMessageResult>();
                 }
@@ -89,15 +89,15 @@
         private async Task GetReturnsNotFoundWithEmptyProfileIdTest()
         {
             var profileId = Guid.NewGuid();
-            var avatarId = Guid.Empty;
+            var photoId = Guid.Empty;
 
-            var query = Substitute.For<IAvatarQuery>();
+            var query = Substitute.For<IPhotoQuery>();
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                using (var target = new AvatarController(query))
+                using (var target = new PhotoController(query))
                 {
-                    var actual = await target.Get(profileId, avatarId, tokenSource.Token).ConfigureAwait(false);
+                    var actual = await target.Get(profileId, photoId, tokenSource.Token).ConfigureAwait(false);
 
                     actual.Should().BeOfType<ErrorMessageResult>();
                 }
@@ -107,7 +107,7 @@
         [Fact]
         private void ThrowsExceptionWhenCreatedWithNullQueryTest()
         {
-            Action action = () => new AvatarController(null);
+            Action action = () => new PhotoController(null);
 
             action.ShouldThrow<ArgumentNullException>();
         }

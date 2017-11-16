@@ -21,6 +21,33 @@
             _output = output;
         }
 
+        public static IEnumerable<object[]> GuidPropertiesDataSource()
+        {
+            var scenarios = new List<object[]>();
+            var properties = from x in typeof(Profile).GetProperties()
+                where x.PropertyType == typeof(Guid?)
+                select x;
+
+            foreach (var property in properties)
+            {
+                var value = Guid.NewGuid();
+
+                scenarios.Add(BuildGuidPropertyTestScenario(property, null, null, false, "values are both null"));
+                scenarios.Add(BuildGuidPropertyTestScenario(property, value, value, false, "values are same"));
+                scenarios.Add(
+                    BuildGuidPropertyTestScenario(
+                        property,
+                        value,
+                        Guid.NewGuid(),
+                        true,
+                        "values are different"));
+                scenarios.Add(BuildGuidPropertyTestScenario(property, null, value, true, "values changing from null"));
+                scenarios.Add(BuildGuidPropertyTestScenario(property, value, null, true, "values changing to null"));
+            }
+
+            return scenarios;
+        }
+
         public static IEnumerable<object[]> IntPropertiesDataSource()
         {
             var scenarios = new List<object[]>();
@@ -388,6 +415,24 @@
             change.CategoryGroup.Should().Be(CategoryGroup.Skill);
             change.CategoryName.Should().Be(skill.Name);
             change.ChangeType.Should().Be(CategoryLinkChangeType.Add);
+        }
+
+        [Theory]
+        [MemberData(nameof(GuidPropertiesDataSource))]
+        public void CalculateChangesCorrectlyIdentifiesChangesToGuidPropertiesTest(
+            Profile original,
+            Profile updated,
+            bool expected,
+            string scenario)
+        {
+            _output.WriteLine(scenario);
+
+            var sut = new ProfileChangeCalculator();
+
+            var actual = sut.CalculateChanges(original, updated);
+
+            actual.CategoryChanges.Should().BeEmpty();
+            actual.ProfileChanged.Should().Be(expected);
         }
 
         [Theory]
@@ -1054,6 +1099,33 @@
             Action action = () => sut.RemoveAllCategoryLinks(null);
 
             action.ShouldThrow<ArgumentNullException>();
+        }
+
+        private static object[] BuildGuidPropertyTestScenario(
+            PropertyInfo property,
+            Guid? originalValue,
+            Guid? updatedValue,
+            bool expected,
+            string description)
+        {
+            // Return all the test evaluation scenarios for this property
+            var original = Model.Create<Profile>().Set(x => x.BannedAt = null)
+                .Set(x => x.Status = ProfileStatus.Available);
+            var updated = original.Clone();
+
+            property.SetValue(original, originalValue);
+            property.SetValue(updated, updatedValue);
+
+            var scenario = property.Name + " ([" + (originalValue.HasValue ? originalValue.ToString() : "null") +
+                           "], [" + (updatedValue.HasValue ? updatedValue.ToString() : "null") + "]) " + description;
+
+            return new object[]
+            {
+                original,
+                updated,
+                expected,
+                scenario
+            };
         }
 
         private static object[] BuildIntPropertyTestScenario(

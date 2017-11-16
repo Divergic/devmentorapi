@@ -2,9 +2,9 @@
 {
     using System;
 
-    public class AvatarDetails
+    public class PhotoDetails
     {
-        public string ETag { get; set; }
+        public string Hash { get; set; }
 
         public Guid Id { get; set; }
 

@@ -47,6 +47,10 @@
         [Required]
         public string LastName { get; set; }
 
+        public string PhotoHash { get; set; }
+
+        public Guid? PhotoId { get; set; }
+
         public ICollection<Skill> Skills
         {
             get => _skills;

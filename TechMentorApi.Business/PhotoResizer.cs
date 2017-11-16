@@ -11,17 +11,17 @@
     using SixLabors.Primitives;
     using TechMentorApi.Model;
 
-    public class AvatarResizer : IAvatarResizer
+    public class PhotoResizer : IPhotoResizer
     {
-        public Avatar Resize(Avatar avatar, int maxHeight, int maxWidth)
+        public Photo Resize(Photo photo, int maxHeight, int maxWidth)
         {
-            Ensure.That(avatar, nameof(avatar)).IsNotNull();
+            Ensure.That(photo, nameof(photo)).IsNotNull();
 
-            using (var image = Image.Load(null, avatar.Data))
+            using (var image = Image.Load(null, photo.Data))
             {
                 if (RequiresResize(image, maxHeight, maxWidth) == false)
                 {
-                    return avatar;
+                    return photo;
                 }
                 
                 var options = new ResizeOptions
@@ -36,11 +36,11 @@
 
                 IImageEncoder encoder;
 
-                if (avatar.ContentType == "image/png")
+                if (photo.ContentType == "image/png")
                 {
                     encoder = new PngEncoder();
                 }
-                else if (avatar.ContentType == "image/jpeg")
+                else if (photo.ContentType == "image/jpeg")
                 {
                     encoder = new JpegEncoder();
                 }
@@ -53,7 +53,7 @@
 
                 stream.Position = 0;
 
-                return new Avatar(avatar, stream);
+                return new Photo(photo, stream);
             }
         }
 

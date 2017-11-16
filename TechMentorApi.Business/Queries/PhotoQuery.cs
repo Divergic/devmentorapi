@@ -7,20 +7,20 @@
     using TechMentorApi.Azure;
     using TechMentorApi.Model;
 
-    public class AvatarQuery : IAvatarQuery
+    public class PhotoQuery : IPhotoQuery
     {
-        private readonly IAvatarStore _store;
+        private readonly IPhotoStore _store;
 
-        public AvatarQuery(IAvatarStore store)
+        public PhotoQuery(IPhotoStore store)
         {
             Ensure.That(store, nameof(store)).IsNotNull();
 
             _store = store;
         }
 
-        public Task<Avatar> GetAvatar(Guid profileId, Guid avatarId, CancellationToken cancellationToken)
+        public Task<Photo> GetPhoto(Guid profileId, Guid photoId, CancellationToken cancellationToken)
         {
-            return _store.GetAvatar(profileId, avatarId, cancellationToken);
+            return _store.GetPhoto(profileId, photoId, cancellationToken);
         }
     }
 }

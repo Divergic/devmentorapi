@@ -9,7 +9,7 @@
     <PackageReference Include="FluentAssertions" Version="4.19.4" />
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="1.1.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.5.0" />
     <PackageReference Include="ModelBuilder" Version="3.2.0" />
     <PackageReference Include="NSubstitute" Version="3.1.0" />
     <PackageReference Include="Neovolve.UnitTest" Version="0.1.0-ci0007" />

@@ -31,7 +31,7 @@
             var logger = _output.BuildLoggerFor<OversizeDataExceptionMiddleware>();
             var executor = Substitute.For<IResultExecutor>();
             var context = Substitute.For<HttpContext>();
-            var config = Model.Create<AvatarConfig>();
+            var config = Model.Create<PhotoConfig>();
 
             var sut = new OversizeDataExceptionMiddleware(next, logger, executor, config);
 
@@ -44,7 +44,7 @@
         [Fact]
         public async Task InvokeSendsBadRequestToExecutorWhenDelegateThrowsInvalidDataExceptionTest()
         {
-            var config = Model.Create<AvatarConfig>();
+            var config = Model.Create<PhotoConfig>();
 
             var expectedMessage = string.Format(CultureInfo.InvariantCulture,
                 "Multipart body length limit {0} exceeded", config.MaxLength);
@@ -71,7 +71,7 @@
             var logger = _output.BuildLoggerFor<OversizeDataExceptionMiddleware>();
             var executor = Substitute.For<IResultExecutor>();
             var context = Substitute.For<HttpContext>();
-            var config = Model.Create<AvatarConfig>();
+            var config = Model.Create<PhotoConfig>();
             var response = Substitute.For<HttpResponse>();
 
             context.Response.Returns(response);
@@ -91,7 +91,7 @@
             var logger = _output.BuildLoggerFor<OversizeDataExceptionMiddleware>();
             var executor = Substitute.For<IResultExecutor>();
             var context = Substitute.For<HttpContext>();
-            var config = Model.Create<AvatarConfig>();
+            var config = Model.Create<PhotoConfig>();
             var response = Substitute.For<HttpResponse>();
 
             context.Response.Returns(response);
@@ -110,7 +110,7 @@
             RequestDelegate next = delegate { return Task.CompletedTask; };
             var logger = _output.BuildLoggerFor<OversizeDataExceptionMiddleware>();
             var executor = Substitute.For<IResultExecutor>();
-            var config = Model.Create<AvatarConfig>();
+            var config = Model.Create<PhotoConfig>();
 
             var sut = new OversizeDataExceptionMiddleware(next, logger, executor, config);
 
@@ -136,7 +136,7 @@
         {
             var logger = _output.BuildLoggerFor<OversizeDataExceptionMiddleware>();
             var executor = Substitute.For<IResultExecutor>();
-            var config = Model.Create<AvatarConfig>();
+            var config = Model.Create<PhotoConfig>();
 
             Action action = () => new OversizeDataExceptionMiddleware(null, logger, executor, config);
 
@@ -148,7 +148,7 @@
         {
             RequestDelegate next = delegate { return Task.CompletedTask; };
             var logger = _output.BuildLoggerFor<OversizeDataExceptionMiddleware>();
-            var config = Model.Create<AvatarConfig>();
+            var config = Model.Create<PhotoConfig>();
 
             Action action = () => new OversizeDataExceptionMiddleware(next, logger, null, config);
 
@@ -160,7 +160,7 @@
         {
             RequestDelegate next = delegate { return Task.CompletedTask; };
             var executor = Substitute.For<IResultExecutor>();
-            var config = Model.Create<AvatarConfig>();
+            var config = Model.Create<PhotoConfig>();
 
             Action action = () => new OversizeDataExceptionMiddleware(next, null, executor, config);
 

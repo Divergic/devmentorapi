@@ -6,7 +6,7 @@
     using NSubstitute;
     using Xunit;
 
-    public class AvatarTests
+    public class PhotoTests
     {
         [Fact]
         public void CopyConstructorCreatesInstanceWithSuppliedValuesTest()
@@ -14,9 +14,9 @@
             var originalData = Substitute.For<Stream>();
             var newData = Substitute.For<Stream>();
 
-            var source = Model.Ignoring<Avatar>(x => x.Data).Create<Avatar>().Set(x => x.Data = originalData);
+            var source = Model.Ignoring<Photo>(x => x.Data).Create<Photo>().Set(x => x.Data = originalData);
 
-            using (var sut = new Avatar(source, newData))
+            using (var sut = new Photo(source, newData))
             {
                 sut.ShouldBeEquivalentTo(source, opt => opt.Excluding(x => x.Data));
                 sut.Data.Should().BeSameAs(newData);
@@ -26,13 +26,13 @@
         [Fact]
         public void CreatesWithDefaultValuesTest()
         {
-            using (var sut = new Avatar())
+            using (var sut = new Photo())
             {
                 sut.ContentType.Should().BeNull();
                 sut.Data.Should().BeNull();
                 sut.Id.Should().BeEmpty();
                 sut.ProfileId.Should().BeEmpty();
-                sut.ETag.Should().BeNull();
+                sut.Hash.Should().BeNull();
             }
         }
 
@@ -41,7 +41,7 @@
         {
             var data = Substitute.For<Stream>();
 
-            using (var sut = new Avatar())
+            using (var sut = new Photo())
             {
                 sut.Data = data;
 
@@ -57,32 +57,13 @@
         {
             var data = Substitute.For<Stream>();
 
-            using (var sut = new Avatar())
+            using (var sut = new Photo())
             {
                 sut.Data = data;
 
                 sut.Dispose();
 
                 data.Received().Dispose();
-            }
-        }
-
-        [Theory]
-        [InlineData(null, null)]
-        [InlineData("", "")]
-        [InlineData("8D5212A33BF95D0", "8D5212A33BF95D0")]
-        [InlineData("0x8D5212A33BF95D0", "0x8D5212A33BF95D0")]
-        [InlineData("\"0x8D5212A33BF95D0\"", "0x8D5212A33BF95D0")]
-        [InlineData("\"0x8D52  12A33BF95D0\"", "0x8D5212A33BF95D0")]
-        public void SetETagCanSetValueTest(string input, string output)
-        {
-            using (var sut = new Avatar())
-            {
-                sut.SetETag(input);
-
-                var actual = sut.ETag;
-
-                actual.Should().Be(output);
             }
         }
     }

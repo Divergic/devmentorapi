@@ -4,8 +4,8 @@
     using System.Threading.Tasks;
     using TechMentorApi.Model;
 
-    public interface IAvatarCommand
+    public interface IPhotoCommand
     {
-        Task<AvatarDetails> CreateAvatar(Avatar avatar, CancellationToken cancellationToken);
+        Task<PhotoDetails> CreatePhoto(Photo photo, CancellationToken cancellationToken);
     }
 }

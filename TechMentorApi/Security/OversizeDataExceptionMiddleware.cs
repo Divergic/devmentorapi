@@ -17,13 +17,13 @@
         private readonly IResultExecutor _executor;
         private readonly ILogger<OversizeDataExceptionMiddleware> _logger;
         private readonly RequestDelegate _next;
-        private readonly IAvatarConfig _config;
+        private readonly IPhotoConfig _config;
 
         public OversizeDataExceptionMiddleware(
             RequestDelegate next,
             ILogger<OversizeDataExceptionMiddleware> logger,
             IResultExecutor executor,
-            IAvatarConfig config)
+            IPhotoConfig config)
         {
             Ensure.That(next, nameof(next)).IsNotNull();
             Ensure.That(logger, nameof(logger)).IsNotNull();

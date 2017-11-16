@@ -27,6 +27,8 @@
             GitHubUsername = profile.GitHubUsername;
             Languages = profile.Languages;
             LastName = profile.LastName;
+            PhotoHash = profile.PhotoHash;
+            PhotoId = profile.PhotoId;
             Skills = profile.Skills;
             Status = profile.Status;
             TimeZone = profile.TimeZone;
@@ -62,6 +64,10 @@
         }
 
         public string LastName { get; set; }
+
+        public string PhotoHash { get; set; }
+
+        public Guid? PhotoId { get; set; }
 
         public ICollection<Skill> Skills
         {

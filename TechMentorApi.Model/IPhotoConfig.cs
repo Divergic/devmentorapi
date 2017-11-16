@@ -1,6 +1,6 @@
 ﻿namespace TechMentorApi.Model
 {
-    public interface IAvatarConfig
+    public interface IPhotoConfig
     {
         int MaxHeight { get; set; }
 

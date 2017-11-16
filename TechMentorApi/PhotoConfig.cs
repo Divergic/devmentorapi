@@ -2,7 +2,7 @@
 {
     using TechMentorApi.Model;
 
-    public class AvatarConfig : IAvatarConfig
+    public class PhotoConfig : IPhotoConfig
     {
         public int MaxHeight { get; set; }
 

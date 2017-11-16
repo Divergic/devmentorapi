@@ -12,27 +12,27 @@
     using Xunit;
     using Xunit.Abstractions;
 
-    public class AvatarsTests
+    public class PhotosTests
     {
-        private readonly ILogger<AvatarsTests> _logger;
+        private readonly ILogger<PhotosTests> _logger;
         private readonly ITestOutputHelper _output;
 
-        public AvatarsTests(ITestOutputHelper output)
+        public PhotosTests(ITestOutputHelper output)
         {
             _output = output;
-            _logger = output.BuildLoggerFor<AvatarsTests>();
+            _logger = output.BuildLoggerFor<PhotosTests>();
         }
 
         [Fact]
-        public async Task PostResizedAvatarRetainingAspectRatioWhenTooLargeTest()
+        public async Task PostResizedPhotoRetainingAspectRatioWhenTooLargeTest()
         {
             var account = Model.Using<ProfileBuildStrategy>().Create<Account>();
             var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearCategories()
                 .Save(_logger, account).ConfigureAwait(false);
             var identity = ClaimsIdentityFactory.Build(account, profile);
-            var address = ApiLocation.AccountProfileAvatars;
+            var address = ApiLocation.AccountProfilePhotos;
 
-            var result = await Client.PostFile<AvatarDetails>(address, _logger, Resources.aspect, identity, "image/png")
+            var result = await Client.PostFile<PhotoDetails>(address, _logger, Resources.aspect, identity, "image/png")
                 .ConfigureAwait(false);
 
             var location = result.Item1;
@@ -47,15 +47,15 @@
         }
 
         [Fact]
-        public async Task PostResizedAvatarWhenTooLargeTest()
+        public async Task PostResizedPhotoWhenTooLargeTest()
         {
             var account = Model.Using<ProfileBuildStrategy>().Create<Account>();
             var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearCategories()
                 .Save(_logger, account).ConfigureAwait(false);
             var identity = ClaimsIdentityFactory.Build(account, profile);
-            var address = ApiLocation.AccountProfileAvatars;
+            var address = ApiLocation.AccountProfilePhotos;
 
-            var result = await Client.PostFile<AvatarDetails>(address, _logger, Resources.resize, identity)
+            var result = await Client.PostFile<PhotoDetails>(address, _logger, Resources.resize, identity)
                 .ConfigureAwait(false);
 
             var location = result.Item1;
@@ -78,9 +78,9 @@
             var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearCategories()
                 .Save(_logger, account).ConfigureAwait(false);
             var identity = ClaimsIdentityFactory.Build(account, profile);
-            var address = ApiLocation.AccountProfileAvatars;
+            var address = ApiLocation.AccountProfilePhotos;
 
-            await Client.PostFile<AvatarDetails>(address, _logger, Resources.avatar, identity,
+            await Client.PostFile<PhotoDetails>(address, _logger, Resources.photo, identity,
                     contentType, HttpStatusCode.BadRequest)
                 .ConfigureAwait(false);
         }
@@ -92,9 +92,9 @@
             var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearCategories()
                 .Save(_logger, account).ConfigureAwait(false);
             var identity = ClaimsIdentityFactory.Build(account, profile);
-            var address = ApiLocation.AccountProfileAvatars;
+            var address = ApiLocation.AccountProfilePhotos;
 
-            await Client.PostFile<AvatarDetails>(address, _logger, Resources.oversize, identity, "image/jpeg",
+            await Client.PostFile<PhotoDetails>(address, _logger, Resources.oversize, identity, "image/jpeg",
                     HttpStatusCode.BadRequest)
                 .ConfigureAwait(false);
         }
@@ -103,7 +103,7 @@
         public async Task PostReturnsBadRequestWhenNoContentProvidedTest()
         {
             var identity = ClaimsIdentityFactory.Build();
-            var address = ApiLocation.AccountProfileAvatars;
+            var address = ApiLocation.AccountProfilePhotos;
 
             await Client
                 .Post(address, _logger, null, identity, HttpStatusCode.BadRequest)
@@ -111,40 +111,40 @@
         }
 
         [Fact]
-        public async Task PostReturnsCreatedForNewAvatarTest()
+        public async Task PostReturnsCreatedForNewPhotoTest()
         {
             var account = Model.Using<ProfileBuildStrategy>().Create<Account>();
             var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearCategories()
                 .Save(_logger, account).ConfigureAwait(false);
             var identity = ClaimsIdentityFactory.Build(account, profile);
-            var address = ApiLocation.AccountProfileAvatars;
+            var address = ApiLocation.AccountProfilePhotos;
 
-            var actual = await Client.PostFile<AvatarDetails>(address, _logger, Resources.avatar, identity)
+            var actual = await Client.PostFile<PhotoDetails>(address, _logger, Resources.photo, identity)
                 .ConfigureAwait(false);
 
             var details = actual.Item2;
 
-            details.ETag.Should().NotBeNullOrWhiteSpace();
+            details.Hash.Should().NotBeNullOrWhiteSpace();
             details.Id.Should().NotBeEmpty();
             details.ProfileId.Should().Be(profile.Id);
         }
 
         [Fact]
-        public async Task PostReturnsLocationOfCreatedAvatarTest()
+        public async Task PostReturnsLocationOfCreatedPhotoTest()
         {
             var account = Model.Using<ProfileBuildStrategy>().Create<Account>();
             var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearCategories()
                 .Save(_logger, account).ConfigureAwait(false);
             var identity = ClaimsIdentityFactory.Build(account, profile);
-            var address = ApiLocation.AccountProfileAvatars;
-            var expected = Resources.avatar;
+            var address = ApiLocation.AccountProfilePhotos;
+            var expected = Resources.photo;
 
-            var result = await Client.PostFile<AvatarDetails>(address, _logger, expected, identity)
+            var result = await Client.PostFile<PhotoDetails>(address, _logger, expected, identity)
                 .ConfigureAwait(false);
 
             var location = result.Item1;
 
-            var actual = await Client.Get<byte[]>(location, _logger).ConfigureAwait(false);
+            var actual = await Client.Get<byte[]>(location, _logger, identity).ConfigureAwait(false);
 
             actual.SequenceEqual(expected).Should().BeTrue();
         }
@@ -152,7 +152,7 @@
         [Fact]
         public async Task PostReturnsUnauthorizedForAnonymousUserTest()
         {
-            var address = ApiLocation.AccountProfileAvatars;
+            var address = ApiLocation.AccountProfilePhotos;
 
             await Client.Post(address, _logger, null, null, HttpStatusCode.Unauthorized).ConfigureAwait(false);
         }

@@ -2,25 +2,24 @@
 {
     using System;
     using System.IO;
-    using System.Text.RegularExpressions;
     using EnsureThat;
 
-    public class Avatar : IDisposable
+    public class Photo : IDisposable
     {
         private bool _disposed;
 
-        public Avatar()
+        public Photo()
         {
         }
 
-        public Avatar(Avatar source, Stream data)
+        public Photo(Photo source, Stream data)
         {
             Ensure.That(source, nameof(source)).IsNotNull();
             Ensure.That(data, nameof(data)).IsNotNull();
 
             ContentType = source.ContentType;
             Data = data;
-            ETag = source.ETag;
+            Hash = source.Hash;
             Id = source.Id;
             ProfileId = source.ProfileId;
         }
@@ -37,26 +36,11 @@
             _disposed = true;
         }
 
-        public void SetETag(string etag)
-        {
-            if (etag == null)
-            {
-                ETag = null;
-            }
-            else
-            {
-                // Strip any non-alphanumeric character
-                var filteredETag = Regex.Replace(etag, "[^a-zA-Z0-9]", string.Empty);
-
-                ETag = filteredETag;
-            }
-        }
-
         public string ContentType { get; set; }
 
         public Stream Data { get; set; }
 
-        public string ETag { get; private set; }
+        public string Hash { get; set; }
 
         public Guid Id { get; set; }
 

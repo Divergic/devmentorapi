@@ -20,6 +20,20 @@
                 "/categories/" + category.Group + "/" + UrlEncode(category.Name));
         }
 
+        public static Uri PhotoFor(PhotoDetails details)
+        {
+            var photoUri = new Uri(Config.WebsiteAddress, "/profiles/" + details.ProfileId + "/photos/" + details.Id);
+
+            var location = photoUri.ToString();
+
+            if (string.IsNullOrEmpty(details.Hash) == false)
+            {
+                location += "?hash=" + details.Hash;
+            }
+
+            return new Uri(location);
+        }
+
         public static Uri ProfileFor(Guid profileId)
         {
             return new Uri(Config.WebsiteAddress, "/profiles/" + profileId);
@@ -50,14 +64,14 @@
             return WebUtility.UrlEncode(value).Replace("+", "%20");
         }
 
-        public static Uri AccountProfile => new Uri(Config.WebsiteAddress, "/profile");
+        public static Uri AccountProfile => new Uri(Config.WebsiteAddress, "/profile/");
 
-        public static Uri AccountProfileAvatars => new Uri(Config.WebsiteAddress, "/profiles/avatars/");
+        public static Uri AccountProfilePhotos => new Uri(Config.WebsiteAddress, "/profile/photos/");
 
-        public static Uri Categories => new Uri(Config.WebsiteAddress, "/categories");
+        public static Uri Categories => new Uri(Config.WebsiteAddress, "/categories/");
 
-        public static Uri Ping => new Uri(Config.WebsiteAddress, "/ping");
+        public static Uri Ping => new Uri(Config.WebsiteAddress, "/ping/");
 
-        public static Uri Profiles => new Uri(Config.WebsiteAddress, "/profiles");
+        public static Uri Profiles => new Uri(Config.WebsiteAddress, "/profiles/");
     }
 }

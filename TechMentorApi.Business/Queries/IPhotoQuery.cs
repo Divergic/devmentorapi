@@ -5,8 +5,8 @@
     using System.Threading.Tasks;
     using TechMentorApi.Model;
 
-    public interface IAvatarQuery
+    public interface IPhotoQuery
     {
-        Task<Avatar> GetAvatar(Guid profileId, Guid avatarId, CancellationToken cancellationToken);
+        Task<Photo> GetPhoto(Guid profileId, Guid photoId, CancellationToken cancellationToken);
     }
 }
