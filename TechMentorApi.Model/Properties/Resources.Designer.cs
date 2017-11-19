@@ -10,7 +10,6 @@
 
 namespace TechMentorApi.Model.Properties {
     using System;
-    using System.Reflection;
     
     
     /// <summary>
@@ -40,7 +39,7 @@ namespace TechMentorApi.Model.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("TechMentorApi.Model.Properties.Resources", typeof(Resources).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("TechMentorApi.Model.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -76,6 +75,15 @@ namespace TechMentorApi.Model.Properties {
         internal static string NotFoundException_Message {
             get {
                 return ResourceManager.GetString("NotFoundException_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} must be true..
+        /// </summary>
+        internal static string RequireBooleanAttribute_Message {
+            get {
+                return ResourceManager.GetString("RequireBooleanAttribute_Message", resourceCulture);
             }
         }
     }

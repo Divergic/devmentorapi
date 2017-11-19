@@ -9,7 +9,7 @@
     <PackageReference Include="Ensure.That" Version="7.0.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="1.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
-    <PackageReference Include="WindowsAzure.Storage" Version="8.5.0" />
+    <PackageReference Include="WindowsAzure.Storage" Version="8.6.0" />
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="4.2.0" />
   </ItemGroup>
 
