@@ -27,13 +27,9 @@
         public static IEnumerable<object[]> InvalidYearDataSource()
         {
             yield return new object[]
-            {
-                1988
-            };
+                {1988};
             yield return new object[]
-            {
-                DateTimeOffset.UtcNow.Year + 1
-            };
+                {DateTimeOffset.UtcNow.Year + 1};
         }
 
         [Fact]
@@ -124,9 +120,7 @@
 
                 var profileTask = Client.Get<Profile>(profileAddress, null, identity);
                 var tasks = new List<Task>
-                {
-                    profileTask
-                };
+                    {profileTask};
 
                 for (var categoryCount = 0; categoryCount < 10; categoryCount++)
                 {
@@ -411,6 +405,17 @@
 
             expected.Skills.Add(skill);
 
+            var user = ClaimsIdentityFactory.Build(null, expected);
+
+            await Client.Put(ApiLocation.AccountProfile, _logger, expected, user, HttpStatusCode.BadRequest)
+                .ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task PutReturnsBadRequestWhenAcceptCoCIsFalseTest()
+        {
+            var expected = Model.Using<ProfileBuildStrategy>().Create<UpdatableProfile>()
+                .Set(x => x.AcceptCoC = false);
             var user = ClaimsIdentityFactory.Build(null, expected);
 
             await Client.Put(ApiLocation.AccountProfile, _logger, expected, user, HttpStatusCode.BadRequest)

@@ -123,4 +123,7 @@
   <data name="NotFoundException_Message" xml:space="preserve">
     <value>The requested item was not found.</value>
   </data>
+  <data name="RequireBooleanAttribute_Message" xml:space="preserve">
+    <value>{0} must be true.</value>
+  </data>
 </root>

@@ -17,6 +17,9 @@
 
         public string About { get; set; }
 
+        [RequireBooleanAttribute]
+        public bool AcceptCoC { get; set; }
+
         public int? BirthYear { get; set; }
 
         [Required]
