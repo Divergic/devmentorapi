@@ -9,6 +9,22 @@
         {
         }
 
+        public ProfileResult(ProfileResult profile)
+        {
+            Ensure.That(profile, nameof(profile)).IsNotNull();
+
+            BirthYear = profile.BirthYear;
+            FirstName = profile.FirstName;
+            Gender = profile.Gender;
+            Id = profile.Id;
+            LastName = profile.LastName;
+            PhotoHash = profile.PhotoHash;
+            PhotoId = profile.PhotoId;
+            Status = profile.Status;
+            TimeZone = profile.TimeZone;
+            YearStartedInTech = profile.YearStartedInTech;
+        }
+
         public ProfileResult(Profile profile)
         {
             Ensure.That(profile, nameof(profile)).IsNotNull();

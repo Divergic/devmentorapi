@@ -8,7 +8,6 @@
     using FluentAssertions;
     using Microsoft.Extensions.Logging;
     using ModelBuilder;
-    using TechMentorApi.AcceptanceTests.Properties;
     using TechMentorApi.Model;
     using TechMentorApi.ViewModels;
     using Xunit;
@@ -239,7 +238,47 @@
                 actual.Skills.Should().NotContain(x => x.Name == categoryName);
             }
         }
-        
+
+        [Fact]
+        public async Task GetReturnsCategoryCorrectlyWhenToggledBetweenVisibleAndInvisibleTest()
+        {
+            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearCategories()
+                .Set(x => x.Gender = Guid.NewGuid().ToString());
+
+            await profile.SaveAllCategories().ConfigureAwait(false);
+
+            profile = await profile.Save().ConfigureAwait(false);
+
+            var address = ApiLocation.ProfileFor(profile.Id);
+
+            var firstActual = await Client.Get<PublicProfile>(address, _logger).ConfigureAwait(false);
+
+            firstActual.Gender.Should().Be(profile.Gender);
+
+            var administrator = ClaimsIdentityFactory.Build().AsAdministrator();
+            var categoryAddress = ApiLocation.Category(CategoryGroup.Gender, profile.Gender);
+            var updateCategory = new UpdateCategory
+                {Visible = false};
+
+            // Hide the gender category
+            await Client.Put(categoryAddress, _logger, updateCategory, administrator, HttpStatusCode.NoContent)
+                .ConfigureAwait(false);
+
+            var secondActual = await Client.Get<PublicProfile>(address, _logger).ConfigureAwait(false);
+
+            secondActual.Gender.Should().BeNullOrEmpty();
+
+            updateCategory.Visible = true;
+
+            // Show the gender category again
+            await Client.Put(categoryAddress, _logger, updateCategory, administrator, HttpStatusCode.NoContent)
+                .ConfigureAwait(false);
+
+            var thirdActual = await Client.Get<PublicProfile>(address, _logger).ConfigureAwait(false);
+
+            thirdActual.Gender.Should().Be(profile.Gender);
+        }
+
         [Fact]
         public async Task GetReturnsNotFoundForBannedProfileTest()
         {

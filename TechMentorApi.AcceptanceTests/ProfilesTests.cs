@@ -3,11 +3,13 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net;
     using System.Threading.Tasks;
     using FluentAssertions;
     using Microsoft.Extensions.Logging;
     using ModelBuilder;
     using TechMentorApi.Model;
+    using TechMentorApi.ViewModels;
     using Xunit;
     using Xunit.Abstractions;
 
@@ -39,8 +41,12 @@
         public async Task GetDoesNotReturnProfileAfterGenderUpdatedTest(string newGender)
         {
             var account = Model.Create<Account>();
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Set(x => x.Gender = "Female")
-                .Save(_logger, account).ConfigureAwait(false);
+            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>().Set(x => x.Gender = "Female");
+
+            await profile.SaveAllCategories(_logger).ConfigureAwait(false);
+
+            profile = await profile.Save(_logger, account).ConfigureAwait(false);
+
             var filters = new List<ProfileFilter>
             {
                 new ProfileFilter
@@ -333,6 +339,53 @@
         }
 
         [Fact]
+        public async Task GetReturnsGenderCorrectlyWhenToggledBetweenVisibleAndInvisibleTest()
+        {
+            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>()
+                .Set(x => x.Gender = Guid.NewGuid().ToString());
+            var filters = new List<ProfileFilter>
+            {
+                new ProfileFilter
+                {
+                    CategoryGroup = CategoryGroup.Language,
+                    CategoryName = profile.Languages.Skip(2).First()
+                }
+            };
+            var address = ApiLocation.ProfilesMatching(filters);
+
+            await profile.SaveAllCategories().ConfigureAwait(false);
+
+            profile = await profile.Save().ConfigureAwait(false);
+
+            var firstActual = await Client.Get<List<ProfileResult>>(address, _logger).ConfigureAwait(false);
+
+            firstActual.Single(x => x.Id == profile.Id).Gender.Should().Be(profile.Gender);
+
+            var administrator = ClaimsIdentityFactory.Build().AsAdministrator();
+            var categoryAddress = ApiLocation.Category(CategoryGroup.Gender, profile.Gender);
+            var updateCategory = new UpdateCategory
+                {Visible = false};
+
+            // Hide the gender category
+            await Client.Put(categoryAddress, _logger, updateCategory, administrator, HttpStatusCode.NoContent)
+                .ConfigureAwait(false);
+
+            var secondActual = await Client.Get<List<ProfileResult>>(address, _logger).ConfigureAwait(false);
+
+            secondActual.Single(x => x.Id == profile.Id).Gender.Should().BeNullOrEmpty();
+
+            updateCategory.Visible = true;
+
+            // Show the gender category again
+            await Client.Put(categoryAddress, _logger, updateCategory, administrator, HttpStatusCode.NoContent)
+                .ConfigureAwait(false);
+
+            var thirdActual = await Client.Get<List<ProfileResult>>(address, _logger).ConfigureAwait(false);
+
+            thirdActual.Single(x => x.Id == profile.Id).Gender.Should().Be(profile.Gender);
+        }
+
+        [Fact]
         public async Task GetReturnsMostRecentDataWhenProfileUpdatedTest()
         {
             var account = Model.Create<Account>();
@@ -555,7 +608,8 @@
         [Fact]
         public async Task GetReturnsProfileWithoutGenderWhenGenderIsUnapprovedTest()
         {
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Set(x => x.Gender = Guid.NewGuid().ToString())
+            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>()
+                .Set(x => x.Gender = Guid.NewGuid().ToString())
                 .ClearLanguages().Save(_logger)
                 .ConfigureAwait(false);
 

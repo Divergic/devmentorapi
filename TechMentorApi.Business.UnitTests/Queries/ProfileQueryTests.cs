@@ -362,6 +362,17 @@
             var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Unavailable)
                 .Set(x => x.BannedAt = null);
 
+            var categories = Model.Create<Collection<Category>>();
+
+            var matchingCategory = new Category
+            {
+                Group = CategoryGroup.Gender,
+                Name = expected.Gender,
+                Visible = true
+            };
+
+            categories.Add(matchingCategory);
+
             var store = Substitute.For<IProfileStore>();
             var cache = Substitute.For<ICacheManager>();
             var query = Substitute.For<ICategoryQuery>();
@@ -370,6 +381,7 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
+                query.GetCategories(ReadType.VisibleOnly, tokenSource.Token).Returns(categories);
                 store.GetProfile(expected.Id, tokenSource.Token).Returns(expected);
 
                 var actual = await sut.GetPublicProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
@@ -462,6 +474,18 @@
         {
             var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Unavailable)
                 .Set(x => x.BannedAt = null);
+            var categories = Model.Create<Collection<Category>>();
+
+            var matchingCategory = new Category
+            {
+                Group = CategoryGroup.Gender,
+                Name = expected.Gender,
+                Visible = true
+            };
+
+            categories.Add(matchingCategory);
+
+            var visibleCategories = categories.Where(x => x.Visible);
 
             var store = Substitute.For<IProfileStore>();
             var cache = Substitute.For<ICacheManager>();
@@ -471,6 +495,8 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
+                query.GetCategories(ReadType.VisibleOnly, tokenSource.Token).Returns(visibleCategories);
+
                 cache.GetProfile(expected.Id).Returns(expected);
 
                 var actual = await sut.GetPublicProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
@@ -485,18 +511,16 @@
             var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Unavailable)
                 .Set(x => x.BannedAt = null);
             var categories = new Collection<Category>
-            {
-                new Category {Group = CategoryGroup.Gender, Name = expected.Gender, Visible = true}
-            };
+                {new Category {Group = CategoryGroup.Gender, Name = expected.Gender, Visible = true}};
 
             foreach (var language in expected.Languages)
             {
-                categories.Add(new Category {Group = CategoryGroup.Language, Name = language, Visible = true});
+                categories.Add(new Category { Group = CategoryGroup.Language, Name = language, Visible = true });
             }
 
             foreach (var skill in expected.Skills)
             {
-                categories.Add(new Category {Group = CategoryGroup.Skill, Name = skill.Name, Visible = true});
+                categories.Add(new Category { Group = CategoryGroup.Skill, Name = skill.Name, Visible = true });
             }
 
             var expectedGender = expected.Gender;
@@ -521,6 +545,28 @@
                 actual.Gender.Should().Be(expectedGender);
                 actual.Languages.Should().HaveCount(expectedLanguageCount);
                 actual.Skills.Should().HaveCount(expectedSkillCount);
+            }
+        }
+
+        [Fact]
+        public async Task GetPublicProfileReturnsNewInstanceOfProfileFromCacheToAvoidCacheCorruptionTest()
+        {
+            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Unavailable)
+                .Set(x => x.BannedAt = null);
+
+            var store = Substitute.For<IProfileStore>();
+            var cache = Substitute.For<ICacheManager>();
+            var query = Substitute.For<ICategoryQuery>();
+
+            var sut = new ProfileQuery(store, cache, query);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                cache.GetProfile(expected.Id).Returns(expected);
+
+                var actual = await sut.GetPublicProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
+
+                actual.Should().NotBeSameAs(expected);
             }
         }
 

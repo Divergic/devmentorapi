@@ -36,36 +36,14 @@
         {
             var matchingProfiles = await FilterResults(filters, cancellationToken).ConfigureAwait(false);
 
+            // Use a copy constructor before removing unapproved categories to ensure that changes don't corrupt the reference type stored in the cache
+            var copiedProfiles = from x in matchingProfiles
+                select new ProfileResult(x);
+
             var cleanedProfiles =
-                await RemoveUnapprovedGenders(matchingProfiles, cancellationToken).ConfigureAwait(false);
+                await RemoveUnapprovedGenders(copiedProfiles, cancellationToken).ConfigureAwait(false);
 
             return cleanedProfiles;
-        }
-
-        private async Task<IEnumerable<ProfileResult>> FilterResults(IEnumerable<ProfileFilter> filters, CancellationToken cancellationToken)
-        {
-            var results = await LoadResults(cancellationToken).ConfigureAwait(false);
-
-            if (filters == null)
-            {
-                return results;
-            }
-
-            var filterSet = filters.ToList();
-
-            if (filterSet.Count == 0)
-            {
-                return results;
-            }
-
-            // Load the category links for each filter
-            var matchingProfileIds = await FilterProfiles(filterSet, cancellationToken).ConfigureAwait(false);
-
-            var matchingProfiles = from x in results
-                join y in matchingProfileIds on x.Id equals y
-                select x;
-
-            return matchingProfiles;
         }
 
         private async Task<IEnumerable<Guid>> FilterProfiles(
@@ -130,6 +108,33 @@
 
             // Profile ids really should be unique but we want to ensure the results here are unique just in case
             return matches.Distinct();
+        }
+
+        private async Task<IEnumerable<ProfileResult>> FilterResults(IEnumerable<ProfileFilter> filters,
+            CancellationToken cancellationToken)
+        {
+            var results = await LoadResults(cancellationToken).ConfigureAwait(false);
+
+            if (filters == null)
+            {
+                return results;
+            }
+
+            var filterSet = filters.ToList();
+
+            if (filterSet.Count == 0)
+            {
+                return results;
+            }
+
+            // Load the category links for each filter
+            var matchingProfileIds = await FilterProfiles(filterSet, cancellationToken).ConfigureAwait(false);
+
+            var matchingProfiles = from x in results
+                join y in matchingProfileIds on x.Id equals y
+                select x;
+
+            return matchingProfiles;
         }
 
         private async Task<ICollection<Guid>> GetCategoryLinks(

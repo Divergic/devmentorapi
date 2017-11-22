@@ -8,6 +8,12 @@
 
     public static class ApiLocation
     {
+        public static Uri Category(CategoryGroup group, string name)
+        {
+            return new Uri(Config.WebsiteAddress,
+                "/categories/" + group + "/" + UrlEncode(name));
+        }
+
         public static Uri Category(NewCategory category)
         {
             return new Uri(Config.WebsiteAddress,
