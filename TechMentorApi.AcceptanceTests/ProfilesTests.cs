@@ -4,10 +4,10 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using TechMentorApi.Model;
     using FluentAssertions;
     using Microsoft.Extensions.Logging;
     using ModelBuilder;
+    using TechMentorApi.Model;
     using Xunit;
     using Xunit.Abstractions;
 
@@ -196,8 +196,7 @@
         public async Task GetDoesReturnProfileAfterGenderUpdatedMatchesExistingFilterTest()
         {
             var account = Model.Create<Account>();
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save(_logger, account)
-                .ConfigureAwait(false);
+            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearSkills().ClearLanguages();
             var newGender = Guid.NewGuid().ToString();
             var filters = new List<ProfileFilter>
             {
@@ -209,11 +208,18 @@
             };
             var address = ApiLocation.ProfilesMatching(filters);
 
+            profile = await profile.Save(_logger, account).ConfigureAwait(false);
+
             var firstActual = await Client.Get<List<ProfileResult>>(address, _logger).ConfigureAwait(false);
 
             firstActual.Should().NotContain(x => x.Id == profile.Id);
 
-            await profile.Set(x => x.Gender = newGender).Save(_logger, account).ConfigureAwait(false);
+            profile.Gender = newGender;
+
+            // Save the gender
+            await profile.SaveAllCategories(_logger).ConfigureAwait(false);
+
+            await profile.Save(_logger, account).ConfigureAwait(false);
 
             var secondActual = await Client.Get<List<ProfileResult>>(address, _logger).ConfigureAwait(false);
 
@@ -245,8 +251,7 @@
         {
             var account = Model.Create<Account>();
             var newLanguage = Guid.NewGuid().ToString();
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save(_logger, account)
-                .ConfigureAwait(false);
+            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearSkills().ClearLanguages();
             var filters = new List<ProfileFilter>
             {
                 new ProfileFilter
@@ -256,6 +261,11 @@
                 }
             };
             var address = ApiLocation.ProfilesMatching(filters);
+
+            // Save the gender
+            await profile.SaveAllCategories(_logger).ConfigureAwait(false);
+
+            profile = await profile.Save(_logger, account).ConfigureAwait(false);
 
             var firstActual = await Client.Get<List<ProfileResult>>(address, _logger).ConfigureAwait(false);
 
@@ -326,8 +336,12 @@
         public async Task GetReturnsMostRecentDataWhenProfileUpdatedTest()
         {
             var account = Model.Create<Account>();
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save(_logger, account)
-                .ConfigureAwait(false);
+            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearSkills().ClearLanguages();
+
+            // Save the gender
+            await profile.SaveAllCategories(_logger).ConfigureAwait(false);
+
+            profile = await profile.Save(_logger, account).ConfigureAwait(false);
 
             var firstActual = await Client.Get<List<ProfileResult>>(ApiLocation.Profiles, _logger)
                 .ConfigureAwait(false);
@@ -343,6 +357,9 @@
             profile.Gender = template.Gender;
             profile.LastName = template.LastName;
             profile.TimeZone = template.TimeZone;
+
+            // Save the gender
+            await profile.SaveAllCategories(_logger).ConfigureAwait(false);
 
             await profile.Save(_logger, account).ConfigureAwait(false);
 
@@ -477,8 +494,13 @@
         [Fact]
         public async Task GetReturnsProfileWithGenderFilterTest()
         {
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save(_logger)
-                .ConfigureAwait(false);
+            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearSkills().ClearLanguages();
+
+            // Save the gender
+            await profile.SaveAllCategories(_logger).ConfigureAwait(false);
+
+            profile = await profile.Save(_logger).ConfigureAwait(false);
+
             var filters = new List<ProfileFilter>
             {
                 new ProfileFilter
@@ -528,6 +550,31 @@
             var actual = await Client.Get<List<ProfileResult>>(ApiLocation.Profiles, _logger).ConfigureAwait(false);
 
             actual.Single(x => x.Id == profile.Id).ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+        }
+
+        [Fact]
+        public async Task GetReturnsProfileWithoutGenderWhenGenderIsUnapprovedTest()
+        {
+            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Set(x => x.Gender = Guid.NewGuid().ToString())
+                .ClearLanguages().Save(_logger)
+                .ConfigureAwait(false);
+
+            var filters = new List<ProfileFilter>
+            {
+                new ProfileFilter
+                {
+                    CategoryGroup = CategoryGroup.Skill,
+                    CategoryName = profile.Skills.Skip(2).First().Name
+                }
+            };
+            var address = ApiLocation.ProfilesMatching(filters);
+
+            var actual = await Client.Get<List<ProfileResult>>(address, _logger).ConfigureAwait(false);
+
+            var result = actual.Single(x => x.Id == profile.Id);
+
+            result.ShouldBeEquivalentTo(profile, opt => opt.Excluding(x => x.Gender).ExcludingMissingMembers());
+            result.Gender.Should().BeNull();
         }
 
         [Fact]
