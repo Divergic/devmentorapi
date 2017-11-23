@@ -18,6 +18,20 @@
             return profile;
         }
 
+        public static Profile ClearLanguages(this Profile profile)
+        {
+            profile.Languages.Clear();
+
+            return profile;
+        }
+
+        public static Profile ClearSkills(this Profile profile)
+        {
+            profile.Skills.Clear();
+
+            return profile;
+        }
+
         public static async Task<Profile> Save(this Profile profile, ILogger logger = null, Account account = null)
         {
             var address = ApiLocation.AccountProfile;

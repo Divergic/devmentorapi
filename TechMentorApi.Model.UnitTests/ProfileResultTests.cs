@@ -22,6 +22,16 @@
         }
 
         [Fact]
+        public void CanCreateFromProfileResultTest()
+        {
+            var profile = Model.Create<ProfileResult>();
+
+            var sut = new ProfileResult(profile);
+
+            sut.ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+        }
+
+        [Fact]
         public void CanCreateFromProfileTest()
         {
             var profile = Model.Create<Profile>();

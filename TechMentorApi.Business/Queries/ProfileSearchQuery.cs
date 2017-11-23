@@ -14,42 +14,36 @@
         private readonly ICacheManager _cache;
         private readonly ICategoryLinkStore _linkStore;
         private readonly IProfileStore _profileStore;
+        private readonly ICategoryQuery _query;
 
-        public ProfileSearchQuery(IProfileStore profileStore, ICategoryLinkStore linkStore, ICacheManager cache)
+        public ProfileSearchQuery(IProfileStore profileStore, ICategoryLinkStore linkStore, ICacheManager cache,
+            ICategoryQuery query)
         {
             Ensure.That(profileStore, nameof(profileStore)).IsNotNull();
             Ensure.That(linkStore, nameof(linkStore)).IsNotNull();
             Ensure.That(cache, nameof(cache)).IsNotNull();
+            Ensure.That(query, nameof(query)).IsNotNull();
 
             _profileStore = profileStore;
             _linkStore = linkStore;
             _cache = cache;
+            _query = query;
         }
 
         public async Task<IEnumerable<ProfileResult>> GetProfileResults(
             IEnumerable<ProfileFilter> filters,
             CancellationToken cancellationToken)
         {
-            var results = await LoadResults(cancellationToken).ConfigureAwait(false);
+            var matchingProfiles = await FilterResults(filters, cancellationToken).ConfigureAwait(false);
 
-            if (filters == null)
-            {
-                return results;
-            }
+            // Use a copy constructor before removing unapproved categories to ensure that changes don't corrupt the reference type stored in the cache
+            var copiedProfiles = from x in matchingProfiles
+                select new ProfileResult(x);
 
-            var filterSet = filters.ToList();
+            var cleanedProfiles =
+                await RemoveUnapprovedGenders(copiedProfiles, cancellationToken).ConfigureAwait(false);
 
-            if (filterSet.Count == 0)
-            {
-                return results;
-            }
-
-            // Load the category links for each filter
-            var matchingProfiles = await FilterProfiles(filterSet, cancellationToken).ConfigureAwait(false);
-
-            return from x in results
-                join y in matchingProfiles on x.Id equals y
-                select x;
+            return cleanedProfiles;
         }
 
         private async Task<IEnumerable<Guid>> FilterProfiles(
@@ -116,6 +110,33 @@
             return matches.Distinct();
         }
 
+        private async Task<IEnumerable<ProfileResult>> FilterResults(IEnumerable<ProfileFilter> filters,
+            CancellationToken cancellationToken)
+        {
+            var results = await LoadResults(cancellationToken).ConfigureAwait(false);
+
+            if (filters == null)
+            {
+                return results;
+            }
+
+            var filterSet = filters.ToList();
+
+            if (filterSet.Count == 0)
+            {
+                return results;
+            }
+
+            // Load the category links for each filter
+            var matchingProfileIds = await FilterProfiles(filterSet, cancellationToken).ConfigureAwait(false);
+
+            var matchingProfiles = from x in results
+                join y in matchingProfileIds on x.Id equals y
+                select x;
+
+            return matchingProfiles;
+        }
+
         private async Task<ICollection<Guid>> GetCategoryLinks(
             ProfileFilter filter,
             CancellationToken cancellationToken)
@@ -155,6 +176,37 @@
             _cache.StoreProfileResults(storeResults);
 
             return storeResults;
+        }
+
+        private async Task<IEnumerable<ProfileResult>> RemoveUnapprovedGenders(
+            IEnumerable<ProfileResult> matchingProfiles, CancellationToken cancellationToken)
+        {
+            var categories = await _query.GetCategories(ReadType.VisibleOnly, cancellationToken).ConfigureAwait(false);
+            var approvedGenders = (from x in categories
+                where x.Group == CategoryGroup.Gender
+                select x.Name.ToUpperInvariant()).ToList();
+
+            var profiles = matchingProfiles.ToList();
+
+            foreach (var profile in profiles)
+            {
+                if (profile.Gender == null)
+                {
+                    continue;
+                }
+
+                var genderToCheck = profile.Gender.ToUpperInvariant();
+
+                if (approvedGenders.Contains(genderToCheck))
+                {
+                    continue;
+                }
+
+                // The gender in this profile is not approved so we need to clear it
+                profile.Gender = null;
+            }
+
+            return profiles;
         }
     }
 }

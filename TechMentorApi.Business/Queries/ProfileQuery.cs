@@ -12,8 +12,8 @@
     public class ProfileQuery : IProfileQuery
     {
         private readonly ICacheManager _cache;
-        private readonly IProfileStore _store;
         private readonly ICategoryQuery _query;
+        private readonly IProfileStore _store;
 
         public ProfileQuery(
             IProfileStore store,
@@ -66,52 +66,48 @@
                 return null;
             }
 
+            // Use a copy constructor before removing unapproved categories to ensure that changes don't corrupt the reference type stored in the cache
+            var publicProfile = new PublicProfile(profile);
+
             var categories = categoriesTask.Result;
 
             // We want to split the categories into their groups
             // This will make it more efficient to enumerate through the categories by their groups against the profile
             var categoryGroups = SplitCategoryGroups(categories);
 
-            RemoveUnapprovedCategories(profile, categoryGroups);
+            RemoveUnapprovedCategories(publicProfile, categoryGroups);
 
-            return new PublicProfile(profile);
+            return publicProfile;
         }
 
-        private IDictionary<CategoryGroup, IList<string>> SplitCategoryGroups(IEnumerable<Category> categories)
+        private async Task<Profile> FindProfile(Guid id, CancellationToken cancellationToken)
         {
-            var genders = new List<string>();
-            var skills = new List<string>();
-            var languages = new List<string>();
+            var profile = _cache.GetProfile(id);
 
-            foreach (var category in categories)
+            if (profile != null)
             {
-                if (category.Group == CategoryGroup.Gender)
-                {
-                    genders.Add(category.Name.ToUpperInvariant());
-                }
-                else if (category.Group == CategoryGroup.Language)
-                {
-                    languages.Add(category.Name.ToUpperInvariant());
-                }
-                else if (category.Group == CategoryGroup.Skill)
-                {
-                    skills.Add(category.Name.ToUpperInvariant());
-                }
+                return profile;
             }
 
-            return new Dictionary<CategoryGroup, IList<string>>
+            profile = await _store.GetProfile(id, cancellationToken).ConfigureAwait(false);
+
+            if (profile == null)
             {
-                {CategoryGroup.Gender, genders },
-                {CategoryGroup.Skill, skills },
-                {CategoryGroup.Language, languages },
-            };
+                return null;
+            }
+
+            _cache.StoreProfile(profile);
+
+            return profile;
         }
 
-        private void RemoveUnapprovedCategories(Profile profile, IDictionary<CategoryGroup, IList<string>> categoryGroups)
+        private void RemoveUnapprovedCategories(PublicProfile profile,
+            IDictionary<CategoryGroup, IList<string>> categoryGroups)
         {
             var approvedGenders = categoryGroups[CategoryGroup.Gender];
-            
-            if (profile.Gender != null && approvedGenders.Contains(profile.Gender.ToUpperInvariant()) == false)
+
+            if (profile.Gender != null &&
+                approvedGenders.Contains(profile.Gender.ToUpperInvariant()) == false)
             {
                 // The gender is not an approved category
                 profile.Gender = null;
@@ -144,25 +140,34 @@
             }
         }
 
-        private async Task<Profile> FindProfile(Guid id, CancellationToken cancellationToken)
+        private IDictionary<CategoryGroup, IList<string>> SplitCategoryGroups(IEnumerable<Category> categories)
         {
-            var profile = _cache.GetProfile(id);
+            var genders = new List<string>();
+            var skills = new List<string>();
+            var languages = new List<string>();
 
-            if (profile != null)
+            foreach (var category in categories)
             {
-                return profile;
+                if (category.Group == CategoryGroup.Gender)
+                {
+                    genders.Add(category.Name.ToUpperInvariant());
+                }
+                else if (category.Group == CategoryGroup.Language)
+                {
+                    languages.Add(category.Name.ToUpperInvariant());
+                }
+                else if (category.Group == CategoryGroup.Skill)
+                {
+                    skills.Add(category.Name.ToUpperInvariant());
+                }
             }
 
-            profile = await _store.GetProfile(id, cancellationToken).ConfigureAwait(false);
-
-            if (profile == null)
+            return new Dictionary<CategoryGroup, IList<string>>
             {
-                return null;
-            }
-
-            _cache.StoreProfile(profile);
-
-            return profile;
+                {CategoryGroup.Gender, genders},
+                {CategoryGroup.Skill, skills},
+                {CategoryGroup.Language, languages}
+            };
         }
     }
 }

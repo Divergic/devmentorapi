@@ -9,15 +9,13 @@
         public Profile()
         {
         }
-
+        
         public Profile(UpdatableProfile profile)
         {
             Ensure.That(profile, nameof(profile)).IsNotNull();
 
             About = profile.About;
             AcceptCoC = profile.AcceptCoC;
-            PhotoHash = profile.PhotoHash;
-            PhotoId = profile.PhotoId;
             BirthYear = profile.BirthYear;
             Email = profile.Email;
             FirstName = profile.FirstName;
@@ -25,6 +23,8 @@
             GitHubUsername = profile.GitHubUsername;
             Languages = new List<string>(profile.Languages);
             LastName = profile.LastName;
+            PhotoHash = profile.PhotoHash;
+            PhotoId = profile.PhotoId;
             Skills = new List<Skill>(profile.Skills);
             Status = profile.Status;
             TimeZone = profile.TimeZone;
