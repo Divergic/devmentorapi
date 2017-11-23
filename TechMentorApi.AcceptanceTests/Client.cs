@@ -1,8 +1,6 @@
 ﻿namespace TechMentorApi.AcceptanceTests
 {
     using System;
-    using System.Globalization;
-    using System.IO;
     using System.Linq;
     using System.Net;
     using System.Net.Http;
@@ -28,6 +26,8 @@
         {
             var request = new HttpRequestMessage(HttpMethod.Delete, address);
 
+            WriteLogHeader(logger, request);
+
             if (identity != null)
             {
                 var token = TokenFactory.GenerateToken(identity);
@@ -40,12 +40,7 @@
 
             var response = await _client.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
-            logger?.LogInformation(
-                "{0} {1}: {2} - {3}",
-                request.Method,
-                address,
-                response.StatusCode,
-                response.ReasonPhrase);
+            WriteLogFooter(logger, request, response);
 
             response.StatusCode.Should().Be(expectedCode);
         }
@@ -74,7 +69,7 @@
             {
                 logger?.LogInformation("Get returned {0} bytes", data.Length);
 
-                return (T)(object)data;
+                return (T) (object) data;
             }
 
             var content = Encoding.UTF8.GetString(data);
@@ -95,12 +90,7 @@
             var request = new HttpRequestMessage(HttpMethod.Head, address);
             var response = await _client.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
-            logger?.LogInformation(
-                "{0} {1}: {2} - {3}",
-                request.Method,
-                address,
-                response.StatusCode,
-                response.ReasonPhrase);
+            WriteLogFooter(logger, request, response);
 
             response.StatusCode.Should().Be(expectedCode);
         }
@@ -156,6 +146,8 @@
         {
             var request = new HttpRequestMessage(HttpMethod.Post, address);
 
+            WriteLogHeader(logger, request);
+
             if (identity != null)
             {
                 var token = TokenFactory.GenerateToken(identity);
@@ -177,20 +169,15 @@
 
                 arrayContent.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
                 content.Add(arrayContent, "file", fileName);
-                
+
                 logger?.LogInformation("Post data: {0} bytes", data.Length);
             }
-            
+
             request.Content = content;
 
             var response = await _client.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
-            logger?.LogInformation(
-                "{0} {1}: {2} - {3}",
-                request.Method,
-                address,
-                response.StatusCode,
-                response.ReasonPhrase);
+            WriteLogFooter(logger, request, response);
 
             var responseContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
@@ -199,7 +186,7 @@
             response.StatusCode.Should().Be(expectedCode);
 
             var location = response.Headers.Location;
-            
+
             var value = JsonConvert.DeserializeObject<T>(responseContent);
 
             return new Tuple<Uri, T>(location, value);
@@ -256,6 +243,8 @@
         {
             var request = new HttpRequestMessage(method, address);
 
+            WriteLogHeader(logger, request);
+
             if (identity != null)
             {
                 var token = TokenFactory.GenerateToken(identity);
@@ -281,12 +270,7 @@
 
             var response = await _client.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
-            logger?.LogInformation(
-                "{0} {1}: {2} - {3}",
-                request.Method,
-                address,
-                response.StatusCode,
-                response.ReasonPhrase);
+            WriteLogFooter(logger, request, response);
 
             var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
@@ -306,6 +290,8 @@
         {
             var request = new HttpRequestMessage(HttpMethod.Get, address);
 
+            WriteLogHeader(logger, request);
+
             if (identity != null)
             {
                 var token = TokenFactory.GenerateToken(identity);
@@ -318,18 +304,31 @@
 
             var response = await _client.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
-            logger?.LogInformation(
-                "{0} {1}: {2} - {3}",
-                request.Method,
-                address,
-                response.StatusCode,
-                response.ReasonPhrase);
+            WriteLogFooter(logger, request, response);
 
             var content = await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
 
             response.StatusCode.Should().Be(expectedCode);
 
             return content;
+        }
+
+        private static void WriteLogFooter(ILogger logger, HttpRequestMessage request, HttpResponseMessage response)
+        {
+            logger?.LogInformation(
+                "{0} {1}: {2} - {3}\r\n\r\n",
+                request.Method,
+                request.RequestUri,
+                response.StatusCode,
+                response.ReasonPhrase);
+        }
+
+        private static void WriteLogHeader(ILogger logger, HttpRequestMessage request)
+        {
+            logger?.LogInformation(
+                "Start {0} {1}",
+                request.Method,
+                request.RequestUri);
         }
     }
 }

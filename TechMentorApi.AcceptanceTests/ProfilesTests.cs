@@ -73,8 +73,7 @@
         public async Task GetDoesNotReturnProfileAfterLanguageRemovedTest()
         {
             var account = Model.Create<Account>();
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save(_logger, account)
-                .ConfigureAwait(false);
+            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>();
             var languageToRemoved = profile.Languages.First();
             var filters = new List<ProfileFilter>
             {
@@ -86,12 +85,16 @@
             };
             var address = ApiLocation.ProfilesMatching(filters);
 
+            await profile.SaveAllCategories(_logger).ConfigureAwait(false);
+            
+            profile = await profile.Save(_logger).ConfigureAwait(false);
+
             var firstActual = await Client.Get<List<ProfileResult>>(address, _logger).ConfigureAwait(false);
 
             firstActual.Single(x => x.Id == profile.Id)
                 .ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
 
-            await profile.Set(x => x.Languages.Remove(languageToRemoved)).Save(_logger, account).ConfigureAwait(false);
+            profile = await profile.Set(x => x.Languages.Remove(languageToRemoved)).Save(_logger, account).ConfigureAwait(false);
 
             var secondActual = await Client.Get<List<ProfileResult>>(address, _logger).ConfigureAwait(false);
 
@@ -231,6 +234,36 @@
 
             secondActual.Single(x => x.Id == profile.Id)
                 .ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+        }
+
+        [Fact]
+        public async Task GetIgnoresFiltersOnUnapprovedCategoriesTest()
+        {
+            var firstProfile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save(_logger)
+                .ConfigureAwait(false);
+            var secondProfile = await Model.Using<ProfileBuildStrategy>().Create<Profile>()
+                .Set(x => x.Gender = Guid.NewGuid().ToString()).Save(_logger).ConfigureAwait(false);
+            var filters = new List<ProfileFilter>
+            {
+                new ProfileFilter
+                {
+                    CategoryGroup = CategoryGroup.Gender,
+                    CategoryName = firstProfile.Gender
+                },
+                new ProfileFilter
+                {
+                    CategoryGroup = CategoryGroup.Gender,
+                    CategoryName = secondProfile.Gender
+                }
+            };
+            var address = ApiLocation.ProfilesMatching(filters);
+
+            var actual = await Client.Get<List<ProfileResult>>(address, _logger).ConfigureAwait(false);
+
+            actual.Single(x => x.Id == firstProfile.Id)
+                .ShouldBeEquivalentTo(firstProfile, opt => opt.ExcludingMissingMembers());
+            actual.Single(x => x.Id == secondProfile.Id)
+                .ShouldBeEquivalentTo(secondProfile, opt => opt.ExcludingMissingMembers());
         }
 
         [Fact]
