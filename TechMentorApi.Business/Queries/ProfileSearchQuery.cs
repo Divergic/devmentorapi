@@ -19,10 +19,10 @@
         public ProfileSearchQuery(IProfileStore profileStore, ICategoryLinkStore linkStore, ICacheManager cache,
             ICategoryQuery query)
         {
-            Ensure.That(profileStore, nameof(profileStore)).IsNotNull();
-            Ensure.That(linkStore, nameof(linkStore)).IsNotNull();
-            Ensure.That(cache, nameof(cache)).IsNotNull();
-            Ensure.That(query, nameof(query)).IsNotNull();
+            Ensure.Any.IsNotNull(profileStore, nameof(profileStore));
+            Ensure.Any.IsNotNull(linkStore, nameof(linkStore));
+            Ensure.Any.IsNotNull(cache, nameof(cache));
+            Ensure.Any.IsNotNull(query, nameof(query));
 
             _profileStore = profileStore;
             _linkStore = linkStore;

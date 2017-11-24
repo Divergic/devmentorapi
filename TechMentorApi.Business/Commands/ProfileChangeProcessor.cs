@@ -22,10 +22,10 @@
             ICategoryLinkStore linkStore,
             ICacheManager cache)
         {
-            Ensure.That(profileStore, nameof(profileStore)).IsNotNull();
-            Ensure.That(categoryStore, nameof(categoryStore)).IsNotNull();
-            Ensure.That(linkStore, nameof(linkStore)).IsNotNull();
-            Ensure.That(cache, nameof(cache)).IsNotNull();
+            Ensure.Any.IsNotNull(profileStore, nameof(profileStore));
+            Ensure.Any.IsNotNull(categoryStore, nameof(categoryStore));
+            Ensure.Any.IsNotNull(linkStore, nameof(linkStore));
+            Ensure.Any.IsNotNull(cache, nameof(cache));
 
             _profileStore = profileStore;
             _categoryStore = categoryStore;
@@ -35,8 +35,8 @@
 
         public async Task Execute(Profile profile, ProfileChangeResult changes, CancellationToken cancellationToken)
         {
-            Ensure.That(profile, nameof(profile)).IsNotNull();
-            Ensure.That(changes, nameof(changes)).IsNotNull();
+            Ensure.Any.IsNotNull(profile, nameof(profile));
+            Ensure.Any.IsNotNull(changes, nameof(changes));
 
             if (changes.CategoryChanges.Count > 0)
             {

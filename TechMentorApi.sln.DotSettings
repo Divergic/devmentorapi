@@ -456,4 +456,7 @@
 	<s:String x:Key="/Default/PatternsAndTemplates/StructuralSearch/Pattern/=09ABB7FF3F1D614494EF8464E7A759CF/ReplacePattern/@EntryValue"></s:String>
 	<s:String x:Key="/Default/PatternsAndTemplates/StructuralSearch/Pattern/=09ABB7FF3F1D614494EF8464E7A759CF/SearchPattern/@EntryValue"></s:String>
 	<s:String x:Key="/Default/PatternsAndTemplates/StructuralSearch/Pattern/=09ABB7FF3F1D614494EF8464E7A759CF/Severity/@EntryValue">HINT</s:String>
-	<s:Boolean x:Key="/Default/PatternsAndTemplates/StructuralSearch/Pattern/=09ABB7FF3F1D614494EF8464E7A759CF/ShortenReferences/@EntryValue">True</s:Boolean></wpf:ResourceDictionary>
+	<s:Boolean x:Key="/Default/PatternsAndTemplates/StructuralSearch/Pattern/=09ABB7FF3F1D614494EF8464E7A759CF/ShortenReferences/@EntryValue">True</s:Boolean>
+	<s:String x:Key="/Default/PatternsAndTemplates/StructuralSearch/Pattern/=9EA47CBC35DE48489FB1D5D062419916/Comment/@EntryValue">Update Ensure.That</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/StructuralSearch/Pattern/=9EA47CBC35DE48489FB1D5D062419916/ReplaceComment/@EntryValue">Replace with Ensure.Any.IsNotNull</s:String>
+	<s:String x:Key="/Default/PatternsAndTemplates/StructuralSearch/Pattern/=9EA47CBC35DE48489FB1D5D062419916/Severity/@EntryValue">HINT</s:String></wpf:ResourceDictionary>

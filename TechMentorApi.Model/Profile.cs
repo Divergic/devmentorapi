@@ -12,7 +12,7 @@
         
         public Profile(UpdatableProfile profile)
         {
-            Ensure.That(profile, nameof(profile)).IsNotNull();
+            Ensure.Any.IsNotNull(profile, nameof(profile));
 
             About = profile.About;
             AcceptCoC = profile.AcceptCoC;

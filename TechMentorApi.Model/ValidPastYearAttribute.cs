@@ -13,7 +13,7 @@
 
         public ValidPastYearAttribute(int minYear, bool allowNull = true)
         {
-            Ensure.That(minYear, nameof(minYear)).IsLte(DateTimeOffset.UtcNow.Year);
+            Ensure.Comparable.IsLte(minYear, DateTimeOffset.UtcNow.Year, nameof(minYear));
 
             _minYear = minYear;
             _allowNull = allowNull;

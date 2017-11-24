@@ -16,8 +16,8 @@
 
         public CacheManager(IMemoryCache cache, ICacheConfig config)
         {
-            Ensure.That(cache, nameof(cache)).IsNotNull();
-            Ensure.That(config, nameof(config)).IsNotNull();
+            Ensure.Any.IsNotNull(cache, nameof(cache));
+            Ensure.Any.IsNotNull(config, nameof(config));
 
             _cache = cache;
             _config = config;
@@ -25,7 +25,7 @@
 
         public Account GetAccount(string username)
         {
-            Ensure.That(username, nameof(username)).IsNotNullOrWhiteSpace();
+            Ensure.String.IsNotNullOrWhiteSpace(username, nameof(username));
 
             var cacheKey = BuildAccountCacheKey(username);
 
@@ -36,10 +36,7 @@
                 return null;
             }
 
-            var account = new Account(username)
-            {
-                Id = id
-            };
+            var account = new Account(username) {Id = id};
 
             return account;
         }
@@ -51,7 +48,7 @@
 
         public ICollection<Guid> GetCategoryLinks(ProfileFilter filter)
         {
-            Ensure.That(filter, nameof(filter)).IsNotNull();
+            Ensure.Any.IsNotNull(filter, nameof(filter));
 
             var cacheKey = BuildCategoryLinkCacheKey(filter);
 
@@ -60,7 +57,7 @@
 
         public Profile GetProfile(Guid id)
         {
-            Ensure.That(id, nameof(id)).IsNotEmpty();
+            Ensure.Guid.IsNotEmpty(id, nameof(id));
 
             var cacheKey = BuildProfileCacheKey(id);
 
@@ -79,7 +76,7 @@
 
         public void RemoveCategoryLinks(ProfileFilter filter)
         {
-            Ensure.That(filter, nameof(filter)).IsNotNull();
+            Ensure.Any.IsNotNull(filter, nameof(filter));
 
             var cacheKey = BuildCategoryLinkCacheKey(filter);
 
@@ -88,7 +85,7 @@
 
         public void RemoveProfile(Guid id)
         {
-            Ensure.That(id, nameof(id)).IsNotEmpty();
+            Ensure.Guid.IsNotEmpty(id, nameof(id));
 
             var cacheKey = BuildProfileCacheKey(id);
 
@@ -97,62 +94,50 @@
 
         public void StoreAccount(Account account)
         {
-            Ensure.That(account, nameof(account)).IsNotNull();
+            Ensure.Any.IsNotNull(account, nameof(account));
 
             var cacheKey = BuildAccountCacheKey(account.Username);
 
-            var options = new MemoryCacheEntryOptions
-            {
-                SlidingExpiration = _config.AccountExpiration
-            };
+            var options = new MemoryCacheEntryOptions {SlidingExpiration = _config.AccountExpiration};
 
             _cache.Set(cacheKey, account.Id, options);
         }
 
         public void StoreCategories(ICollection<Category> categories)
         {
-            Ensure.That(categories, nameof(categories)).IsNotNull();
+            Ensure.Any.IsNotNull(categories, nameof(categories));
 
-            var options = new MemoryCacheEntryOptions
-            {
-                SlidingExpiration = _config.CategoriesExpiration
-            };
+            var options = new MemoryCacheEntryOptions {SlidingExpiration = _config.CategoriesExpiration};
 
             _cache.Set(CategoriesCacheKey, categories, options);
         }
 
         public void StoreCategoryLinks(ProfileFilter filter, ICollection<Guid> links)
         {
-            Ensure.That(filter, nameof(filter)).IsNotNull();
-            Ensure.That(links, nameof(links)).IsNotNull();
+            Ensure.Any.IsNotNull(filter, nameof(filter));
+            Ensure.Any.IsNotNull(links, nameof(links));
 
             var cacheKey = BuildCategoryLinkCacheKey(filter);
 
-            var options = new MemoryCacheEntryOptions
-            {
-                SlidingExpiration = _config.CategoryLinksExpiration
-            };
+            var options = new MemoryCacheEntryOptions {SlidingExpiration = _config.CategoryLinksExpiration};
 
             _cache.Set(cacheKey, links, options);
         }
 
         public void StoreProfile(Profile profile)
         {
-            Ensure.That(profile, nameof(profile)).IsNotNull();
+            Ensure.Any.IsNotNull(profile, nameof(profile));
 
             var cacheKey = BuildProfileCacheKey(profile.Id);
 
-            var options = new MemoryCacheEntryOptions
-            {
-                SlidingExpiration = _config.ProfileExpiration
-            };
+            var options = new MemoryCacheEntryOptions {SlidingExpiration = _config.ProfileExpiration};
 
             _cache.Set(cacheKey, profile, options);
         }
 
         public void StoreProfileResults(ICollection<ProfileResult> results)
         {
-            Ensure.That(results, nameof(results)).IsNotNull();
+            Ensure.Any.IsNotNull(results, nameof(results));
 
             var options = new MemoryCacheEntryOptions
             {

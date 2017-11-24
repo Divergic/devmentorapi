@@ -22,7 +22,7 @@
 
         public CategoryController(ICategoryCommand command)
         {
-            Ensure.That(command, nameof(command)).IsNotNull();
+            Ensure.Any.IsNotNull(command, nameof(command));
 
             _command = command;
         }

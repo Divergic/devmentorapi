@@ -22,11 +22,10 @@
             string categoryName,
             CancellationToken cancellationToken)
         {
-            Ensure.That(categoryName, nameof(categoryName)).IsNotNullOrWhiteSpace();
+            Ensure.String.IsNotNullOrWhiteSpace(categoryName, nameof(categoryName));
 
             var partitionKey = CategoryLinkAdapter.BuildPartitionKey(categoryGroup, categoryName);
-            var partitionKeyFilter =
-                TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, partitionKey);
+            var partitionKeyFilter = TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, partitionKey);
             var query = new TableQuery<CategoryLinkAdapter>().Where(partitionKeyFilter);
             var table = GetTable(TableName);
 
@@ -36,14 +35,10 @@
                 select x.Value;
         }
 
-        public Task StoreCategoryLink(
-            CategoryGroup categoryGroup,
-            string categoryName,
-            CategoryLinkChange change,
-            CancellationToken cancellationToken)
+        public Task StoreCategoryLink(CategoryGroup categoryGroup, string categoryName, CategoryLinkChange change, CancellationToken cancellationToken)
         {
-            Ensure.That(categoryName, nameof(categoryName)).IsNotNullOrWhiteSpace();
-            Ensure.That(change, nameof(change)).IsNotNull();
+            Ensure.String.IsNotNullOrWhiteSpace(categoryName, nameof(categoryName));
+            Ensure.Any.IsNotNull(change, nameof(change));
 
             var operation = BuildLinkChangeTableOperation(categoryGroup, categoryName, change);
             var table = GetTable(TableName);
@@ -51,14 +46,10 @@
             return ExecuteWithCreateTable(table, operation, cancellationToken);
         }
 
-        public async Task StoreCategoryLinks(
-            CategoryGroup categoryGroup,
-            string categoryName,
-            IEnumerable<CategoryLinkChange> changes,
-            CancellationToken cancellationToken)
+        public async Task StoreCategoryLinks(CategoryGroup categoryGroup, string categoryName, IEnumerable<CategoryLinkChange> changes, CancellationToken cancellationToken)
         {
-            Ensure.That(categoryName, nameof(categoryName)).IsNotNullOrWhiteSpace();
-            Ensure.That(changes, nameof(changes)).IsNotNull();
+            Ensure.String.IsNotNullOrWhiteSpace(categoryName, nameof(categoryName));
+            Ensure.Any.IsNotNull(changes, nameof(changes));
 
             var table = GetTable(TableName);
 

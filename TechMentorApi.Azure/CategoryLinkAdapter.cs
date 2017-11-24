@@ -20,7 +20,7 @@
 
         public static string BuildPartitionKey(CategoryGroup categoryGroup, string categoryName)
         {
-            Ensure.That(categoryName).IsNotNullOrWhiteSpace();
+            Ensure.String.IsNotNullOrWhiteSpace(categoryName, nameof(categoryName));
             
             // We need to Base64 encode the category name to handle #/\ characters in the names
             var invariantName = categoryName.ToUpperInvariant();

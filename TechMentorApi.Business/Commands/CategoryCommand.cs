@@ -13,8 +13,8 @@
 
         public CategoryCommand(ICategoryStore store, ICacheManager cache)
         {
-            Ensure.That(store, nameof(store)).IsNotNull();
-            Ensure.That(cache, nameof(cache)).IsNotNull();
+            Ensure.Any.IsNotNull(store, nameof(store));
+            Ensure.Any.IsNotNull(cache, nameof(cache));
 
             _store = store;
             _cache = cache;
@@ -22,7 +22,7 @@
 
         public async Task CreateCategory(NewCategory newCategory, CancellationToken cancellationToken)
         {
-            Ensure.That(newCategory, nameof(newCategory)).IsNotNull();
+            Ensure.Any.IsNotNull(newCategory, nameof(newCategory));
 
             var category = new Category
             {
@@ -36,7 +36,7 @@
 
         public Task UpdateCategory(Category category, CancellationToken cancellationToken)
         {
-            Ensure.That(category, nameof(category)).IsNotNull();
+            Ensure.Any.IsNotNull(category, nameof(category));
 
             return StoreCategory(category, true, cancellationToken);
         }

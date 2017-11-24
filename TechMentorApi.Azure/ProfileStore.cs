@@ -25,7 +25,7 @@
             DateTimeOffset bannedAt,
             CancellationToken cancellationToken)
         {
-            Ensure.That(profileId, nameof(profileId)).IsNotEmpty();
+            Ensure.Guid.IsNotEmpty(profileId, nameof(profileId));
 
             var partitionKey = ProfileAdapter.BuildPartitionKey(profileId);
             var rowKey = ProfileAdapter.BuildRowKey(profileId);
@@ -59,7 +59,7 @@
 
         public async Task<Profile> GetProfile(Guid profileId, CancellationToken cancellationToken)
         {
-            Ensure.That(profileId, nameof(profileId)).IsNotEmpty();
+            Ensure.Guid.IsNotEmpty(profileId, nameof(profileId));
 
             var partitionKey = ProfileAdapter.BuildPartitionKey(profileId);
             var rowKey = ProfileAdapter.BuildRowKey(profileId);
@@ -104,7 +104,7 @@
 
         public Task StoreProfile(Profile profile, CancellationToken cancellationToken)
         {
-            Ensure.That(profile, nameof(profile)).IsNotNull();
+            Ensure.Any.IsNotNull(profile, nameof(profile));
 
             var adapter = new ProfileAdapter(profile);
 

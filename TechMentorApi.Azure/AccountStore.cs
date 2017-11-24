@@ -20,8 +20,8 @@
         public async Task<AccountResult> GetAccount(string provider, string subject,
             CancellationToken cancellationToken)
         {
-            Ensure.That(provider, nameof(provider)).IsNotNullOrWhiteSpace();
-            Ensure.That(subject, nameof(subject)).IsNotNullOrWhiteSpace();
+            Ensure.String.IsNotNullOrWhiteSpace(provider, nameof(provider));
+            Ensure.String.IsNotNullOrWhiteSpace(subject, nameof(subject));
 
             var operation = TableOperation.Retrieve<AccountAdapter>(provider, subject);
             var table = GetTable(TableName);
@@ -70,7 +70,7 @@
 
         protected virtual Task RegisterAccount(Account account, CancellationToken cancellationToken)
         {
-            Ensure.That(account, nameof(account)).IsNotNull();
+            Ensure.Any.IsNotNull(account, nameof(account));
 
             var adapter = new AccountAdapter(account);
 

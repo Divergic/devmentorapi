@@ -11,7 +11,7 @@
 
         public PublicCategory(Category category)
         {
-            Ensure.That(category, nameof(category)).IsNotNull();
+            Ensure.Any.IsNotNull(category, nameof(category));
 
             Group = category.Group;
             LinkCount = category.LinkCount;

@@ -12,8 +12,8 @@
 
         protected TableStoreBase(IStorageConfiguration configuration)
         {
-            Ensure.That(configuration, nameof(configuration)).IsNotNull();
-            Ensure.That(configuration.ConnectionString, nameof(configuration.ConnectionString)).IsNotNullOrWhiteSpace();
+            Ensure.Any.IsNotNull(configuration, nameof(configuration));
+            Ensure.String.IsNotNullOrWhiteSpace(configuration.ConnectionString, nameof(configuration.ConnectionString));
 
             _configuration = configuration;
         }

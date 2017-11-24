@@ -15,8 +15,8 @@
 
         public CategoryQuery(ICategoryStore store, ICacheManager cache)
         {
-            Ensure.That(store, nameof(store)).IsNotNull();
-            Ensure.That(cache, nameof(cache)).IsNotNull();
+            Ensure.Any.IsNotNull(store, nameof(store));
+            Ensure.Any.IsNotNull(cache, nameof(cache));
 
             _store = store;
             _cache = cache;

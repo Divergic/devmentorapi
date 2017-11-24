@@ -27,7 +27,7 @@
 
         public static ClaimsIdentity SetProfileId(this ClaimsIdentity identity, Guid profileId)
         {
-            Ensure.That(identity, nameof(identity)).IsNotNull();
+            Ensure.Any.IsNotNull(identity, nameof(identity));
 
             if (identity.HasClaim(x => x.Type == ClaimType.ProfileId))
             {
@@ -43,7 +43,7 @@
 
         public static ClaimsPrincipal SetProfileId(this ClaimsPrincipal principal, Guid profileId)
         {
-            Ensure.That(principal, nameof(principal)).IsNotNull();
+            Ensure.Any.IsNotNull(principal, nameof(principal));
 
             var identity = principal.Identities.First();
 

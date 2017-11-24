@@ -17,7 +17,7 @@
 
         public PublicProfile(Profile profile)
         {
-            Ensure.That(profile, nameof(profile)).IsNotNull();
+            Ensure.Any.IsNotNull(profile, nameof(profile));
 
             About = profile.About;
             Id = profile.Id;

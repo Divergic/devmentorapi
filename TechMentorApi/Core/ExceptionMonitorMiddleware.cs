@@ -15,8 +15,8 @@
 
         public ExceptionMonitorMiddleware(RequestDelegate next, ILoggerFactory logFactory)
         {
-            Ensure.That(next, nameof(next)).IsNotNull();
-            Ensure.That(logFactory, nameof(logFactory)).IsNotNull();
+            Ensure.Any.IsNotNull(next, nameof(next));
+            Ensure.Any.IsNotNull(logFactory, nameof(logFactory));
 
             _next = next;
             _logFactory = logFactory;
@@ -24,7 +24,7 @@
 
         public async Task Invoke(HttpContext context)
         {
-            Ensure.That(context, nameof(context)).IsNotNull();
+            Ensure.Any.IsNotNull(context, nameof(context));
 
             try
             {

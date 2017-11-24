@@ -14,7 +14,7 @@
 
         public void AddChange(CategoryGroup categoryGroup, string categoryName, CategoryLinkChangeType changeType)
         {
-            Ensure.That(categoryName, nameof(categoryName)).IsNotNullOrWhiteSpace();
+            Ensure.String.IsNotNullOrWhiteSpace(categoryName, nameof(categoryName));
 
             var change = new CategoryChange
             {

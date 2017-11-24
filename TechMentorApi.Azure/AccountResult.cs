@@ -7,7 +7,7 @@
     {
         public AccountResult(Account source)
         {
-            Ensure.That(source, nameof(source)).IsNotNull();
+            Ensure.Any.IsNotNull(source, nameof(source));
 
             Id = source.Id;
             Provider = source.Provider;

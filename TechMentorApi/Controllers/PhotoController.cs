@@ -18,7 +18,7 @@
 
         public PhotoController(IPhotoQuery query)
         {
-            Ensure.That(query, nameof(query)).IsNotNull();
+            Ensure.Any.IsNotNull(query, nameof(query));
 
             _query = query;
         }

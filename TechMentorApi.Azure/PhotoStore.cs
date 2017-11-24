@@ -18,16 +18,16 @@
 
         public PhotoStore(IStorageConfiguration configuration)
         {
-            Ensure.That(configuration, nameof(configuration)).IsNotNull();
-            Ensure.That(configuration.ConnectionString, nameof(configuration.ConnectionString)).IsNotNullOrWhiteSpace();
+            Ensure.Any.IsNotNull(configuration, nameof(configuration));
+            Ensure.String.IsNotNullOrWhiteSpace(configuration.ConnectionString, nameof(configuration.ConnectionString));
 
             _configuration = configuration;
         }
 
         public async Task DeletePhoto(Guid profileId, Guid photoId, CancellationToken cancellationToken)
         {
-            Ensure.That(profileId, nameof(profileId)).IsNotEmpty();
-            Ensure.That(photoId, nameof(photoId)).IsNotEmpty();
+            Ensure.Guid.IsNotEmpty(profileId, nameof(profileId));
+            Ensure.Guid.IsNotEmpty(photoId, nameof(photoId));
 
             var photo = new Photo
             {
@@ -74,8 +74,8 @@
 
         public async Task<Photo> GetPhoto(Guid profileId, Guid photoId, CancellationToken cancellationToken)
         {
-            Ensure.That(profileId, nameof(profileId)).IsNotEmpty();
-            Ensure.That(photoId, nameof(photoId)).IsNotEmpty();
+            Ensure.Guid.IsNotEmpty(profileId, nameof(profileId));
+            Ensure.Guid.IsNotEmpty(photoId, nameof(photoId));
 
             var photo = new Photo
             {
@@ -130,10 +130,9 @@
             }
         }
 
-        public async Task<PhotoDetails> StorePhoto(Photo photo,
-            CancellationToken cancellationToken)
+        public async Task<PhotoDetails> StorePhoto(Photo photo, CancellationToken cancellationToken)
         {
-            Ensure.That(photo, nameof(photo)).IsNotNull();
+            Ensure.Any.IsNotNull(photo, nameof(photo));
 
             var blobReference = GetBlobReference(photo);
 

@@ -12,7 +12,7 @@
     {
         public override void OnActionExecuting(ActionExecutingContext context)
         {
-            Ensure.That(context, nameof(context)).IsNotNull();
+            Ensure.Any.IsNotNull(context, nameof(context));
 
             if (context.HttpContext.Request.Method == HttpMethod.Get.ToString())
             {

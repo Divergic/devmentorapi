@@ -15,7 +15,7 @@
     {
         public Photo Resize(Photo photo, int maxHeight, int maxWidth)
         {
-            Ensure.That(photo, nameof(photo)).IsNotNull();
+            Ensure.Any.IsNotNull(photo, nameof(photo));
 
             using (var image = Image.Load(null, photo.Data))
             {
