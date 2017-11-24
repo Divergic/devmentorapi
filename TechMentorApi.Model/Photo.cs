@@ -14,8 +14,8 @@
 
         public Photo(Photo source, Stream data)
         {
-            Ensure.That(source, nameof(source)).IsNotNull();
-            Ensure.That(data, nameof(data)).IsNotNull();
+            Ensure.Any.IsNotNull(source, nameof(source));
+            Ensure.Any.IsNotNull(data, nameof(data));
 
             ContentType = source.ContentType;
             Data = data;

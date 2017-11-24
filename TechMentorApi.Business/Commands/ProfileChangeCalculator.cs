@@ -12,8 +12,8 @@
     {
         public ProfileChangeResult CalculateChanges(Profile original, UpdatableProfile updated)
         {
-            Ensure.That(original, nameof(original)).IsNotNull();
-            Ensure.That(updated, nameof(updated)).IsNotNull();
+            Ensure.Any.IsNotNull(original, nameof(original));
+            Ensure.Any.IsNotNull(updated, nameof(updated));
 
             var result = new ProfileChangeResult();
             var canUpdateCategoryLinks = true;
@@ -81,7 +81,7 @@
 
         public ProfileChangeResult RemoveAllCategoryLinks(UpdatableProfile profile)
         {
-            Ensure.That(profile, nameof(profile)).IsNotNull();
+            Ensure.Any.IsNotNull(profile, nameof(profile));
 
             var result = new ProfileChangeResult();
 

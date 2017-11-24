@@ -19,7 +19,7 @@
 
         public async Task CreateCategory(CategoryGroup group, string name, CancellationToken cancellationToken)
         {
-            Ensure.That(name, nameof(name)).IsNotNullOrWhiteSpace();
+            Ensure.String.IsNotNullOrWhiteSpace(name, nameof(name));
 
             var category = new Category
             {
@@ -81,7 +81,7 @@
 
         public Task StoreCategory(Category category, CancellationToken cancellationToken)
         {
-            Ensure.That(category, nameof(category)).IsNotNull();
+            Ensure.Any.IsNotNull(category, nameof(category));
 
             var adapter = new CategoryAdapter(category);
 

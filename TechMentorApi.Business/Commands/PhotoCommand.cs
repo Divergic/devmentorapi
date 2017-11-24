@@ -14,9 +14,9 @@
 
         public PhotoCommand(IPhotoStore store, IPhotoResizer resizer, IPhotoConfig config)
         {
-            Ensure.That(store, nameof(store)).IsNotNull();
-            Ensure.That(resizer, nameof(resizer)).IsNotNull();
-            Ensure.That(config, nameof(config)).IsNotNull();
+            Ensure.Any.IsNotNull(store, nameof(store));
+            Ensure.Any.IsNotNull(resizer, nameof(resizer));
+            Ensure.Any.IsNotNull(config, nameof(config));
 
             _store = store;
             _resizer = resizer;
@@ -25,7 +25,7 @@
 
         public async Task<PhotoDetails> CreatePhoto(Photo photo, CancellationToken cancellationToken)
         {
-            Ensure.That(photo, nameof(photo)).IsNotNull();
+            Ensure.Any.IsNotNull(photo, nameof(photo));
 
             using (var updatedPhoto = _resizer.Resize(photo, _config.MaxHeight, _config.MaxWidth))
             {

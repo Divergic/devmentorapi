@@ -20,9 +20,9 @@
             ICacheManager cache,
             ICategoryQuery query)
         {
-            Ensure.That(store, nameof(store)).IsNotNull();
-            Ensure.That(cache, nameof(cache)).IsNotNull();
-            Ensure.That(query, nameof(query)).IsNotNull();
+            Ensure.Any.IsNotNull(store, nameof(store));
+            Ensure.Any.IsNotNull(cache, nameof(cache));
+            Ensure.Any.IsNotNull(query, nameof(query));
 
             _store = store;
             _cache = cache;
@@ -31,14 +31,14 @@
 
         public Task<Profile> GetProfile(Guid id, CancellationToken cancellationToken)
         {
-            Ensure.That(id, nameof(id)).IsNotEmpty();
+            Ensure.Guid.IsNotEmpty(id, nameof(id));
 
             return FindProfile(id, cancellationToken);
         }
 
         public async Task<PublicProfile> GetPublicProfile(Guid id, CancellationToken cancellationToken)
         {
-            Ensure.That(id, nameof(id)).IsNotEmpty();
+            Ensure.Guid.IsNotEmpty(id, nameof(id));
 
             var profileTask = FindProfile(id, cancellationToken);
             var categoriesTask = _query.GetCategories(ReadType.VisibleOnly, cancellationToken);

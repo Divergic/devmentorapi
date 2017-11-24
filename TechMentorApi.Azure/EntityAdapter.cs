@@ -24,19 +24,15 @@
 
         protected EntityAdapter(T value)
         {
-            Ensure.That(value, nameof(value)).IsNotNull();
+            Ensure.Any.IsNotNull(value, nameof(value));
 
             Value = value;
         }
 
-        [SuppressMessage(
-            "Microsoft.Design",
-            "CA1062:Validate arguments of public methods",
-            MessageId = "0",
-            Justification = "Parameter is validated using CodeGuard.")]
+        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0", Justification = "Parameter is validated using CodeGuard.")]
         public void ReadEntity(IDictionary<string, EntityProperty> properties, OperationContext operationContext)
         {
-            Ensure.That(properties, nameof(properties)).IsNotNull();
+            Ensure.Any.IsNotNull(properties, nameof(properties));
 
             Value = new T();
 
@@ -81,37 +77,25 @@
             }
         }
 
-        [SuppressMessage(
-            "Microsoft.Design",
-            "CA1062:Validate arguments of public methods",
-            MessageId = "0",
-            Justification = "Parameter is validated using CodeGuard.")]
+        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0", Justification = "Parameter is validated using CodeGuard.")]
         protected virtual TypeConverter GetTypeConverter(PropertyInfo propertyInfo)
         {
-            Ensure.That(propertyInfo, nameof(propertyInfo)).IsNotNull();
+            Ensure.Any.IsNotNull(propertyInfo, nameof(propertyInfo));
 
             var propertyType = propertyInfo.PropertyType;
 
             return TypeDescriptor.GetConverter(propertyType);
         }
 
-        [SuppressMessage(
-            "Microsoft.Design",
-            "CA1062:Validate arguments of public methods",
-            MessageId = "0",
-            Justification = "The parameter is validated using CodeGuard.")]
-        [SuppressMessage(
-            "Microsoft.Design",
-            "CA1062:Validate arguments of public methods",
-            MessageId = "1",
-            Justification = "The parameter is validated using CodeGuard.")]
+        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0", Justification = "The parameter is validated using CodeGuard.")]
+        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "1", Justification = "The parameter is validated using CodeGuard.")]
         protected virtual void ReadAdditionalProperty(PropertyInfo propertyInfo, EntityProperty propertyValue)
         {
-            Ensure.That(propertyInfo, nameof(propertyInfo)).IsNotNull();
-            Ensure.That(propertyValue, nameof(propertyValue)).IsNotNull();
+            Ensure.Any.IsNotNull(propertyInfo, nameof(propertyInfo));
+            Ensure.Any.IsNotNull(propertyValue, nameof(propertyValue));
 
             var converter = GetTypeConverter(propertyInfo);
-            
+
             try
             {
                 var convertedValue = converter.ConvertFromInvariantString(propertyValue.StringValue);
@@ -127,29 +111,16 @@
             }
         }
 
-        protected virtual void ReadValues(
-            IDictionary<string, EntityProperty> properties,
-            OperationContext operationContext)
+        protected virtual void ReadValues(IDictionary<string, EntityProperty> properties, OperationContext operationContext)
         {
         }
 
-        [SuppressMessage(
-            "Microsoft.Design",
-            "CA1062:Validate arguments of public methods",
-            MessageId = "0",
-            Justification = "The parameter is validated using CodeGuard.")]
-        [SuppressMessage(
-            "Microsoft.Design",
-            "CA1062:Validate arguments of public methods",
-            MessageId = "1",
-            Justification = "The parameter is validated using CodeGuard.")]
-        protected virtual void WriteAdditionalProperty(
-            IDictionary<string, EntityProperty> properties,
-            PropertyInfo propertyInfo,
-            object propertyValue)
+        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0", Justification = "The parameter is validated using CodeGuard.")]
+        [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "1", Justification = "The parameter is validated using CodeGuard.")]
+        protected virtual void WriteAdditionalProperty(IDictionary<string, EntityProperty> properties, PropertyInfo propertyInfo, object propertyValue)
         {
-            Ensure.That(properties, nameof(properties)).IsNotNull();
-            Ensure.That(propertyInfo, nameof(propertyInfo)).IsNotNull();
+            Ensure.Any.IsNotNull(properties, nameof(properties));
+            Ensure.Any.IsNotNull(propertyInfo, nameof(propertyInfo));
 
             var converter = GetTypeConverter(propertyInfo);
 

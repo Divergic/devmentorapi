@@ -20,8 +20,8 @@
         public ClaimsTransformer(IAccountQuery query,
             ILogger<ClaimsTransformer> logger)
         {
-            Ensure.That(query, nameof(query)).IsNotNull();
-            Ensure.That(logger, nameof(logger)).IsNotNull();
+            Ensure.Any.IsNotNull(query, nameof(query));
+            Ensure.Any.IsNotNull(logger, nameof(logger));
 
             _query = query;
             _logger = logger;

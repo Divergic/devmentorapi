@@ -13,7 +13,7 @@
 
         public PhotoQuery(IPhotoStore store)
         {
-            Ensure.That(store, nameof(store)).IsNotNull();
+            Ensure.Any.IsNotNull(store, nameof(store));
 
             _store = store;
         }

@@ -14,15 +14,15 @@
 
         public ResultExecutor(ObjectResultExecutor oex)
         {
-            Ensure.That(oex, nameof(oex)).IsNotNull();
+            Ensure.Any.IsNotNull(oex, nameof(oex));
 
             _oex = oex;
         }
 
         public Task Execute(HttpContext context, ObjectResult result)
         {
-            Ensure.That(context, nameof(context)).IsNotNull();
-            Ensure.That(result, nameof(result)).IsNotNull();
+            Ensure.Any.IsNotNull(context, nameof(context));
+            Ensure.Any.IsNotNull(result, nameof(result));
 
             if (context.Response.HasStarted)
             {

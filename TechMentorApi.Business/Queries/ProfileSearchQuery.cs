@@ -19,10 +19,10 @@
         public ProfileSearchQuery(IProfileStore profileStore, ICategoryLinkStore linkStore, ICacheManager cache,
             ICategoryQuery query)
         {
-            Ensure.That(profileStore, nameof(profileStore)).IsNotNull();
-            Ensure.That(linkStore, nameof(linkStore)).IsNotNull();
-            Ensure.That(cache, nameof(cache)).IsNotNull();
-            Ensure.That(query, nameof(query)).IsNotNull();
+            Ensure.Any.IsNotNull(profileStore, nameof(profileStore));
+            Ensure.Any.IsNotNull(linkStore, nameof(linkStore));
+            Ensure.Any.IsNotNull(cache, nameof(cache));
+            Ensure.Any.IsNotNull(query, nameof(query));
 
             _profileStore = profileStore;
             _linkStore = linkStore;
@@ -34,25 +34,38 @@
             IEnumerable<ProfileFilter> filters,
             CancellationToken cancellationToken)
         {
-            var matchingProfiles = await FilterResults(filters, cancellationToken).ConfigureAwait(false);
+            var visibleCategories =
+                (await _query.GetCategories(ReadType.VisibleOnly, cancellationToken).ConfigureAwait(false))
+                .FastToList();
+
+            var matchingProfiles =
+                await FilterResults(filters, visibleCategories, cancellationToken).ConfigureAwait(false);
 
             // Use a copy constructor before removing unapproved categories to ensure that changes don't corrupt the reference type stored in the cache
             var copiedProfiles = from x in matchingProfiles
                 select new ProfileResult(x);
 
-            var cleanedProfiles =
-                await RemoveUnapprovedGenders(copiedProfiles, cancellationToken).ConfigureAwait(false);
+            var cleanedProfiles = RemoveUnapprovedGenders(copiedProfiles, visibleCategories);
 
             return cleanedProfiles;
         }
 
-        private async Task<IEnumerable<Guid>> FilterProfiles(
-            ICollection<ProfileFilter> filters,
-            CancellationToken cancellationToken)
+        private async Task<IEnumerable<Guid>> FilterProfiles(ICollection<ProfileFilter> filters,
+            IEnumerable<Category> visibleCategories, CancellationToken cancellationToken)
         {
             var tasks = new List<Task<ICollection<Guid>>>();
 
-            foreach (var filter in filters)
+            var validFilters = from x in filters
+                join y in visibleCategories
+                    on new {Group = x.CategoryGroup, Name = x.CategoryName.ToUpperInvariant()} equals new
+                    {
+                        y.Group,
+                        Name = y.Name.ToUpperInvariant()
+                    } into matching
+                from m in matching
+                select x;
+
+            foreach (var filter in validFilters)
             {
                 var task = GetCategoryLinks(filter, cancellationToken);
 
@@ -111,7 +124,7 @@
         }
 
         private async Task<IEnumerable<ProfileResult>> FilterResults(IEnumerable<ProfileFilter> filters,
-            CancellationToken cancellationToken)
+            IEnumerable<Category> visibleCategories, CancellationToken cancellationToken)
         {
             var results = await LoadResults(cancellationToken).ConfigureAwait(false);
 
@@ -128,7 +141,8 @@
             }
 
             // Load the category links for each filter
-            var matchingProfileIds = await FilterProfiles(filterSet, cancellationToken).ConfigureAwait(false);
+            var matchingProfileIds =
+                await FilterProfiles(filterSet, visibleCategories, cancellationToken).ConfigureAwait(false);
 
             var matchingProfiles = from x in results
                 join y in matchingProfileIds on x.Id equals y
@@ -178,11 +192,10 @@
             return storeResults;
         }
 
-        private async Task<IEnumerable<ProfileResult>> RemoveUnapprovedGenders(
-            IEnumerable<ProfileResult> matchingProfiles, CancellationToken cancellationToken)
+        private IEnumerable<ProfileResult> RemoveUnapprovedGenders(IEnumerable<ProfileResult> matchingProfiles,
+            IEnumerable<Category> visibleCategories)
         {
-            var categories = await _query.GetCategories(ReadType.VisibleOnly, cancellationToken).ConfigureAwait(false);
-            var approvedGenders = (from x in categories
+            var approvedGenders = (from x in visibleCategories
                 where x.Group == CategoryGroup.Gender
                 select x.Name.ToUpperInvariant()).ToList();
 

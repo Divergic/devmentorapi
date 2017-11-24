@@ -6,7 +6,7 @@
     {
         public User(string username)
         {
-            Ensure.That(username, nameof(username)).IsNotNullOrWhiteSpace();
+            Ensure.String.IsNotNullOrWhiteSpace(username, nameof(username));
 
             Username = username;
         }

@@ -21,10 +21,10 @@
             IProfileChangeProcessor processor,
             ICacheManager cache)
         {
-            Ensure.That(store, nameof(store)).IsNotNull();
-            Ensure.That(calculator, nameof(calculator)).IsNotNull();
-            Ensure.That(processor, nameof(processor)).IsNotNull();
-            Ensure.That(cache, nameof(cache)).IsNotNull();
+            Ensure.Any.IsNotNull(store, nameof(store));
+            Ensure.Any.IsNotNull(calculator, nameof(calculator));
+            Ensure.Any.IsNotNull(processor, nameof(processor));
+            Ensure.Any.IsNotNull(cache, nameof(cache));
 
             _store = store;
             _calculator = calculator;
@@ -34,7 +34,7 @@
 
         public async Task<Profile> BanProfile(Guid id, DateTimeOffset bannedAt, CancellationToken cancellationToken)
         {
-            Ensure.That(id, nameof(id)).IsNotEmpty();
+            Ensure.Guid.IsNotEmpty(id, nameof(id));
 
             var profile = await _store.BanProfile(id, bannedAt, cancellationToken).ConfigureAwait(false);
 
@@ -42,7 +42,7 @@
             {
                 return null;
             }
-            
+
             var linkChanges = _calculator.RemoveAllCategoryLinks(profile);
 
             if (linkChanges.CategoryChanges.Count > 0)
@@ -58,11 +58,11 @@
 
             return profile;
         }
-        
+
         public async Task UpdateProfile(Guid profileId, UpdatableProfile profile, CancellationToken cancellationToken)
         {
-            Ensure.That(profileId, nameof(profileId)).IsNotEmpty();
-            Ensure.That(profile, nameof(profile)).IsNotNull();
+            Ensure.Guid.IsNotEmpty(profileId, nameof(profileId));
+            Ensure.Any.IsNotNull(profile, nameof(profile));
 
             var original = await _store.GetProfile(profileId, cancellationToken).ConfigureAwait(false);
 

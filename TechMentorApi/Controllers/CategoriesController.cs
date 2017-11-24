@@ -25,8 +25,8 @@
 
         public CategoriesController(ICategoryQuery query, ICategoryCommand command)
         {
-            Ensure.That(query, nameof(query)).IsNotNull();
-            Ensure.That(command, nameof(command)).IsNotNull();
+            Ensure.Any.IsNotNull(query, nameof(query));
+            Ensure.Any.IsNotNull(command, nameof(command));
 
             _query = query;
             _command = command;

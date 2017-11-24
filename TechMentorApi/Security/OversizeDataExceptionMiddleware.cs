@@ -25,10 +25,10 @@
             IResultExecutor executor,
             IPhotoConfig config)
         {
-            Ensure.That(next, nameof(next)).IsNotNull();
-            Ensure.That(logger, nameof(logger)).IsNotNull();
-            Ensure.That(executor, nameof(executor)).IsNotNull();
-            Ensure.That(config, nameof(config)).IsNotNull();
+            Ensure.Any.IsNotNull(next, nameof(next));
+            Ensure.Any.IsNotNull(logger, nameof(logger));
+            Ensure.Any.IsNotNull(executor, nameof(executor));
+            Ensure.Any.IsNotNull(config, nameof(config));
 
             _next = next;
             _logger = logger;
@@ -38,7 +38,7 @@
 
         public async Task Invoke(HttpContext context)
         {
-            Ensure.That(context, nameof(context)).IsNotNull();
+            Ensure.Any.IsNotNull(context, nameof(context));
 
             try
             {
