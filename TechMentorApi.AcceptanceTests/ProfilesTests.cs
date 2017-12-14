@@ -94,7 +94,8 @@
             firstActual.Single(x => x.Id == profile.Id)
                 .ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
 
-            profile = await profile.Set(x => x.Languages.Remove(languageToRemoved)).Save(_logger, account).ConfigureAwait(false);
+            profile = await profile.Set(x => x.Languages.Remove(languageToRemoved)).Save(_logger, account)
+                .ConfigureAwait(false);
 
             var secondActual = await Client.Get<List<ProfileResult>>(address, _logger).ConfigureAwait(false);
 
@@ -247,13 +248,15 @@
         [Fact]
         public async Task GetIgnoresFiltersOnUnapprovedCategoriesTest()
         {
-            var firstProfile = Model.Using<ProfileBuildStrategy>().Create<Profile>().Set(x => x.Languages.Clear()).Set(x => x.Languages.Add("English"));
+            var firstProfile = Model.Using<ProfileBuildStrategy>().Create<Profile>().Set(x => x.Languages.Clear())
+                .Set(x => x.Languages.Add("English"));
 
             await firstProfile.SaveAllCategories(_logger).ConfigureAwait(false);
 
             firstProfile = await firstProfile.Save(_logger).ConfigureAwait(false);
 
-            var secondProfile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Set(x => x.Languages.Clear()).Set(x => x.Languages.Add("English"))
+            var secondProfile = await Model.Using<ProfileBuildStrategy>().Create<Profile>()
+                .Set(x => x.Languages.Clear()).Set(x => x.Languages.Add("English"))
                 .Set(x => x.Gender = Guid.NewGuid().ToString()).Save(_logger).ConfigureAwait(false);
             var filters = new List<ProfileFilter>
             {
@@ -418,7 +421,7 @@
             var administrator = ClaimsIdentityFactory.Build().AsAdministrator();
             var categoryAddress = ApiLocation.Category(CategoryGroup.Gender, profile.Gender);
             var updateCategory = new UpdateCategory
-            { Visible = false };
+                {Visible = false};
 
             // Hide the gender category
             await Client.Put(categoryAddress, _logger, updateCategory, administrator, HttpStatusCode.NoContent)
@@ -502,6 +505,54 @@
                 .ShouldBeEquivalentTo(secondProfile, opt => opt.ExcludingMissingMembers());
         }
 
+        [Fact]
+        public async Task GetReturnsNewGenderAfterApprovedForAnonymousUserTest()
+        {
+            var account = Model.Using<ProfileBuildStrategy>().Create<Account>();
+            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>();
+
+            await profile.SaveAllCategories(_logger).ConfigureAwait(false);
+
+            profile = await profile.Save(_logger, account).ConfigureAwait(false);
+
+            profile.Gender = Guid.NewGuid().ToString("N");
+
+            profile = await profile.Save(_logger, account).ConfigureAwait(false);
+
+            var firstFilters = new List<ProfileFilter>
+            {
+                new ProfileFilter
+                {
+                    CategoryGroup = CategoryGroup.Skill,
+                    CategoryName = profile.Skills.First().Name
+                }
+            };
+            var firstAddress = ApiLocation.ProfilesMatching(firstFilters);
+
+            var firstActual = await Client.Get<List<ProfileResult>>(firstAddress, _logger).ConfigureAwait(false);
+
+            firstActual.Single(x => x.Id == profile.Id).Gender.Should().BeNull();
+
+            var administrator = ClaimsIdentityFactory.Build().AsAdministrator();
+
+            await new NewCategory {Group = CategoryGroup.Gender, Name = profile.Gender}.Save(_logger, administrator)
+                .ConfigureAwait(false);
+
+            var secondFilters = new List<ProfileFilter>
+            {
+                new ProfileFilter
+                {
+                    CategoryGroup = CategoryGroup.Gender,
+                    CategoryName = profile.Gender
+                }
+            };
+            var secondAddress = ApiLocation.ProfilesMatching(secondFilters);
+
+            var secondActual = await Client.Get<List<ProfileResult>>(firstAddress, _logger).ConfigureAwait(false);
+
+            secondActual.Single(x => x.Id == profile.Id).Gender.Should().Be(profile.Gender);
+        }
+
         [Theory]
         [InlineData(ProfileStatus.Hidden, false)]
         [InlineData(ProfileStatus.Available, true)]
@@ -561,7 +612,7 @@
             }
 
             var address = ApiLocation.ProfilesMatching(filters);
-            
+
             await profile.SaveAllCategories(_logger).ConfigureAwait(false);
 
             var actual = await Client.Get<List<ProfileResult>>(address, _logger).ConfigureAwait(false);
@@ -650,7 +701,8 @@
         [Fact]
         public async Task GetReturnsProfileWithoutAnyCategoryLinksWhenNoFiltersAppliedTest()
         {
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearCategories().Save(_logger).ConfigureAwait(false);
+            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearCategories().Save(_logger)
+                .ConfigureAwait(false);
 
             var actual = await Client.Get<List<ProfileResult>>(ApiLocation.Profiles, _logger).ConfigureAwait(false);
 
@@ -722,9 +774,9 @@
                 }).Save().ConfigureAwait(false);
 
             var expected = (from x in source
-                            orderby x.Status descending, x.YearStartedInTech ?? 0 descending, x.BirthYear ??
-                                                                                              DateTimeOffset.UtcNow.Year
-                            select x.Id).ToList();
+                orderby x.Status descending, x.YearStartedInTech ?? 0 descending, x.BirthYear ??
+                                                                                  DateTimeOffset.UtcNow.Year
+                select x.Id).ToList();
 
             var address = ApiLocation.Profiles;
 

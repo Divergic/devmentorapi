@@ -309,6 +309,39 @@
         }
 
         [Fact]
+        public async Task GetReturnsSkillAfterApprovedForAnonymousUserTest()
+        {
+            var account = Model.Using<ProfileBuildStrategy>().Create<Account>();
+            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearCategories();
+            
+            profile = await profile.Save(_logger, account).ConfigureAwait(false);
+
+            var newSkill = new Skill
+            {
+                Level = SkillLevel.Expert,
+                Name = Guid.NewGuid().ToString("N")
+            };
+
+            profile.Skills.Add(newSkill);
+
+            profile = await profile.Save(_logger, account).ConfigureAwait(false);
+
+            var profileAddress = ApiLocation.ProfileFor(profile.Id);
+
+            var firstActual = await Client.Get<PublicProfile>(profileAddress, _logger).ConfigureAwait(false);
+
+            firstActual.Skills.Should().NotContain(x => x.Name == newSkill.Name);
+
+            var administrator = ClaimsIdentityFactory.Build().AsAdministrator();
+
+            await new NewCategory { Group = CategoryGroup.Skill, Name = newSkill.Name }.Save(_logger, administrator).ConfigureAwait(false);
+
+            var secondActual = await Client.Get<PublicProfile>(profileAddress, _logger).ConfigureAwait(false);
+
+            secondActual.Skills.Should().Contain(x => x.Name == newSkill.Name);
+        }
+
+        [Fact]
         public async Task GetReturnsOkForAnonymousUserTest()
         {
             var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>();

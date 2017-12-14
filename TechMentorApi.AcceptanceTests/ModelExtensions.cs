@@ -89,8 +89,7 @@
             return category;
         }
 
-        public static async Task SaveAllCategories(this Profile profile, ILogger logger = null,
-            Account account = null)
+        public static async Task SaveAllCategories(this Profile profile, ILogger logger = null)
         {
             var administrator = ClaimsIdentityFactory.Build().AsAdministrator();
 
