@@ -29,7 +29,16 @@
             LastName = profile.LastName;
             PhotoHash = profile.PhotoHash;
             PhotoId = profile.PhotoId;
-            Skills = profile.Skills;
+
+            Skills = new List<Skill>();
+
+            foreach (var skill in profile.Skills)
+            {
+                var clonedSkill = new Skill(skill);
+
+                Skills.Add(clonedSkill);
+            }
+
             Status = profile.Status;
             TimeZone = profile.TimeZone;
             TwitterUsername = profile.TwitterUsername;

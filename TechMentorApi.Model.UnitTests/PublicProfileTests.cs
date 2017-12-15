@@ -1,8 +1,8 @@
 ﻿namespace TechMentorApi.Model.UnitTests
 {
     using System;
+    using System.Linq;
     using FluentAssertions;
-    using Model;
     using ModelBuilder;
     using Xunit;
 
@@ -39,6 +39,23 @@
             var sut = new PublicProfile(profile);
 
             sut.ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+        }
+
+        [Fact]
+        public void CopiesSkillValuesInsteadOfCopyingReferenceTest()
+        {
+            var profile = Model.Create<Profile>();
+
+            var sut = new PublicProfile(profile);
+
+            sut.Skills.Should().NotBeSameAs(profile.Skills);
+
+            foreach (var skill in profile.Skills)
+            {
+                var matchingSkill = sut.Skills.Single(x => x.Name == skill.Name);
+
+                skill.Should().NotBeSameAs(matchingSkill);
+            }
         }
 
         [Fact]

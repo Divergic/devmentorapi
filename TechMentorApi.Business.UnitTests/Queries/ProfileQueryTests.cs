@@ -359,19 +359,16 @@
         [Fact]
         public async Task GetPublicProfileCachesProfileReturnedFromStoreTest()
         {
-            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Unavailable)
-                .Set(x => x.BannedAt = null);
+            var expected = Model.Create<Profile>().Set(x =>
+            {
+                x.Status = ProfileStatus.Unavailable;
+                x.BannedAt = null;
+                x.Gender = null;
+                x.Skills.Clear();
+                x.Languages.Clear();
+            });
 
             var categories = Model.Create<Collection<Category>>();
-
-            var matchingCategory = new Category
-            {
-                Group = CategoryGroup.Gender,
-                Name = expected.Gender,
-                Visible = true
-            };
-
-            categories.Add(matchingCategory);
 
             var store = Substitute.For<IProfileStore>();
             var cache = Substitute.For<ICacheManager>();
@@ -388,6 +385,33 @@
 
                 actual.ShouldBeEquivalentTo(expected, opt => opt.ExcludingMissingMembers());
                 cache.Received().StoreProfile(expected);
+            }
+        }
+
+        [Fact]
+        public async Task GetPublicProfileClearAllUnapprovedCategoriesTest()
+        {
+            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Unavailable)
+                .Set(x => x.BannedAt = null);
+
+            var categories = Model.Create<Collection<Category>>();
+
+            var store = Substitute.For<IProfileStore>();
+            var cache = Substitute.For<ICacheManager>();
+            var query = Substitute.For<ICategoryQuery>();
+
+            var sut = new ProfileQuery(store, cache, query);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                query.GetCategories(ReadType.VisibleOnly, tokenSource.Token).Returns(categories);
+                store.GetProfile(expected.Id, tokenSource.Token).Returns(expected);
+
+                var actual = await sut.GetPublicProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
+
+                actual.Gender.Should().BeNull();
+                actual.Languages.Should().BeEmpty();
+                actual.Skills.Should().BeEmpty();
             }
         }
 
@@ -472,18 +496,15 @@
         [Fact]
         public async Task GetPublicProfileReturnsCachedProfileTest()
         {
-            var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Unavailable)
-                .Set(x => x.BannedAt = null);
-            var categories = Model.Create<Collection<Category>>();
-
-            var matchingCategory = new Category
+            var expected = Model.Create<Profile>().Set(x =>
             {
-                Group = CategoryGroup.Gender,
-                Name = expected.Gender,
-                Visible = true
-            };
-
-            categories.Add(matchingCategory);
+                x.Status = ProfileStatus.Unavailable;
+                x.BannedAt = null;
+                x.Gender = null;
+                x.Skills.Clear();
+                x.Languages.Clear();
+            });
+            var categories = Model.Create<Collection<Category>>();
 
             var visibleCategories = categories.Where(x => x.Visible);
 
@@ -515,12 +536,12 @@
 
             foreach (var language in expected.Languages)
             {
-                categories.Add(new Category { Group = CategoryGroup.Language, Name = language, Visible = true });
+                categories.Add(new Category {Group = CategoryGroup.Language, Name = language, Visible = true});
             }
 
             foreach (var skill in expected.Skills)
             {
-                categories.Add(new Category { Group = CategoryGroup.Skill, Name = skill.Name, Visible = true });
+                categories.Add(new Category {Group = CategoryGroup.Skill, Name = skill.Name, Visible = true});
             }
 
             var expectedGender = expected.Gender;
