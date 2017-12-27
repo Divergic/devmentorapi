@@ -13,6 +13,7 @@
     {
         private readonly ICacheManager _cache;
         private readonly ICategoryStore _categoryStore;
+        private readonly IEventTrigger _eventTrigger;
         private readonly ICategoryLinkStore _linkStore;
         private readonly IProfileStore _profileStore;
 
@@ -20,17 +21,20 @@
             IProfileStore profileStore,
             ICategoryStore categoryStore,
             ICategoryLinkStore linkStore,
-            ICacheManager cache)
+            ICacheManager cache,
+            IEventTrigger eventTrigger)
         {
             Ensure.Any.IsNotNull(profileStore, nameof(profileStore));
             Ensure.Any.IsNotNull(categoryStore, nameof(categoryStore));
             Ensure.Any.IsNotNull(linkStore, nameof(linkStore));
             Ensure.Any.IsNotNull(cache, nameof(cache));
+            Ensure.Any.IsNotNull(eventTrigger, nameof(eventTrigger));
 
             _profileStore = profileStore;
             _categoryStore = categoryStore;
             _linkStore = linkStore;
             _cache = cache;
+            _eventTrigger = eventTrigger;
         }
 
         public async Task Execute(Profile profile, ProfileChangeResult changes, CancellationToken cancellationToken)
@@ -67,6 +71,11 @@
                             Visible = false
                         };
 
+                        // Trigger a notification that a new category is being added to the system
+                        var newCategoryTriggerTask = _eventTrigger.NewCategory(category, cancellationToken);
+
+                        categoryTasks.Add(newCategoryTriggerTask);
+
                         categories.Add(category);
                     }
 
@@ -88,7 +97,8 @@
                     };
 
                     // Store the link update
-                    var categoryLinkTask = _linkStore.StoreCategoryLink(category.Group, category.Name, change, cancellationToken);
+                    var categoryLinkTask =
+                        _linkStore.StoreCategoryLink(category.Group, category.Name, change, cancellationToken);
 
                     categoryTasks.Add(categoryLinkTask);
 

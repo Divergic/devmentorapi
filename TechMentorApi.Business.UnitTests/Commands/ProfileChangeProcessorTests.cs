@@ -8,7 +8,6 @@
     using ModelBuilder;
     using NSubstitute;
     using TechMentorApi.Azure;
-    using TechMentorApi.Business;
     using TechMentorApi.Business.Commands;
     using TechMentorApi.Model;
     using Xunit;
@@ -29,8 +28,9 @@
             var categoryStore = Substitute.For<ICategoryStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var cacheManager = Substitute.For<ICacheManager>();
+            var eventTrigger = Substitute.For<IEventTrigger>();
 
-            var sut = new ProfileChangeProcessor(profileStore, categoryStore, linkStore, cacheManager);
+            var sut = new ProfileChangeProcessor(profileStore, categoryStore, linkStore, cacheManager, eventTrigger);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -73,8 +73,9 @@
             var categoryStore = Substitute.For<ICategoryStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var cacheManager = Substitute.For<ICacheManager>();
+            var eventTrigger = Substitute.For<IEventTrigger>();
 
-            var sut = new ProfileChangeProcessor(profileStore, categoryStore, linkStore, cacheManager);
+            var sut = new ProfileChangeProcessor(profileStore, categoryStore, linkStore, cacheManager, eventTrigger);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -118,8 +119,9 @@
             var categoryStore = Substitute.For<ICategoryStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var cacheManager = Substitute.For<ICacheManager>();
+            var eventTrigger = Substitute.For<IEventTrigger>();
 
-            var sut = new ProfileChangeProcessor(profileStore, categoryStore, linkStore, cacheManager);
+            var sut = new ProfileChangeProcessor(profileStore, categoryStore, linkStore, cacheManager, eventTrigger);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -161,8 +163,9 @@
             var categoryStore = Substitute.For<ICategoryStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var cacheManager = Substitute.For<ICacheManager>();
+            var eventTrigger = Substitute.For<IEventTrigger>();
 
-            var sut = new ProfileChangeProcessor(profileStore, categoryStore, linkStore, cacheManager);
+            var sut = new ProfileChangeProcessor(profileStore, categoryStore, linkStore, cacheManager, eventTrigger);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -176,7 +179,8 @@
                     Arg.Any<string>(),
                     Arg.Any<CategoryLinkChange>(),
                     Arg.Any<CancellationToken>()).ConfigureAwait(false);
-                await categoryStore.DidNotReceive().StoreCategory(Arg.Any<Category>(), Arg.Any<CancellationToken>()).ConfigureAwait(false);
+                await categoryStore.DidNotReceive().StoreCategory(Arg.Any<Category>(), Arg.Any<CancellationToken>())
+                    .ConfigureAwait(false);
             }
         }
 
@@ -190,8 +194,9 @@
             var categoryStore = Substitute.For<ICategoryStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var cacheManager = Substitute.For<ICacheManager>();
+            var eventTrigger = Substitute.For<IEventTrigger>();
 
-            var sut = new ProfileChangeProcessor(profileStore, categoryStore, linkStore, cacheManager);
+            var sut = new ProfileChangeProcessor(profileStore, categoryStore, linkStore, cacheManager, eventTrigger);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -214,8 +219,9 @@
             var categoryStore = Substitute.For<ICategoryStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var cacheManager = Substitute.For<ICacheManager>();
+            var eventTrigger = Substitute.For<IEventTrigger>();
 
-            var sut = new ProfileChangeProcessor(profileStore, categoryStore, linkStore, cacheManager);
+            var sut = new ProfileChangeProcessor(profileStore, categoryStore, linkStore, cacheManager, eventTrigger);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -264,8 +270,9 @@
             var categoryStore = Substitute.For<ICategoryStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var cacheManager = Substitute.For<ICacheManager>();
+            var eventTrigger = Substitute.For<IEventTrigger>();
 
-            var sut = new ProfileChangeProcessor(profileStore, categoryStore, linkStore, cacheManager);
+            var sut = new ProfileChangeProcessor(profileStore, categoryStore, linkStore, cacheManager, eventTrigger);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -304,8 +311,9 @@
             var categoryStore = Substitute.For<ICategoryStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var cacheManager = Substitute.For<ICacheManager>();
+            var eventTrigger = Substitute.For<IEventTrigger>();
 
-            var sut = new ProfileChangeProcessor(profileStore, categoryStore, linkStore, cacheManager);
+            var sut = new ProfileChangeProcessor(profileStore, categoryStore, linkStore, cacheManager, eventTrigger);
 
             Func<Task> action = async () => await sut.Execute(profile, null, CancellationToken.None)
                 .ConfigureAwait(false);
@@ -322,13 +330,49 @@
             var categoryStore = Substitute.For<ICategoryStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var cacheManager = Substitute.For<ICacheManager>();
+            var eventTrigger = Substitute.For<IEventTrigger>();
 
-            var sut = new ProfileChangeProcessor(profileStore, categoryStore, linkStore, cacheManager);
+            var sut = new ProfileChangeProcessor(profileStore, categoryStore, linkStore, cacheManager, eventTrigger);
 
             Func<Task> action = async () => await sut.Execute(null, changes, CancellationToken.None)
                 .ConfigureAwait(false);
 
             action.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Fact]
+        public async Task ExecuteTriggersEventForNewCategoryWhenNotFoundInStoreTest()
+        {
+            var profile = Model.Create<Profile>();
+            var changes = Model.Create<ProfileChangeResult>().Set(x => x.CategoryChanges.Clear());
+            var change = Model.Create<CategoryChange>().Set(x => x.ChangeType = CategoryLinkChangeType.Add);
+            var categories = Model.Create<List<Category>>();
+
+            changes.CategoryChanges.Add(change);
+
+            var profileStore = Substitute.For<IProfileStore>();
+            var categoryStore = Substitute.For<ICategoryStore>();
+            var linkStore = Substitute.For<ICategoryLinkStore>();
+            var cacheManager = Substitute.For<ICacheManager>();
+            var eventTrigger = Substitute.For<IEventTrigger>();
+
+            var sut = new ProfileChangeProcessor(profileStore, categoryStore, linkStore, cacheManager, eventTrigger);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                categoryStore.GetAllCategories(tokenSource.Token).Returns(categories);
+
+                await sut.Execute(profile, changes, tokenSource.Token).ConfigureAwait(false);
+
+                await eventTrigger.Received(1)
+                    .NewCategory(
+                        Arg.Any<Category>(),
+                        tokenSource.Token).ConfigureAwait(false);
+                await eventTrigger.Received()
+                    .NewCategory(
+                        Arg.Is<Category>(x => x.Group == change.CategoryGroup && x.Name == change.CategoryName),
+                        tokenSource.Token).ConfigureAwait(false);
+            }
         }
 
         [Fact]
@@ -341,8 +385,9 @@
             var categoryStore = Substitute.For<ICategoryStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var cacheManager = Substitute.For<ICacheManager>();
+            var eventTrigger = Substitute.For<IEventTrigger>();
 
-            var sut = new ProfileChangeProcessor(profileStore, categoryStore, linkStore, cacheManager);
+            var sut = new ProfileChangeProcessor(profileStore, categoryStore, linkStore, cacheManager, eventTrigger);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -359,8 +404,23 @@
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var cacheManager = Substitute.For<ICacheManager>();
+            var eventTrigger = Substitute.For<IEventTrigger>();
 
-            Action action = () => new ProfileChangeProcessor(profileStore, null, linkStore, cacheManager);
+            Action action = () => new ProfileChangeProcessor(profileStore, null, linkStore, cacheManager, eventTrigger);
+
+            action.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Fact]
+        public void ThrowsExceptionWithNullEventTriggerTest()
+        {
+            var categoryStore = Substitute.For<ICategoryStore>();
+            var profileStore = Substitute.For<IProfileStore>();
+            var linkStore = Substitute.For<ICategoryLinkStore>();
+            var cacheManager = Substitute.For<ICacheManager>();
+
+            Action action = () =>
+                new ProfileChangeProcessor(profileStore, categoryStore, linkStore, cacheManager, null);
 
             action.ShouldThrow<ArgumentNullException>();
         }
@@ -371,8 +431,10 @@
             var categoryStore = Substitute.For<ICategoryStore>();
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
+            var eventTrigger = Substitute.For<IEventTrigger>();
 
-            Action action = () => new ProfileChangeProcessor(profileStore, categoryStore, linkStore, null);
+            Action action = () =>
+                new ProfileChangeProcessor(profileStore, categoryStore, linkStore, null, eventTrigger);
 
             action.ShouldThrow<ArgumentNullException>();
         }
@@ -383,8 +445,10 @@
             var categoryStore = Substitute.For<ICategoryStore>();
             var profileStore = Substitute.For<IProfileStore>();
             var cacheManager = Substitute.For<ICacheManager>();
+            var eventTrigger = Substitute.For<IEventTrigger>();
 
-            Action action = () => new ProfileChangeProcessor(profileStore, categoryStore, null, cacheManager);
+            Action action = () =>
+                new ProfileChangeProcessor(profileStore, categoryStore, null, cacheManager, eventTrigger);
 
             action.ShouldThrow<ArgumentNullException>();
         }
@@ -395,8 +459,10 @@
             var categoryStore = Substitute.For<ICategoryStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var cacheManager = Substitute.For<ICacheManager>();
+            var eventTrigger = Substitute.For<IEventTrigger>();
 
-            Action action = () => new ProfileChangeProcessor(null, categoryStore, linkStore, cacheManager);
+            Action action = () =>
+                new ProfileChangeProcessor(null, categoryStore, linkStore, cacheManager, eventTrigger);
 
             action.ShouldThrow<ArgumentNullException>();
         }
