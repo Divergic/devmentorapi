@@ -47,7 +47,7 @@
             var client = storageAccount.CreateCloudQueueClient();
             var queue = client.GetQueueReference(queueName);
 
-            await target.WriteCategory(category, CancellationToken.None).ConfigureAwait(false);
+            await target.WriteMessage(category, CancellationToken.None).ConfigureAwait(false);
 
             var queueItem = await queue.GetMessageAsync().ConfigureAwait(false);
 
@@ -74,7 +74,7 @@
             var target = new NewCategoryQueue(Config.Storage);
 
             Func<Task> action = async () =>
-                await target.WriteCategory(null, CancellationToken.None).ConfigureAwait(false);
+                await target.WriteMessage(null, CancellationToken.None).ConfigureAwait(false);
 
             action.ShouldThrow<ArgumentNullException>();
         }

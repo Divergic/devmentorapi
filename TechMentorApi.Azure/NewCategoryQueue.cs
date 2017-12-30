@@ -1,25 +1,22 @@
 ﻿namespace TechMentorApi.Azure
 {
     using System;
-    using System.Threading;
-    using System.Threading.Tasks;
     using EnsureThat;
     using TechMentorApi.Model;
 
-    public class NewCategoryQueue : QueueStore, INewCategoryQueue
+    public class NewCategoryQueue : QueueStore<Category>, INewCategoryQueue
     {
-        public NewCategoryQueue(IStorageConfiguration configuration)
-            : base(GetConnectionString(configuration), "newcategories")
+        public NewCategoryQueue(IStorageConfiguration configuration) : base(
+            GetConnectionString(configuration),
+            "newcategories")
         {
         }
 
-        public Task WriteCategory(Category category, CancellationToken cancellationToken)
+        protected override string SerializeMessage(Category message)
         {
-            Ensure.Any.IsNotNull(category, nameof(category));
+            var messageContent = message.Group + Environment.NewLine + message.Name;
 
-            var message = category.Group + Environment.NewLine + category.Name;
-
-            return WriteMessage(message, null, null, cancellationToken);
+            return messageContent;
         }
 
         private static string GetConnectionString(IStorageConfiguration config)

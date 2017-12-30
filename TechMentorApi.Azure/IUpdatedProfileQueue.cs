@@ -2,7 +2,7 @@
 {
     using TechMentorApi.Model;
 
-    public interface INewCategoryQueue : IQueueStore<Category>
+    public interface IUpdatedProfileQueue : IQueueStore<Profile>
     {
     }
 }

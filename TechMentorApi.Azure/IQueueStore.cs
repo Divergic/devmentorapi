@@ -4,10 +4,10 @@
     using System.Threading;
     using System.Threading.Tasks;
 
-    public interface IQueueStore
+    public interface IQueueStore<in T>
     {
         Task WriteMessage(
-            string message,
+            T message,
             TimeSpan? timeToLive,
             TimeSpan? visibleIn,
             CancellationToken cancellationToken);

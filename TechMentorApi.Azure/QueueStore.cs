@@ -8,10 +8,11 @@
     using EnsureThat;
     using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Queue;
+    using Newtonsoft.Json;
 
-    public class QueueStore : IQueueStore
+    public abstract class QueueStore<T> : IQueueStore<T>
     {
-        private static readonly Regex _nameExpression = new Regex(
+        public static readonly Regex NameExpression = new Regex(
             "^[a-z0-9]+(-?[a-z0-9]+)*$",
             RegexOptions.Singleline | RegexOptions.Compiled);
 
@@ -21,14 +22,14 @@
 
         private CloudQueue _queue;
 
-        public QueueStore(string connectionString, string queueName)
+        protected QueueStore(string connectionString, string queueName)
         {
             Ensure.String.IsNotNullOrWhiteSpace(connectionString, nameof(connectionString));
             Ensure.String.IsNotNullOrWhiteSpace(queueName, nameof(queueName));
             Ensure.That(queueName.Length, nameof(queueName.Length)).IsGt(2);
             Ensure.That(queueName.Length, nameof(queueName.Length)).IsLt(64);
 
-            if (_nameExpression.IsMatch(queueName) == false)
+            if (NameExpression.IsMatch(queueName) == false)
             {
                 throw new ArgumentException(
                     "The queue name is invalid. See http://msdn.microsoft.com/en-us/library/windowsazure/dd179349.aspx for the validation rules of queue names.",
@@ -40,12 +41,12 @@
         }
 
         public async Task WriteMessage(
-            string message,
+            T message,
             TimeSpan? timeToLive,
             TimeSpan? visibleIn,
             CancellationToken cancellationToken)
         {
-            Ensure.String.IsNotNullOrWhiteSpace(message, nameof(message));
+            Ensure.Any.IsNotNull(message, nameof(message));
 
             BuildQueue();
 
@@ -54,7 +55,9 @@
                 visibleIn = null;
             }
 
-            var queueMessage = new CloudQueueMessage(message);
+            var messageContent = SerializeMessage(message);
+
+            var queueMessage = new CloudQueueMessage(messageContent);
 
             try
             {
@@ -63,7 +66,7 @@
             }
             catch (StorageException ex)
             {
-                var statusCode = (HttpStatusCode) ex.RequestInformation.HttpStatusCode;
+                var statusCode = (HttpStatusCode)ex.RequestInformation.HttpStatusCode;
 
                 if (statusCode == HttpStatusCode.NotFound ||
                     statusCode == HttpStatusCode.BadRequest)
@@ -79,6 +82,24 @@
 
                 throw;
             }
+        }
+
+        protected virtual string SerializeMessage(T message)
+        {
+            string messageContent;
+
+            var stringMessage = message as string;
+
+            if (stringMessage != null)
+            {
+                messageContent = stringMessage;
+            }
+            else
+            {
+                messageContent = JsonConvert.SerializeObject(message);
+            }
+
+            return messageContent;
         }
 
         private void BuildQueue()

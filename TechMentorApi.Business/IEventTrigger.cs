@@ -7,5 +7,7 @@
     public interface IEventTrigger
     {
         Task NewCategory(Category category, CancellationToken cancellationToken);
+
+        Task ProfileUpdated(Profile profile, CancellationToken cancellationToken);
     }
 }
