@@ -7,7 +7,9 @@
     using System.Threading.Tasks;
     using FluentAssertions;
     using Microsoft.Extensions.Logging;
+    using Microsoft.WindowsAzure.Storage;
     using ModelBuilder;
+    using Newtonsoft.Json;
     using TechMentorApi.Model;
     using TechMentorApi.ViewModels;
     using Xunit;
@@ -27,9 +29,13 @@
         public static IEnumerable<object[]> InvalidYearDataSource()
         {
             yield return new object[]
-                {1988};
+            {
+                1988
+            };
             yield return new object[]
-                {DateTimeOffset.UtcNow.Year + 1};
+            {
+                DateTimeOffset.UtcNow.Year + 1
+            };
         }
 
         [Fact]
@@ -120,7 +126,9 @@
 
                 var profileTask = Client.Get<Profile>(profileAddress, null, identity);
                 var tasks = new List<Task>
-                    {profileTask};
+                {
+                    profileTask
+                };
 
                 for (var categoryCount = 0; categoryCount < 10; categoryCount++)
                 {
@@ -227,6 +235,97 @@
         }
 
         [Fact]
+        public async Task PutCreatesQueueMessageForNewCategoryTest()
+        {
+            var categoryToKeep = Model.Using<ProfileBuildStrategy>().Create<Skill>();
+            var profile = Model.Using<ProfileBuildStrategy>().Create<UpdatableProfile>().Set(
+                x =>
+                {
+                    x.Gender = null;
+                    x.Skills.Clear();
+                    x.Languages.Clear();
+
+                    x.Skills.Add(categoryToKeep);
+                });
+            var user = ClaimsIdentityFactory.Build(null, profile);
+
+            await Client.Put(ApiLocation.AccountProfile, _logger, profile, user, HttpStatusCode.NoContent)
+                .ConfigureAwait(false);
+
+            const string queueName = "newcategories";
+            var expected = CategoryGroup.Skill + Environment.NewLine + categoryToKeep.Name;
+
+            var storageAccount = CloudStorageAccount.Parse(Config.Storage.ConnectionString);
+            var client = storageAccount.CreateCloudQueueClient();
+            var queue = client.GetQueueReference(queueName);
+
+            var queueItem = await queue.GetMessageAsync().ConfigureAwait(false);
+
+            while (queueItem != null)
+            {
+                var actual = queueItem.AsString;
+
+                if (actual == expected)
+                {
+                    // We found the item
+                    return;
+                }
+
+                // Check the next queue item
+                queueItem = await queue.GetMessageAsync().ConfigureAwait(false);
+            }
+
+            throw new InvalidOperationException("Expected queue item was not found.");
+        }
+
+        [Fact]
+        public async Task PutCreatesQueueMessageForUpdatedProfileTest()
+        {
+            var categoryToKeep = Model.Using<ProfileBuildStrategy>().Create<Skill>();
+            var profile = Model.Using<ProfileBuildStrategy>().Create<UpdatableProfile>().Set(
+                x =>
+                {
+                    x.Gender = null;
+                    x.Skills.Clear();
+                    x.Languages.Clear();
+                    x.About = Guid.NewGuid().ToString();
+
+                    x.Skills.Add(categoryToKeep);
+                });
+            var user = ClaimsIdentityFactory.Build(null, profile);
+
+            await Client.Put(ApiLocation.AccountProfile, _logger, profile, user, HttpStatusCode.NoContent)
+                .ConfigureAwait(false);
+
+            const string queueName = "updatedprofiles";
+
+            var storageAccount = CloudStorageAccount.Parse(Config.Storage.ConnectionString);
+            var client = storageAccount.CreateCloudQueueClient();
+            var queue = client.GetQueueReference(queueName);
+
+            var queueItem = await queue.GetMessageAsync().ConfigureAwait(false);
+
+            while (queueItem != null)
+            {
+                var messageContent = queueItem.AsString;
+
+                if (messageContent.Contains(profile.About))
+                {
+                    var actual = JsonConvert.DeserializeObject<UpdatableProfile>(messageContent);
+
+                    actual.ShouldBeEquivalentTo(profile);
+
+                    return;
+                }
+
+                // Check the next queue item
+                queueItem = await queue.GetMessageAsync().ConfigureAwait(false);
+            }
+
+            throw new InvalidOperationException("Expected queue item was not found.");
+        }
+
+        [Fact]
         public async Task PutDoesNotAllowOverPostingTheBannedAtValueTest()
         {
             var account = Model.Create<Account>();
@@ -316,7 +415,7 @@
         public async Task PutReturnsBadRequestForInvalidProfileStatusTest()
         {
             var expected = Model.Using<ProfileBuildStrategy>().Create<UpdatableProfile>()
-                .Set(x => x.Status = (ProfileStatus) int.MaxValue);
+                .Set(x => x.Status = (ProfileStatus)int.MaxValue);
             var user = ClaimsIdentityFactory.Build(null, expected);
 
             await Client.Put(ApiLocation.AccountProfile, _logger, expected, user, HttpStatusCode.BadRequest)
@@ -328,7 +427,7 @@
         {
             var expected = Model.Using<ProfileBuildStrategy>().Create<UpdatableProfile>();
             var skill = Model.Using<ProfileBuildStrategy>().Create<Skill>()
-                .Set(x => x.Level = (SkillLevel) int.MaxValue);
+                .Set(x => x.Level = (SkillLevel)int.MaxValue);
 
             expected.Skills.Add(skill);
 
@@ -414,8 +513,7 @@
         [Fact]
         public async Task PutReturnsBadRequestWhenAcceptCoCIsFalseTest()
         {
-            var expected = Model.Using<ProfileBuildStrategy>().Create<UpdatableProfile>()
-                .Set(x => x.AcceptCoC = false);
+            var expected = Model.Using<ProfileBuildStrategy>().Create<UpdatableProfile>().Set(x => x.AcceptCoC = false);
             var user = ClaimsIdentityFactory.Build(null, expected);
 
             await Client.Put(ApiLocation.AccountProfile, _logger, expected, user, HttpStatusCode.BadRequest)
