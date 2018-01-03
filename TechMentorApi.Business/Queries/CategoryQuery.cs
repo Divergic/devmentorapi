@@ -36,6 +36,29 @@
                 select x;
         }
 
+        public async Task<Category> GetCategory(
+            ReadType readType,
+            CategoryGroup group,
+            string name,
+            CancellationToken cancellationToken)
+        {
+            Ensure.String.IsNotNullOrWhiteSpace(name, nameof(name));
+
+            var category = await GetCategoryInternal(group, name, cancellationToken).ConfigureAwait(false);
+
+            if (readType == ReadType.All)
+            {
+                return category;
+            }
+
+            if (category.Visible == false)
+            {
+                return null;
+            }
+
+            return category;
+        }
+
         private async Task<IEnumerable<Category>> GetCategoriesInternal(CancellationToken cancellationToken)
         {
             var categories = _cache.GetCategories();
@@ -57,6 +80,30 @@
             _cache.StoreCategories(categories);
 
             return categories;
+        }
+
+        private async Task<Category> GetCategoryInternal(
+            CategoryGroup group,
+            string name,
+            CancellationToken cancellationToken)
+        {
+            var category = _cache.GetCategory(group, name);
+
+            if (category != null)
+            {
+                return category;
+            }
+
+            category = await _store.GetCategory(group, name, cancellationToken).ConfigureAwait(false);
+
+            if (category == null)
+            {
+                return null;
+            }
+
+            _cache.StoreCategory(category);
+
+            return category;
         }
     }
 }

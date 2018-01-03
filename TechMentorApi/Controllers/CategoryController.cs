@@ -47,17 +47,17 @@
         {
             if (string.IsNullOrWhiteSpace(group))
             {
-                return new NotFoundResult();
+                return new ErrorMessageResult("No category group specified.", HttpStatusCode.NotFound);
             }
 
             if (Enum.TryParse<CategoryGroup>(group, true, out var categoryGroup) == false)
             {
-                return new NotFoundResult();
+                return new ErrorMessageResult("Category group specified is invalid.", HttpStatusCode.NotFound);
             }
 
             if (string.IsNullOrWhiteSpace(name))
             {
-                return new NotFoundResult();
+                return new ErrorMessageResult("No category name specified.", HttpStatusCode.NotFound);
             }
 
             if (model == null)

@@ -3,14 +3,13 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using TechMentorApi.Model;
     using EnsureThat;
     using Microsoft.Extensions.Caching.Memory;
+    using TechMentorApi.Model;
 
     public class CacheManager : ICacheManager
     {
         private const string CategoriesCacheKey = "Categories";
-        private const string ProfileResultsCacheKey = "ProfileResults";
         private readonly IMemoryCache _cache;
         private readonly ICacheConfig _config;
 
@@ -23,27 +22,16 @@
             _config = config;
         }
 
-        public Account GetAccount(string username)
-        {
-            Ensure.String.IsNotNullOrWhiteSpace(username, nameof(username));
-
-            var cacheKey = BuildAccountCacheKey(username);
-
-            var id = _cache.Get<Guid>(cacheKey);
-
-            if (id == Guid.Empty)
-            {
-                return null;
-            }
-
-            var account = new Account(username) {Id = id};
-
-            return account;
-        }
-
         public ICollection<Category> GetCategories()
         {
             return _cache.Get<ICollection<Category>>(CategoriesCacheKey);
+        }
+
+        public Category GetCategory(CategoryGroup group, string name)
+        {
+            var cacheKey = BuildCategoryCacheKey(group, name);
+
+            return _cache.Get<Category>(cacheKey);
         }
 
         public ICollection<Guid> GetCategoryLinks(ProfileFilter filter)
@@ -55,23 +43,16 @@
             return _cache.Get<ICollection<Guid>>(cacheKey);
         }
 
-        public Profile GetProfile(Guid id)
-        {
-            Ensure.Guid.IsNotEmpty(id, nameof(id));
-
-            var cacheKey = BuildProfileCacheKey(id);
-
-            return _cache.Get<Profile>(cacheKey);
-        }
-
-        public ICollection<ProfileResult> GetProfileResults()
-        {
-            return _cache.Get<ICollection<ProfileResult>>(ProfileResultsCacheKey);
-        }
-
         public void RemoveCategories()
         {
             _cache.Remove(CategoriesCacheKey);
+        }
+
+        public void RemoveCategory(Category category)
+        {
+            var cacheKey = BuildCategoryCacheKey(category.Group, category.Name);
+
+            _cache.Remove(cacheKey);
         }
 
         public void RemoveCategoryLinks(ProfileFilter filter)
@@ -83,33 +64,30 @@
             _cache.Remove(cacheKey);
         }
 
-        public void RemoveProfile(Guid id)
-        {
-            Ensure.Guid.IsNotEmpty(id, nameof(id));
-
-            var cacheKey = BuildProfileCacheKey(id);
-
-            _cache.Remove(cacheKey);
-        }
-
-        public void StoreAccount(Account account)
-        {
-            Ensure.Any.IsNotNull(account, nameof(account));
-
-            var cacheKey = BuildAccountCacheKey(account.Username);
-
-            var options = new MemoryCacheEntryOptions {SlidingExpiration = _config.AccountExpiration};
-
-            _cache.Set(cacheKey, account.Id, options);
-        }
-
         public void StoreCategories(ICollection<Category> categories)
         {
             Ensure.Any.IsNotNull(categories, nameof(categories));
 
-            var options = new MemoryCacheEntryOptions {SlidingExpiration = _config.CategoriesExpiration};
+            var options = new MemoryCacheEntryOptions
+            {
+                SlidingExpiration = _config.CategoriesExpiration
+            };
 
             _cache.Set(CategoriesCacheKey, categories, options);
+        }
+
+        public void StoreCategory(Category category)
+        {
+            Ensure.Any.IsNotNull(category, nameof(category));
+
+            var cacheKey = BuildCategoryCacheKey(category.Group, category.Name);
+
+            var options = new MemoryCacheEntryOptions
+            {
+                SlidingExpiration = _config.CategoriesExpiration
+            };
+
+            _cache.Set(cacheKey, category, options);
         }
 
         public void StoreCategoryLinks(ProfileFilter filter, ICollection<Guid> links)
@@ -119,38 +97,18 @@
 
             var cacheKey = BuildCategoryLinkCacheKey(filter);
 
-            var options = new MemoryCacheEntryOptions {SlidingExpiration = _config.CategoryLinksExpiration};
+            var options = new MemoryCacheEntryOptions
+            {
+                SlidingExpiration = _config.CategoryLinksExpiration
+            };
 
             _cache.Set(cacheKey, links, options);
         }
 
-        public void StoreProfile(Profile profile)
-        {
-            Ensure.Any.IsNotNull(profile, nameof(profile));
-
-            var cacheKey = BuildProfileCacheKey(profile.Id);
-
-            var options = new MemoryCacheEntryOptions {SlidingExpiration = _config.ProfileExpiration};
-
-            _cache.Set(cacheKey, profile, options);
-        }
-
-        public void StoreProfileResults(ICollection<ProfileResult> results)
-        {
-            Ensure.Any.IsNotNull(results, nameof(results));
-
-            var options = new MemoryCacheEntryOptions
-            {
-                SlidingExpiration = _config.ProfileResultsExpiration
-            };
-
-            _cache.Set(ProfileResultsCacheKey, results, options);
-        }
-
-        private static string BuildAccountCacheKey(string username)
+        private static string BuildCategoryCacheKey(CategoryGroup group, string name)
         {
             // The cache key has a prefix to partition this type of object just in case there is a key collision with another object type
-            return "Account|" + username;
+            return "Category|" + group + "|" + name;
         }
 
         private static string BuildCategoryLinkCacheKey(ProfileFilter filter)
@@ -159,12 +117,6 @@
 
             // The cache key has a prefix to partition this type of object just in case there is a key collision with another object type
             return "CategoryLinks|" + filter.CategoryGroup + "|" + filter.CategoryName;
-        }
-
-        private static string BuildProfileCacheKey(Guid id)
-        {
-            // The cache key has a prefix to partition this type of object just in case there is a key collision with another object type
-            return "Profile|" + id;
         }
     }
 }

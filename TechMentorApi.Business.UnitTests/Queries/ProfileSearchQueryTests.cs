@@ -16,38 +16,102 @@
     public class ProfileSearchQueryTests
     {
         [Fact]
+        public async Task GetProfileIgnoresFiltersForUnapprovedCategoriesTest()
+        {
+            var expected = Model.Create<List<ProfileResult>>();
+            var filters = new List<ProfileFilter>
+            {
+                Model.Create<ProfileFilter>(),
+                Model.Create<ProfileFilter>()
+            };
+            var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(
+                x =>
+                {
+                    x.CategoryGroup = filters[0].CategoryGroup;
+                    x.CategoryName = filters[0].CategoryName;
+                });
+            var filterCategories = new[]
+            {
+                new Category
+                {
+                    Group = filters[0].CategoryGroup,
+                    Name = filters[0].CategoryName
+                }
+            };
+            var genderCategories = from x in expected
+                select new Category
+                {
+                    Group = CategoryGroup.Gender,
+                    Name = x.Gender,
+                    Visible = true
+                };
+            var categories = filterCategories.Union(genderCategories);
+
+            firstCategoryLinks[7].ProfileId = expected[3].Id;
+            firstCategoryLinks[3].ProfileId = expected[5].Id;
+
+            var profileStore = Substitute.For<IProfileStore>();
+            var linkStore = Substitute.For<ICategoryLinkStore>();
+            var categoryCache = Substitute.For<ICacheManager>();
+            var query = Substitute.For<ICategoryQuery>();
+            var profileCache = Substitute.For<IProfileCache>();
+
+            var sut = new ProfileSearchQuery(query, profileStore, linkStore, profileCache, categoryCache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                profileCache.GetProfileResults().Returns(expected);
+                categoryCache.GetCategoryLinks(filters[0])
+                    .Returns(firstCategoryLinks.Select(y => y.ProfileId).ToList());
+                query.GetCategories(ReadType.VisibleOnly, tokenSource.Token).Returns(categories);
+
+                var actual = (await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false)).ToList();
+
+                actual.Should().HaveCount(2);
+                actual.Single(x => x.Id == expected[3].Id).ShouldBeEquivalentTo(expected[3]);
+                actual.Single(x => x.Id == expected[5].Id).ShouldBeEquivalentTo(expected[5]);
+
+                categoryCache.DidNotReceive().GetCategoryLinks(filters[1]);
+            }
+        }
+
+        [Fact]
         public async Task GetProfileResultsCachesCategoryLinksTest()
         {
             var expected = Model.Create<List<ProfileResult>>();
             var filters = new List<ProfileFilter>
-                {Model.Create<ProfileFilter>()};
+            {
+                Model.Create<ProfileFilter>()
+            };
             var categoryLinks = Model.Create<List<CategoryLink>>();
             var categories = from x in filters
-                             select new Category
-                             {
-                                 Group = x.CategoryGroup,
-                                 Name = x.CategoryName,
-                                 Visible = true
-                             };
+                select new Category
+                {
+                    Group = x.CategoryGroup,
+                    Name = x.CategoryName,
+                    Visible = true
+                };
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICacheManager>();
             var query = Substitute.For<ICategoryQuery>();
+            var profileCache = Substitute.For<IProfileCache>();
 
-            var sut = new ProfileSearchQuery(profileStore, linkStore, cache, query);
+            var sut = new ProfileSearchQuery(query, profileStore, linkStore, profileCache, categoryCache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
                 query.GetCategories(ReadType.VisibleOnly, tokenSource.Token).Returns(categories);
-                cache.GetProfileResults().Returns(expected);
-                cache.GetCategoryLinks(Arg.Any<ProfileFilter>()).Returns((ICollection<Guid>)null);
+                profileCache.GetProfileResults().Returns(expected);
+                categoryCache.GetCategoryLinks(Arg.Any<ProfileFilter>()).Returns((ICollection<Guid>)null);
                 linkStore.GetCategoryLinks(filters[0].CategoryGroup, filters[0].CategoryName, tokenSource.Token)
                     .Returns(categoryLinks);
 
                 await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false);
 
-                cache.Received().StoreCategoryLinks(filters[0],
+                categoryCache.Received().StoreCategoryLinks(
+                    filters[0],
                     Verify.That<ICollection<Guid>>(
                         x => x.ShouldBeEquivalentTo(categoryLinks.Select(y => y.ProfileId))));
             }
@@ -62,30 +126,32 @@
                 Model.Create<ProfileFilter>(),
                 Model.Create<ProfileFilter>()
             };
-            var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
-            {
-                x.CategoryGroup = filters[0].CategoryGroup;
-                x.CategoryName = filters[0].CategoryName;
-            });
-            var secondCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
-            {
-                x.CategoryGroup = filters[1].CategoryGroup;
-                x.CategoryName = filters[1].CategoryName;
-            });
+            var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(
+                x =>
+                {
+                    x.CategoryGroup = filters[0].CategoryGroup;
+                    x.CategoryName = filters[0].CategoryName;
+                });
+            var secondCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(
+                x =>
+                {
+                    x.CategoryGroup = filters[1].CategoryGroup;
+                    x.CategoryName = filters[1].CategoryName;
+                });
             var filterCategories = from x in filters
-                                   select new Category
-                                   {
-                                       Group = x.CategoryGroup,
-                                       Name = x.CategoryName,
-                                       Visible = true
-                                   };
+                select new Category
+                {
+                    Group = x.CategoryGroup,
+                    Name = x.CategoryName,
+                    Visible = true
+                };
             var genderCategories = from x in expected
-                                   select new Category
-                                   {
-                                       Group = CategoryGroup.Gender,
-                                       Name = x.Gender,
-                                       Visible = true
-                                   };
+                select new Category
+                {
+                    Group = CategoryGroup.Gender,
+                    Name = x.Gender,
+                    Visible = true
+                };
             var categories = filterCategories.Union(genderCategories);
 
             firstCategoryLinks[7].ProfileId = expected[3].Id;
@@ -94,17 +160,20 @@
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICacheManager>();
             var query = Substitute.For<ICategoryQuery>();
+            var profileCache = Substitute.For<IProfileCache>();
 
-            var sut = new ProfileSearchQuery(profileStore, linkStore, cache, query);
+            var sut = new ProfileSearchQuery(query, profileStore, linkStore, profileCache, categoryCache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
                 query.GetCategories(ReadType.VisibleOnly, tokenSource.Token).Returns(categories);
-                cache.GetProfileResults().Returns(expected);
-                cache.GetCategoryLinks(filters[0]).Returns(firstCategoryLinks.Select(y => y.ProfileId).ToList());
-                cache.GetCategoryLinks(filters[1]).Returns(secondCategoryLinks.Select(y => y.ProfileId).ToList());
+                profileCache.GetProfileResults().Returns(expected);
+                categoryCache.GetCategoryLinks(filters[0])
+                    .Returns(firstCategoryLinks.Select(y => y.ProfileId).ToList());
+                categoryCache.GetCategoryLinks(filters[1])
+                    .Returns(secondCategoryLinks.Select(y => y.ProfileId).ToList());
 
                 var actual = (await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false)).ToList();
 
@@ -123,16 +192,18 @@
                 Model.Create<ProfileFilter>(),
                 Model.Create<ProfileFilter>()
             };
-            var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
-            {
-                x.CategoryGroup = filters[0].CategoryGroup;
-                x.CategoryName = filters[0].CategoryName;
-            });
-            var secondCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
-            {
-                x.CategoryGroup = filters[1].CategoryGroup;
-                x.CategoryName = filters[1].CategoryName;
-            });
+            var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(
+                x =>
+                {
+                    x.CategoryGroup = filters[0].CategoryGroup;
+                    x.CategoryName = filters[0].CategoryName;
+                });
+            var secondCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(
+                x =>
+                {
+                    x.CategoryGroup = filters[1].CategoryGroup;
+                    x.CategoryName = filters[1].CategoryName;
+                });
 
             firstCategoryLinks[7].ProfileId = expected[3].Id;
             firstCategoryLinks[3].ProfileId = expected[5].Id;
@@ -140,28 +211,31 @@
             secondCategoryLinks[8].ProfileId = expected[5].Id;
 
             var categories = from x in expected
-                             select new Category
-                             {
-                                 Group = CategoryGroup.Gender,
-                                 LinkCount = 1,
-                                 Name = Guid.NewGuid().ToString(),
-                                 Reviewed = true,
-                                 Visible = true
-                             };
+                select new Category
+                {
+                    Group = CategoryGroup.Gender,
+                    LinkCount = 1,
+                    Name = Guid.NewGuid().ToString(),
+                    Reviewed = true,
+                    Visible = true
+                };
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICacheManager>();
             var query = Substitute.For<ICategoryQuery>();
+            var profileCache = Substitute.For<IProfileCache>();
 
-            var sut = new ProfileSearchQuery(profileStore, linkStore, cache, query);
+            var sut = new ProfileSearchQuery(query, profileStore, linkStore, profileCache, categoryCache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                cache.GetProfileResults().Returns((ICollection<ProfileResult>)null);
+                profileCache.GetProfileResults().Returns((ICollection<ProfileResult>)null);
                 profileStore.GetProfileResults(tokenSource.Token).Returns(expected);
-                cache.GetCategoryLinks(filters[0]).Returns(firstCategoryLinks.Select(y => y.ProfileId).ToList());
-                cache.GetCategoryLinks(filters[1]).Returns(secondCategoryLinks.Select(y => y.ProfileId).ToList());
+                categoryCache.GetCategoryLinks(filters[0])
+                    .Returns(firstCategoryLinks.Select(y => y.ProfileId).ToList());
+                categoryCache.GetCategoryLinks(filters[1])
+                    .Returns(secondCategoryLinks.Select(y => y.ProfileId).ToList());
                 query.GetCategories(ReadType.VisibleOnly, tokenSource.Token).Returns(categories);
 
                 var actual = await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false);
@@ -179,26 +253,27 @@
                 Model.Create<ProfileFilter>(),
                 Model.Create<ProfileFilter>()
             };
-            var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
-            {
-                x.CategoryGroup = filters[0].CategoryGroup;
-                x.CategoryName = filters[0].CategoryName;
-            });
+            var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(
+                x =>
+                {
+                    x.CategoryGroup = filters[0].CategoryGroup;
+                    x.CategoryName = filters[0].CategoryName;
+                });
             var secondCategoryLinks = new List<CategoryLink>();
             var filterCategories = from x in filters
-                                   select new Category
-                                   {
-                                       Group = x.CategoryGroup,
-                                       Name = x.CategoryName,
-                                       Visible = true
-                                   };
+                select new Category
+                {
+                    Group = x.CategoryGroup,
+                    Name = x.CategoryName,
+                    Visible = true
+                };
             var genderCategories = from x in expected
-                                   select new Category
-                                   {
-                                       Group = CategoryGroup.Gender,
-                                       Name = x.Gender,
-                                       Visible = true
-                                   };
+                select new Category
+                {
+                    Group = CategoryGroup.Gender,
+                    Name = x.Gender,
+                    Visible = true
+                };
             var categories = filterCategories.Union(genderCategories);
 
             firstCategoryLinks[7].ProfileId = expected[3].Id;
@@ -206,16 +281,19 @@
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICacheManager>();
             var query = Substitute.For<ICategoryQuery>();
+            var profileCache = Substitute.For<IProfileCache>();
 
-            var sut = new ProfileSearchQuery(profileStore, linkStore, cache, query);
+            var sut = new ProfileSearchQuery(query, profileStore, linkStore, profileCache, categoryCache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                cache.GetProfileResults().Returns(expected);
-                cache.GetCategoryLinks(filters[0]).Returns(firstCategoryLinks.Select(y => y.ProfileId).ToList());
-                cache.GetCategoryLinks(filters[1]).Returns(secondCategoryLinks.Select(y => y.ProfileId).ToList());
+                profileCache.GetProfileResults().Returns(expected);
+                categoryCache.GetCategoryLinks(filters[0])
+                    .Returns(firstCategoryLinks.Select(y => y.ProfileId).ToList());
+                categoryCache.GetCategoryLinks(filters[1])
+                    .Returns(secondCategoryLinks.Select(y => y.ProfileId).ToList());
                 query.GetCategories(ReadType.VisibleOnly, tokenSource.Token).Returns(categories);
 
                 var actual = (await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false)).ToList();
@@ -235,16 +313,18 @@
                 Model.Create<ProfileFilter>(),
                 Model.Create<ProfileFilter>()
             };
-            var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
-            {
-                x.CategoryGroup = filters[0].CategoryGroup;
-                x.CategoryName = filters[0].CategoryName;
-            });
-            var secondCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
-            {
-                x.CategoryGroup = filters[1].CategoryGroup;
-                x.CategoryName = filters[1].CategoryName;
-            });
+            var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(
+                x =>
+                {
+                    x.CategoryGroup = filters[0].CategoryGroup;
+                    x.CategoryName = filters[0].CategoryName;
+                });
+            var secondCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(
+                x =>
+                {
+                    x.CategoryGroup = filters[1].CategoryGroup;
+                    x.CategoryName = filters[1].CategoryName;
+                });
 
             firstCategoryLinks[7].ProfileId = expected[3].Id;
             firstCategoryLinks[3].ProfileId = expected[5].Id;
@@ -252,28 +332,31 @@
             secondCategoryLinks[8].ProfileId = expected[5].Id;
 
             var categories = from x in expected
-                             select new Category
-                             {
-                                 Group = CategoryGroup.Gender,
-                                 LinkCount = 1,
-                                 Name = Guid.NewGuid().ToString(),
-                                 Reviewed = true,
-                                 Visible = true
-                             };
+                select new Category
+                {
+                    Group = CategoryGroup.Gender,
+                    LinkCount = 1,
+                    Name = Guid.NewGuid().ToString(),
+                    Reviewed = true,
+                    Visible = true
+                };
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICacheManager>();
             var query = Substitute.For<ICategoryQuery>();
+            var profileCache = Substitute.For<IProfileCache>();
 
-            var sut = new ProfileSearchQuery(profileStore, linkStore, cache, query);
+            var sut = new ProfileSearchQuery(query, profileStore, linkStore, profileCache, categoryCache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                cache.GetProfileResults().Returns((ICollection<ProfileResult>)null);
+                profileCache.GetProfileResults().Returns((ICollection<ProfileResult>)null);
                 profileStore.GetProfileResults(tokenSource.Token).Returns(expected);
-                cache.GetCategoryLinks(filters[0]).Returns(firstCategoryLinks.Select(y => y.ProfileId).ToList());
-                cache.GetCategoryLinks(filters[1]).Returns(secondCategoryLinks.Select(y => y.ProfileId).ToList());
+                categoryCache.GetCategoryLinks(filters[0])
+                    .Returns(firstCategoryLinks.Select(y => y.ProfileId).ToList());
+                categoryCache.GetCategoryLinks(filters[1])
+                    .Returns(secondCategoryLinks.Select(y => y.ProfileId).ToList());
                 query.GetCategories(ReadType.VisibleOnly, tokenSource.Token).Returns(categories);
 
                 var actual = await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false);
@@ -288,21 +371,22 @@
             var expected = Model.Create<List<ProfileResult>>();
             var filters = new List<ProfileFilter>();
             var categories = from x in expected
-                             select new Category
-                             {
-                                 Group = CategoryGroup.Gender,
-                                 Name = x.Gender,
-                                 Visible = true
-                             };
+                select new Category
+                {
+                    Group = CategoryGroup.Gender,
+                    Name = x.Gender,
+                    Visible = true
+                };
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICacheManager>();
             var query = Substitute.For<ICategoryQuery>();
+            var profileCache = Substitute.For<IProfileCache>();
 
-            cache.GetProfileResults().Returns(expected);
+            profileCache.GetProfileResults().Returns(expected);
 
-            var sut = new ProfileSearchQuery(profileStore, linkStore, cache, query);
+            var sut = new ProfileSearchQuery(query, profileStore, linkStore, profileCache, categoryCache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -319,21 +403,22 @@
         {
             var expected = Model.Create<List<ProfileResult>>();
             var categories = from x in expected
-                             select new Category
-                             {
-                                 Group = CategoryGroup.Gender,
-                                 Name = x.Gender,
-                                 Visible = true
-                             };
+                select new Category
+                {
+                    Group = CategoryGroup.Gender,
+                    Name = x.Gender,
+                    Visible = true
+                };
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICacheManager>();
             var query = Substitute.For<ICategoryQuery>();
+            var profileCache = Substitute.For<IProfileCache>();
 
-            cache.GetProfileResults().Returns(expected);
+            profileCache.GetProfileResults().Returns(expected);
 
-            var sut = new ProfileSearchQuery(profileStore, linkStore, cache, query);
+            var sut = new ProfileSearchQuery(query, profileStore, linkStore, profileCache, categoryCache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -351,32 +436,32 @@
             var expected = Model.Create<List<ProfileResult>>();
             var filters = new List<ProfileFilter>();
             var categories = from x in expected
-                             select new Category
-                             {
-                                 Group = CategoryGroup.Gender,
-                                 Name = x.Gender,
-                                 Visible = true
-                             };
+                select new Category
+                {
+                    Group = CategoryGroup.Gender,
+                    Name = x.Gender,
+                    Visible = true
+                };
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICacheManager>();
             var query = Substitute.For<ICategoryQuery>();
+            var profileCache = Substitute.For<IProfileCache>();
 
-            var sut = new ProfileSearchQuery(profileStore, linkStore, cache, query);
+            var sut = new ProfileSearchQuery(query, profileStore, linkStore, profileCache, categoryCache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                cache.GetProfileResults().Returns((ICollection<ProfileResult>)null);
+                profileCache.GetProfileResults().Returns((ICollection<ProfileResult>)null);
                 profileStore.GetProfileResults(tokenSource.Token).Returns(expected);
                 query.GetCategories(ReadType.VisibleOnly, tokenSource.Token).Returns(categories);
 
                 var actual = await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false);
 
                 actual.ShouldBeEquivalentTo(expected);
-                cache.Received()
-                    .StoreProfileResults(
-                        Verify.That<ICollection<ProfileResult>>(x => x.ShouldBeEquivalentTo(expected)));
+                profileCache.Received().StoreProfileResults(
+                    Verify.That<ICollection<ProfileResult>>(x => x.ShouldBeEquivalentTo(expected)));
             }
         }
 
@@ -398,32 +483,32 @@
             }
 
             var categories = from x in expected
-                             select new Category
-                             {
-                                 Group = CategoryGroup.Gender,
-                                 Name = x.Gender,
-                                 Visible = true
-                             };
+                select new Category
+                {
+                    Group = CategoryGroup.Gender,
+                    Name = x.Gender,
+                    Visible = true
+                };
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICacheManager>();
             var query = Substitute.For<ICategoryQuery>();
+            var profileCache = Substitute.For<IProfileCache>();
 
-            var sut = new ProfileSearchQuery(profileStore, linkStore, cache, query);
+            var sut = new ProfileSearchQuery(query, profileStore, linkStore, profileCache, categoryCache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                cache.GetProfileResults().Returns((ICollection<ProfileResult>)null);
+                profileCache.GetProfileResults().Returns((ICollection<ProfileResult>)null);
                 profileStore.GetProfileResults(tokenSource.Token).Returns(expected);
                 query.GetCategories(ReadType.VisibleOnly, tokenSource.Token).Returns(categories);
 
                 var actual = await sut.GetProfileResults(null, tokenSource.Token).ConfigureAwait(false);
 
                 actual.ShouldBeEquivalentTo(expected);
-                cache.Received()
-                    .StoreProfileResults(
-                        Verify.That<ICollection<ProfileResult>>(x => x.ShouldBeEquivalentTo(expected)));
+                profileCache.Received().StoreProfileResults(
+                    Verify.That<ICollection<ProfileResult>>(x => x.ShouldBeEquivalentTo(expected)));
             }
         }
 
@@ -436,41 +521,46 @@
                 Model.Create<ProfileFilter>(),
                 Model.Create<ProfileFilter>()
             };
-            var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
-            {
-                x.CategoryGroup = filters[0].CategoryGroup;
-                x.CategoryName = filters[0].CategoryName;
-            });
-            var secondCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
-            {
-                x.CategoryGroup = filters[1].CategoryGroup;
-                x.CategoryName = filters[1].CategoryName;
-            });
+            var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(
+                x =>
+                {
+                    x.CategoryGroup = filters[0].CategoryGroup;
+                    x.CategoryName = filters[0].CategoryName;
+                });
+            var secondCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(
+                x =>
+                {
+                    x.CategoryGroup = filters[1].CategoryGroup;
+                    x.CategoryName = filters[1].CategoryName;
+                });
 
             secondCategoryLinks[2].ProfileId = expected[3].Id;
             secondCategoryLinks[8].ProfileId = expected[5].Id;
 
             var categories = from x in expected
-                             select new Category
-                             {
-                                 Group = CategoryGroup.Gender,
-                                 Name = x.Gender,
-                                 Visible = true
-                             };
+                select new Category
+                {
+                    Group = CategoryGroup.Gender,
+                    Name = x.Gender,
+                    Visible = true
+                };
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICacheManager>();
             var query = Substitute.For<ICategoryQuery>();
+            var profileCache = Substitute.For<IProfileCache>();
 
-            var sut = new ProfileSearchQuery(profileStore, linkStore, cache, query);
+            var sut = new ProfileSearchQuery(query, profileStore, linkStore, profileCache, categoryCache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
                 query.GetCategories(ReadType.VisibleOnly, tokenSource.Token).Returns(categories);
-                cache.GetProfileResults().Returns(expected);
-                cache.GetCategoryLinks(filters[0]).Returns(firstCategoryLinks.Select(y => y.ProfileId).ToList());
-                cache.GetCategoryLinks(filters[1]).Returns(secondCategoryLinks.Select(y => y.ProfileId).ToList());
+                profileCache.GetProfileResults().Returns(expected);
+                categoryCache.GetCategoryLinks(filters[0])
+                    .Returns(firstCategoryLinks.Select(y => y.ProfileId).ToList());
+                categoryCache.GetCategoryLinks(filters[1])
+                    .Returns(secondCategoryLinks.Select(y => y.ProfileId).ToList());
 
                 var actual = (await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false)).ToList();
 
@@ -489,26 +579,30 @@
                 Model.Create<ProfileFilter>(),
                 Model.Create<ProfileFilter>()
             };
-            var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
-            {
-                x.CategoryGroup = filters[0].CategoryGroup;
-                x.CategoryName = filters[0].CategoryName;
-            });
-            var secondCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
-            {
-                x.CategoryGroup = filters[1].CategoryGroup;
-                x.CategoryName = filters[1].CategoryName;
-            });
-            var thirdCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
-            {
-                x.CategoryGroup = filters[2].CategoryGroup;
-                x.CategoryName = filters[2].CategoryName;
-            });
-            var fourthCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
-            {
-                x.CategoryGroup = filters[3].CategoryGroup;
-                x.CategoryName = filters[3].CategoryName;
-            });
+            var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(
+                x =>
+                {
+                    x.CategoryGroup = filters[0].CategoryGroup;
+                    x.CategoryName = filters[0].CategoryName;
+                });
+            var secondCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(
+                x =>
+                {
+                    x.CategoryGroup = filters[1].CategoryGroup;
+                    x.CategoryName = filters[1].CategoryName;
+                });
+            var thirdCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(
+                x =>
+                {
+                    x.CategoryGroup = filters[2].CategoryGroup;
+                    x.CategoryName = filters[2].CategoryName;
+                });
+            var fourthCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(
+                x =>
+                {
+                    x.CategoryGroup = filters[3].CategoryGroup;
+                    x.CategoryName = filters[3].CategoryName;
+                });
 
             firstCategoryLinks[7].ProfileId = expected[3].Id;
             firstCategoryLinks[3].ProfileId = expected[5].Id;
@@ -518,28 +612,33 @@
             thirdCategoryLinks[9].ProfileId = expected[5].Id;
 
             var categories = from x in expected
-                             select new Category
-                             {
-                                 Group = CategoryGroup.Gender,
-                                 Name = x.Gender,
-                                 Visible = true
-                             };
+                select new Category
+                {
+                    Group = CategoryGroup.Gender,
+                    Name = x.Gender,
+                    Visible = true
+                };
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICacheManager>();
             var query = Substitute.For<ICategoryQuery>();
+            var profileCache = Substitute.For<IProfileCache>();
 
-            var sut = new ProfileSearchQuery(profileStore, linkStore, cache, query);
+            var sut = new ProfileSearchQuery(query, profileStore, linkStore, profileCache, categoryCache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
                 query.GetCategories(ReadType.VisibleOnly, tokenSource.Token).Returns(categories);
-                cache.GetProfileResults().Returns(expected);
-                cache.GetCategoryLinks(filters[0]).Returns(firstCategoryLinks.Select(y => y.ProfileId).ToList());
-                cache.GetCategoryLinks(filters[1]).Returns(secondCategoryLinks.Select(y => y.ProfileId).ToList());
-                cache.GetCategoryLinks(filters[2]).Returns(thirdCategoryLinks.Select(y => y.ProfileId).ToList());
-                cache.GetCategoryLinks(filters[3]).Returns(fourthCategoryLinks.Select(y => y.ProfileId).ToList());
+                profileCache.GetProfileResults().Returns(expected);
+                categoryCache.GetCategoryLinks(filters[0])
+                    .Returns(firstCategoryLinks.Select(y => y.ProfileId).ToList());
+                categoryCache.GetCategoryLinks(filters[1])
+                    .Returns(secondCategoryLinks.Select(y => y.ProfileId).ToList());
+                categoryCache.GetCategoryLinks(filters[2])
+                    .Returns(thirdCategoryLinks.Select(y => y.ProfileId).ToList());
+                categoryCache.GetCategoryLinks(filters[3])
+                    .Returns(fourthCategoryLinks.Select(y => y.ProfileId).ToList());
 
                 var actual = (await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false)).ToList();
 
@@ -552,28 +651,31 @@
         {
             var expected = Model.Create<List<ProfileResult>>();
             var filters = new List<ProfileFilter>
-                {Model.Create<ProfileFilter>()};
+            {
+                Model.Create<ProfileFilter>()
+            };
             var categoryLinks = Model.Create<List<CategoryLink>>();
             var categories = from x in expected
-                             select new Category
-                             {
-                                 Group = CategoryGroup.Gender,
-                                 Name = x.Gender,
-                                 Visible = true
-                             };
+                select new Category
+                {
+                    Group = CategoryGroup.Gender,
+                    Name = x.Gender,
+                    Visible = true
+                };
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICacheManager>();
             var query = Substitute.For<ICategoryQuery>();
+            var profileCache = Substitute.For<IProfileCache>();
 
-            var sut = new ProfileSearchQuery(profileStore, linkStore, cache, query);
+            var sut = new ProfileSearchQuery(query, profileStore, linkStore, profileCache, categoryCache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
                 query.GetCategories(ReadType.VisibleOnly, tokenSource.Token).Returns(categories);
-                cache.GetProfileResults().Returns(expected);
-                cache.GetCategoryLinks(Arg.Any<ProfileFilter>()).Returns((ICollection<Guid>)null);
+                profileCache.GetProfileResults().Returns(expected);
+                categoryCache.GetCategoryLinks(Arg.Any<ProfileFilter>()).Returns((ICollection<Guid>)null);
                 linkStore.GetCategoryLinks(filters[0].CategoryGroup, filters[0].CategoryName, tokenSource.Token)
                     .Returns(categoryLinks);
 
@@ -588,28 +690,31 @@
         {
             var expected = Model.Create<List<ProfileResult>>();
             var filters = new List<ProfileFilter>
-                {Model.Create<ProfileFilter>()};
+            {
+                Model.Create<ProfileFilter>()
+            };
             var categoryLinks = new List<CategoryLink>();
             var categories = from x in expected
-                             select new Category
-                             {
-                                 Group = CategoryGroup.Gender,
-                                 Name = x.Gender,
-                                 Visible = true
-                             };
+                select new Category
+                {
+                    Group = CategoryGroup.Gender,
+                    Name = x.Gender,
+                    Visible = true
+                };
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICacheManager>();
             var query = Substitute.For<ICategoryQuery>();
+            var profileCache = Substitute.For<IProfileCache>();
 
-            var sut = new ProfileSearchQuery(profileStore, linkStore, cache, query);
+            var sut = new ProfileSearchQuery(query, profileStore, linkStore, profileCache, categoryCache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
                 query.GetCategories(ReadType.VisibleOnly, tokenSource.Token).Returns(categories);
-                cache.GetProfileResults().Returns(expected);
-                cache.GetCategoryLinks(filters[0]).Returns(categoryLinks.Select(y => y.ProfileId).ToList());
+                profileCache.GetProfileResults().Returns(expected);
+                categoryCache.GetCategoryLinks(filters[0]).Returns(categoryLinks.Select(y => y.ProfileId).ToList());
 
                 var actual = (await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false)).ToList();
 
@@ -626,41 +731,46 @@
                 Model.Create<ProfileFilter>(),
                 Model.Create<ProfileFilter>()
             };
-            var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
-            {
-                x.CategoryGroup = filters[0].CategoryGroup;
-                x.CategoryName = filters[0].CategoryName;
-            });
-            var secondCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
-            {
-                x.CategoryGroup = filters[1].CategoryGroup;
-                x.CategoryName = filters[1].CategoryName;
-            });
+            var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(
+                x =>
+                {
+                    x.CategoryGroup = filters[0].CategoryGroup;
+                    x.CategoryName = filters[0].CategoryName;
+                });
+            var secondCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(
+                x =>
+                {
+                    x.CategoryGroup = filters[1].CategoryGroup;
+                    x.CategoryName = filters[1].CategoryName;
+                });
 
             firstCategoryLinks[7].ProfileId = expected[3].Id;
             firstCategoryLinks[3].ProfileId = expected[5].Id;
 
             var categories = from x in expected
-                             select new Category
-                             {
-                                 Group = CategoryGroup.Gender,
-                                 Name = x.Gender,
-                                 Visible = true
-                             };
+                select new Category
+                {
+                    Group = CategoryGroup.Gender,
+                    Name = x.Gender,
+                    Visible = true
+                };
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICacheManager>();
             var query = Substitute.For<ICategoryQuery>();
+            var profileCache = Substitute.For<IProfileCache>();
 
-            var sut = new ProfileSearchQuery(profileStore, linkStore, cache, query);
+            var sut = new ProfileSearchQuery(query, profileStore, linkStore, profileCache, categoryCache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
                 query.GetCategories(ReadType.VisibleOnly, tokenSource.Token).Returns(categories);
-                cache.GetProfileResults().Returns(expected);
-                cache.GetCategoryLinks(filters[0]).Returns(firstCategoryLinks.Select(y => y.ProfileId).ToList());
-                cache.GetCategoryLinks(filters[1]).Returns(secondCategoryLinks.Select(y => y.ProfileId).ToList());
+                profileCache.GetProfileResults().Returns(expected);
+                categoryCache.GetCategoryLinks(filters[0])
+                    .Returns(firstCategoryLinks.Select(y => y.ProfileId).ToList());
+                categoryCache.GetCategoryLinks(filters[1])
+                    .Returns(secondCategoryLinks.Select(y => y.ProfileId).ToList());
 
                 var actual = (await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false)).ToList();
 
@@ -679,26 +789,30 @@
                 Model.Create<ProfileFilter>(),
                 Model.Create<ProfileFilter>()
             };
-            var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
-            {
-                x.CategoryGroup = filters[0].CategoryGroup;
-                x.CategoryName = filters[0].CategoryName;
-            });
-            var secondCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
-            {
-                x.CategoryGroup = filters[1].CategoryGroup;
-                x.CategoryName = filters[1].CategoryName;
-            });
-            var thirdCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
-            {
-                x.CategoryGroup = filters[2].CategoryGroup;
-                x.CategoryName = filters[2].CategoryName;
-            });
-            var fourthCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
-            {
-                x.CategoryGroup = filters[3].CategoryGroup;
-                x.CategoryName = filters[3].CategoryName;
-            });
+            var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(
+                x =>
+                {
+                    x.CategoryGroup = filters[0].CategoryGroup;
+                    x.CategoryName = filters[0].CategoryName;
+                });
+            var secondCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(
+                x =>
+                {
+                    x.CategoryGroup = filters[1].CategoryGroup;
+                    x.CategoryName = filters[1].CategoryName;
+                });
+            var thirdCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(
+                x =>
+                {
+                    x.CategoryGroup = filters[2].CategoryGroup;
+                    x.CategoryName = filters[2].CategoryName;
+                });
+            var fourthCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(
+                x =>
+                {
+                    x.CategoryGroup = filters[3].CategoryGroup;
+                    x.CategoryName = filters[3].CategoryName;
+                });
 
             firstCategoryLinks[7].ProfileId = expected[3].Id;
             firstCategoryLinks[3].ProfileId = expected[5].Id;
@@ -708,28 +822,33 @@
             fourthCategoryLinks[2].ProfileId = expected[5].Id;
 
             var categories = from x in expected
-                             select new Category
-                             {
-                                 Group = CategoryGroup.Gender,
-                                 Name = x.Gender,
-                                 Visible = true
-                             };
+                select new Category
+                {
+                    Group = CategoryGroup.Gender,
+                    Name = x.Gender,
+                    Visible = true
+                };
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICacheManager>();
             var query = Substitute.For<ICategoryQuery>();
+            var profileCache = Substitute.For<IProfileCache>();
 
-            var sut = new ProfileSearchQuery(profileStore, linkStore, cache, query);
+            var sut = new ProfileSearchQuery(query, profileStore, linkStore, profileCache, categoryCache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
                 query.GetCategories(ReadType.VisibleOnly, tokenSource.Token).Returns(categories);
-                cache.GetProfileResults().Returns(expected);
-                cache.GetCategoryLinks(filters[0]).Returns(firstCategoryLinks.Select(y => y.ProfileId).ToList());
-                cache.GetCategoryLinks(filters[1]).Returns(secondCategoryLinks.Select(y => y.ProfileId).ToList());
-                cache.GetCategoryLinks(filters[2]).Returns(thirdCategoryLinks.Select(y => y.ProfileId).ToList());
-                cache.GetCategoryLinks(filters[3]).Returns(fourthCategoryLinks.Select(y => y.ProfileId).ToList());
+                profileCache.GetProfileResults().Returns(expected);
+                categoryCache.GetCategoryLinks(filters[0])
+                    .Returns(firstCategoryLinks.Select(y => y.ProfileId).ToList());
+                categoryCache.GetCategoryLinks(filters[1])
+                    .Returns(secondCategoryLinks.Select(y => y.ProfileId).ToList());
+                categoryCache.GetCategoryLinks(filters[2])
+                    .Returns(thirdCategoryLinks.Select(y => y.ProfileId).ToList());
+                categoryCache.GetCategoryLinks(filters[3])
+                    .Returns(fourthCategoryLinks.Select(y => y.ProfileId).ToList());
 
                 var actual = (await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false)).ToList();
 
@@ -743,21 +862,22 @@
             var expected = Model.Create<List<ProfileResult>>();
             var filters = new List<ProfileFilter>();
             var categories = from x in expected
-                             select new Category
-                             {
-                                 Group = CategoryGroup.Gender,
-                                 Name = x.Gender,
-                                 Visible = true
-                             };
+                select new Category
+                {
+                    Group = CategoryGroup.Gender,
+                    Name = x.Gender,
+                    Visible = true
+                };
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICacheManager>();
             var query = Substitute.For<ICategoryQuery>();
+            var profileCache = Substitute.For<IProfileCache>();
 
-            cache.GetProfileResults().Returns(expected);
+            profileCache.GetProfileResults().Returns(expected);
 
-            var sut = new ProfileSearchQuery(profileStore, linkStore, cache, query);
+            var sut = new ProfileSearchQuery(query, profileStore, linkStore, profileCache, categoryCache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -778,30 +898,32 @@
                 Model.Create<ProfileFilter>(),
                 Model.Create<ProfileFilter>()
             };
-            var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
-            {
-                x.CategoryGroup = filters[0].CategoryGroup;
-                x.CategoryName = filters[0].CategoryName;
-            });
-            var secondCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
-            {
-                x.CategoryGroup = filters[1].CategoryGroup;
-                x.CategoryName = filters[1].CategoryName;
-            });
+            var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(
+                x =>
+                {
+                    x.CategoryGroup = filters[0].CategoryGroup;
+                    x.CategoryName = filters[0].CategoryName;
+                });
+            var secondCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(
+                x =>
+                {
+                    x.CategoryGroup = filters[1].CategoryGroup;
+                    x.CategoryName = filters[1].CategoryName;
+                });
             var filterCategories = from x in filters
-                                   select new Category
-                                   {
-                                       Group = x.CategoryGroup,
-                                       Name = x.CategoryName,
-                                       Visible = true
-                                   };
+                select new Category
+                {
+                    Group = x.CategoryGroup,
+                    Name = x.CategoryName,
+                    Visible = true
+                };
             var genderCategories = from x in expected
-                                   select new Category
-                                   {
-                                       Group = CategoryGroup.Gender,
-                                       Name = x.Gender,
-                                       Visible = true
-                                   };
+                select new Category
+                {
+                    Group = CategoryGroup.Gender,
+                    Name = x.Gender,
+                    Visible = true
+                };
             var categories = filterCategories.Union(genderCategories);
 
             firstCategoryLinks[7].ProfileId = expected[3].Id;
@@ -811,16 +933,19 @@
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICacheManager>();
             var query = Substitute.For<ICategoryQuery>();
+            var profileCache = Substitute.For<IProfileCache>();
 
-            var sut = new ProfileSearchQuery(profileStore, linkStore, cache, query);
+            var sut = new ProfileSearchQuery(query, profileStore, linkStore, profileCache, categoryCache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                cache.GetProfileResults().Returns(expected);
-                cache.GetCategoryLinks(filters[0]).Returns(firstCategoryLinks.Select(y => y.ProfileId).ToList());
-                cache.GetCategoryLinks(filters[1]).Returns(secondCategoryLinks.Select(y => y.ProfileId).ToList());
+                profileCache.GetProfileResults().Returns(expected);
+                categoryCache.GetCategoryLinks(filters[0])
+                    .Returns(firstCategoryLinks.Select(y => y.ProfileId).ToList());
+                categoryCache.GetCategoryLinks(filters[1])
+                    .Returns(secondCategoryLinks.Select(y => y.ProfileId).ToList());
                 query.GetCategories(ReadType.VisibleOnly, tokenSource.Token).Returns(categories);
 
                 var actual = (await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false)).ToList();
@@ -828,63 +953,6 @@
                 actual.Should().HaveCount(2);
                 actual.Single(x => x.Id == expected[3].Id).ShouldBeEquivalentTo(expected[3]);
                 actual.Single(x => x.Id == expected[5].Id).ShouldBeEquivalentTo(expected[5]);
-            }
-        }
-
-        [Fact]
-        public async Task GetProfileIgnoresFiltersForUnapprovedCategoriesTest()
-        {
-            var expected = Model.Create<List<ProfileResult>>();
-            var filters = new List<ProfileFilter>
-            {
-                Model.Create<ProfileFilter>(),
-                Model.Create<ProfileFilter>()
-            };
-            var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
-            {
-                x.CategoryGroup = filters[0].CategoryGroup;
-                x.CategoryName = filters[0].CategoryName;
-            });
-            var filterCategories = new[]
-                {
-                    new Category
-                    {
-                        Group = filters[0].CategoryGroup,
-                        Name = filters[0].CategoryName
-                    }
-                };
-            var genderCategories = from x in expected
-                                   select new Category
-                                   {
-                                       Group = CategoryGroup.Gender,
-                                       Name = x.Gender,
-                                       Visible = true
-                                   };
-            var categories = filterCategories.Union(genderCategories);
-
-            firstCategoryLinks[7].ProfileId = expected[3].Id;
-            firstCategoryLinks[3].ProfileId = expected[5].Id;
-
-            var profileStore = Substitute.For<IProfileStore>();
-            var linkStore = Substitute.For<ICategoryLinkStore>();
-            var cache = Substitute.For<ICacheManager>();
-            var query = Substitute.For<ICategoryQuery>();
-
-            var sut = new ProfileSearchQuery(profileStore, linkStore, cache, query);
-
-            using (var tokenSource = new CancellationTokenSource())
-            {
-                cache.GetProfileResults().Returns(expected);
-                cache.GetCategoryLinks(filters[0]).Returns(firstCategoryLinks.Select(y => y.ProfileId).ToList());
-                query.GetCategories(ReadType.VisibleOnly, tokenSource.Token).Returns(categories);
-
-                var actual = (await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false)).ToList();
-
-                actual.Should().HaveCount(2);
-                actual.Single(x => x.Id == expected[3].Id).ShouldBeEquivalentTo(expected[3]);
-                actual.Single(x => x.Id == expected[5].Id).ShouldBeEquivalentTo(expected[5]);
-                
-                cache.DidNotReceive().GetCategoryLinks(filters[1]);
             }
         }
 
@@ -899,40 +967,44 @@
                 Model.Create<ProfileFilter>(),
                 Model.Create<ProfileFilter>()
             };
-            var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
-            {
-                x.CategoryGroup = filters[0].CategoryGroup;
-                x.CategoryName = filters[0].CategoryName;
-            });
-            var secondCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
-            {
-                x.CategoryGroup = filters[1].CategoryGroup;
-                x.CategoryName = filters[1].CategoryName;
-            });
-            var thirdCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
-            {
-                x.CategoryGroup = filters[2].CategoryGroup;
-                x.CategoryName = filters[2].CategoryName;
-            });
-            var fourthCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
-            {
-                x.CategoryGroup = filters[3].CategoryGroup;
-                x.CategoryName = filters[3].CategoryName;
-            });
+            var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(
+                x =>
+                {
+                    x.CategoryGroup = filters[0].CategoryGroup;
+                    x.CategoryName = filters[0].CategoryName;
+                });
+            var secondCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(
+                x =>
+                {
+                    x.CategoryGroup = filters[1].CategoryGroup;
+                    x.CategoryName = filters[1].CategoryName;
+                });
+            var thirdCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(
+                x =>
+                {
+                    x.CategoryGroup = filters[2].CategoryGroup;
+                    x.CategoryName = filters[2].CategoryName;
+                });
+            var fourthCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(
+                x =>
+                {
+                    x.CategoryGroup = filters[3].CategoryGroup;
+                    x.CategoryName = filters[3].CategoryName;
+                });
             var filterCategories = from x in filters
-                                   select new Category
-                                   {
-                                       Group = x.CategoryGroup,
-                                       Name = x.CategoryName,
-                                       Visible = true
-                                   };
+                select new Category
+                {
+                    Group = x.CategoryGroup,
+                    Name = x.CategoryName,
+                    Visible = true
+                };
             var genderCategories = from x in expected
-                                   select new Category
-                                   {
-                                       Group = CategoryGroup.Gender,
-                                       Name = x.Gender,
-                                       Visible = true
-                                   };
+                select new Category
+                {
+                    Group = CategoryGroup.Gender,
+                    Name = x.Gender,
+                    Visible = true
+                };
             var categories = filterCategories.Union(genderCategories);
 
             firstCategoryLinks[7].ProfileId = expected[3].Id;
@@ -946,18 +1018,23 @@
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICacheManager>();
             var query = Substitute.For<ICategoryQuery>();
+            var profileCache = Substitute.For<IProfileCache>();
 
-            var sut = new ProfileSearchQuery(profileStore, linkStore, cache, query);
+            var sut = new ProfileSearchQuery(query, profileStore, linkStore, profileCache, categoryCache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                cache.GetProfileResults().Returns(expected);
-                cache.GetCategoryLinks(filters[0]).Returns(firstCategoryLinks.Select(y => y.ProfileId).ToList());
-                cache.GetCategoryLinks(filters[1]).Returns(secondCategoryLinks.Select(y => y.ProfileId).ToList());
-                cache.GetCategoryLinks(filters[2]).Returns(thirdCategoryLinks.Select(y => y.ProfileId).ToList());
-                cache.GetCategoryLinks(filters[3]).Returns(fourthCategoryLinks.Select(y => y.ProfileId).ToList());
+                profileCache.GetProfileResults().Returns(expected);
+                categoryCache.GetCategoryLinks(filters[0])
+                    .Returns(firstCategoryLinks.Select(y => y.ProfileId).ToList());
+                categoryCache.GetCategoryLinks(filters[1])
+                    .Returns(secondCategoryLinks.Select(y => y.ProfileId).ToList());
+                categoryCache.GetCategoryLinks(filters[2])
+                    .Returns(thirdCategoryLinks.Select(y => y.ProfileId).ToList());
+                categoryCache.GetCategoryLinks(filters[3])
+                    .Returns(fourthCategoryLinks.Select(y => y.ProfileId).ToList());
                 query.GetCategories(ReadType.VisibleOnly, tokenSource.Token).Returns(categories);
 
                 var actual = (await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false)).ToList();
@@ -973,26 +1050,29 @@
         {
             var expected = Model.Create<List<ProfileResult>>();
             var filters = new List<ProfileFilter>
-                {Model.Create<ProfileFilter>()};
-            var categoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
             {
-                x.CategoryGroup = filters[0].CategoryGroup;
-                x.CategoryName = filters[0].CategoryName;
-            });
+                Model.Create<ProfileFilter>()
+            };
+            var categoryLinks = Model.Create<List<CategoryLink>>().SetEach(
+                x =>
+                {
+                    x.CategoryGroup = filters[0].CategoryGroup;
+                    x.CategoryName = filters[0].CategoryName;
+                });
             var filterCategories = from x in filters
-                                   select new Category
-                                   {
-                                       Group = x.CategoryGroup,
-                                       Name = x.CategoryName,
-                                       Visible = true
-                                   };
+                select new Category
+                {
+                    Group = x.CategoryGroup,
+                    Name = x.CategoryName,
+                    Visible = true
+                };
             var genderCategories = from x in expected
-                                   select new Category
-                                   {
-                                       Group = CategoryGroup.Gender,
-                                       Name = x.Gender,
-                                       Visible = true
-                                   };
+                select new Category
+                {
+                    Group = CategoryGroup.Gender,
+                    Name = x.Gender,
+                    Visible = true
+                };
             var categories = filterCategories.Union(genderCategories);
 
             categoryLinks[7].ProfileId = expected[3].Id;
@@ -1000,15 +1080,16 @@
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICacheManager>();
             var query = Substitute.For<ICategoryQuery>();
+            var profileCache = Substitute.For<IProfileCache>();
 
-            var sut = new ProfileSearchQuery(profileStore, linkStore, cache, query);
+            var sut = new ProfileSearchQuery(query, profileStore, linkStore, profileCache, categoryCache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                cache.GetProfileResults().Returns(expected);
-                cache.GetCategoryLinks(filters[0]).Returns(categoryLinks.Select(y => y.ProfileId).ToList());
+                profileCache.GetProfileResults().Returns(expected);
+                categoryCache.GetCategoryLinks(filters[0]).Returns(categoryLinks.Select(y => y.ProfileId).ToList());
                 query.GetCategories(ReadType.VisibleOnly, tokenSource.Token).Returns(categories);
 
                 var actual = (await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false)).ToList();
@@ -1024,60 +1105,68 @@
         [InlineData("Female", "FEMALE")]
         [InlineData("Female", "female")]
         public async Task GetProfileResultsReturnsResultsWithCaseInsensitiveMatchOnApprovedGenderTest(
-            string profileGender, string categoryGender)
+            string profileGender,
+            string categoryGender)
         {
             var expected = new List<ProfileResult>
-                {Model.Create<ProfileResult>().Set(x => x.Gender = profileGender)};
+            {
+                Model.Create<ProfileResult>().Set(x => x.Gender = profileGender)
+            };
             var filters = new List<ProfileFilter>
             {
                 Model.Create<ProfileFilter>(),
                 Model.Create<ProfileFilter>()
             };
-            var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
-            {
-                x.CategoryGroup = filters[0].CategoryGroup;
-                x.CategoryName = filters[0].CategoryName;
-            });
-            var secondCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(x =>
-            {
-                x.CategoryGroup = filters[1].CategoryGroup;
-                x.CategoryName = filters[1].CategoryName;
-            });
+            var firstCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(
+                x =>
+                {
+                    x.CategoryGroup = filters[0].CategoryGroup;
+                    x.CategoryName = filters[0].CategoryName;
+                });
+            var secondCategoryLinks = Model.Create<List<CategoryLink>>().SetEach(
+                x =>
+                {
+                    x.CategoryGroup = filters[1].CategoryGroup;
+                    x.CategoryName = filters[1].CategoryName;
+                });
 
             firstCategoryLinks[7].ProfileId = expected[0].Id;
             secondCategoryLinks[2].ProfileId = expected[0].Id;
 
             var filterCategories = from x in filters
-                                   select new Category
-                                   {
-                                       Group = x.CategoryGroup,
-                                       Name = x.CategoryName,
-                                       Visible = true
-                                   };
+                select new Category
+                {
+                    Group = x.CategoryGroup,
+                    Name = x.CategoryName,
+                    Visible = true
+                };
             var genderCategories = from x in expected
-                                   select new Category
-                                   {
-                                       Group = CategoryGroup.Gender,
-                                       LinkCount = 1,
-                                       Name = categoryGender,
-                                       Reviewed = true,
-                                       Visible = true
-                                   };
+                select new Category
+                {
+                    Group = CategoryGroup.Gender,
+                    LinkCount = 1,
+                    Name = categoryGender,
+                    Reviewed = true,
+                    Visible = true
+                };
             var categories = filterCategories.Union(genderCategories);
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICacheManager>();
             var query = Substitute.For<ICategoryQuery>();
+            var profileCache = Substitute.For<IProfileCache>();
 
-            var sut = new ProfileSearchQuery(profileStore, linkStore, cache, query);
+            var sut = new ProfileSearchQuery(query, profileStore, linkStore, profileCache, categoryCache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                cache.GetProfileResults().Returns((ICollection<ProfileResult>)null);
+                profileCache.GetProfileResults().Returns((ICollection<ProfileResult>)null);
                 profileStore.GetProfileResults(tokenSource.Token).Returns(expected);
-                cache.GetCategoryLinks(filters[0]).Returns(firstCategoryLinks.Select(y => y.ProfileId).ToList());
-                cache.GetCategoryLinks(filters[1]).Returns(secondCategoryLinks.Select(y => y.ProfileId).ToList());
+                categoryCache.GetCategoryLinks(filters[0])
+                    .Returns(firstCategoryLinks.Select(y => y.ProfileId).ToList());
+                categoryCache.GetCategoryLinks(filters[1])
+                    .Returns(secondCategoryLinks.Select(y => y.ProfileId).ToList());
                 query.GetCategories(ReadType.VisibleOnly, tokenSource.Token).Returns(categories);
 
                 var actual = await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false);
@@ -1091,49 +1180,56 @@
         {
             var expected = Model.Create<List<ProfileResult>>();
             var filters = new List<ProfileFilter>
-                {Model.Create<ProfileFilter>()};
+            {
+                Model.Create<ProfileFilter>()
+            };
             var categoryLinks = Model.Create<List<CategoryLink>>();
             var filterCategories = from x in filters
-                                   select new Category
-                                   {
-                                       Group = x.CategoryGroup,
-                                       Name = x.CategoryName,
-                                       Visible = true
-                                   };
+                select new Category
+                {
+                    Group = x.CategoryGroup,
+                    Name = x.CategoryName,
+                    Visible = true
+                };
             var genderCategories = from x in expected
-                                   select new Category
-                                   {
-                                       Group = CategoryGroup.Gender,
-                                       Name = x.Gender,
-                                       Visible = true
-                                   };
+                select new Category
+                {
+                    Group = CategoryGroup.Gender,
+                    Name = x.Gender,
+                    Visible = true
+                };
             var categories = filterCategories.Union(genderCategories);
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICacheManager>();
             var query = Substitute.For<ICategoryQuery>();
+            var profileCache = Substitute.For<IProfileCache>();
 
-            var sut = new ProfileSearchQuery(profileStore, linkStore, cache, query);
+            var sut = new ProfileSearchQuery(query, profileStore, linkStore, profileCache, categoryCache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
                 query.GetCategories(ReadType.VisibleOnly, tokenSource.Token).Returns(categories);
-                cache.GetProfileResults().Returns(expected);
-                cache.GetCategoryLinks(Arg.Any<ProfileFilter>())
-                    .Returns(null, categoryLinks.Select(y => y.ProfileId).ToList());
+                profileCache.GetProfileResults().Returns(expected);
+                categoryCache.GetCategoryLinks(Arg.Any<ProfileFilter>()).Returns(
+                    null,
+                    categoryLinks.Select(y => y.ProfileId).ToList());
                 linkStore.GetCategoryLinks(filters[0].CategoryGroup, filters[0].CategoryName, tokenSource.Token)
                     .Returns(categoryLinks);
 
                 await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false);
                 await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false);
 
-                await linkStore.Received(1).GetCategoryLinks(filters[0].CategoryGroup, filters[0].CategoryName,
+                await linkStore.Received(1).GetCategoryLinks(
+                    filters[0].CategoryGroup,
+                    filters[0].CategoryName,
                     tokenSource.Token).ConfigureAwait(false);
-                cache.Received(1).StoreCategoryLinks(filters[0],
+                categoryCache.Received(1).StoreCategoryLinks(
+                    filters[0],
                     Verify.That<ICollection<Guid>>(
                         x => x.ShouldBeEquivalentTo(categoryLinks.Select(y => y.ProfileId))));
-                cache.Received(2).GetCategoryLinks(filters[0]);
+                categoryCache.Received(2).GetCategoryLinks(filters[0]);
             }
         }
 
@@ -1143,8 +1239,9 @@
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var query = Substitute.For<ICategoryQuery>();
+            var profileCache = Substitute.For<IProfileCache>();
 
-            Action action = () => new ProfileSearchQuery(profileStore, linkStore, null, query);
+            Action action = () => new ProfileSearchQuery(query, profileStore, linkStore, profileCache, null);
 
             action.ShouldThrow<ArgumentNullException>();
         }
@@ -1153,10 +1250,24 @@
         public void ThrowsExceptionWhenCreatedWithNullLinkStoreTest()
         {
             var profileStore = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICacheManager>();
+            var query = Substitute.For<ICategoryQuery>();
+            var profileCache = Substitute.For<IProfileCache>();
+
+            Action action = () => new ProfileSearchQuery(query, profileStore, null, profileCache, categoryCache);
+
+            action.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Fact]
+        public void ThrowsExceptionWhenCreatedWithNullProfileCacheTest()
+        {
+            var profileStore = Substitute.For<IProfileStore>();
+            var linkStore = Substitute.For<ICategoryLinkStore>();
+            var categoryCache = Substitute.For<ICacheManager>();
             var query = Substitute.For<ICategoryQuery>();
 
-            Action action = () => new ProfileSearchQuery(profileStore, null, cache, query);
+            Action action = () => new ProfileSearchQuery(query, profileStore, linkStore, null, categoryCache);
 
             action.ShouldThrow<ArgumentNullException>();
         }
@@ -1165,10 +1276,11 @@
         public void ThrowsExceptionWhenCreatedWithNullProfileStoreTest()
         {
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICacheManager>();
             var query = Substitute.For<ICategoryQuery>();
+            var profileCache = Substitute.For<IProfileCache>();
 
-            Action action = () => new ProfileSearchQuery(null, linkStore, cache, query);
+            Action action = () => new ProfileSearchQuery(query, null, linkStore, profileCache, categoryCache);
 
             action.ShouldThrow<ArgumentNullException>();
         }
@@ -1178,9 +1290,10 @@
         {
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICacheManager>();
+            var profileCache = Substitute.For<IProfileCache>();
 
-            Action action = () => new ProfileSearchQuery(profileStore, linkStore, cache, null);
+            Action action = () => new ProfileSearchQuery(null, profileStore, linkStore, profileCache, categoryCache);
 
             action.ShouldThrow<ArgumentNullException>();
         }

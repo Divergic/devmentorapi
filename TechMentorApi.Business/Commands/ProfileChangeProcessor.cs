@@ -14,22 +14,26 @@
         private readonly ICacheManager _cache;
         private readonly ICategoryStore _categoryStore;
         private readonly ICategoryLinkStore _linkStore;
+        private readonly IProfileCache _profileCache;
         private readonly IProfileStore _profileStore;
 
         public ProfileChangeProcessor(
             IProfileStore profileStore,
             ICategoryStore categoryStore,
             ICategoryLinkStore linkStore,
+            IProfileCache profileCache,
             ICacheManager cache)
         {
             Ensure.Any.IsNotNull(profileStore, nameof(profileStore));
             Ensure.Any.IsNotNull(categoryStore, nameof(categoryStore));
             Ensure.Any.IsNotNull(linkStore, nameof(linkStore));
+            Ensure.Any.IsNotNull(profileCache, nameof(profileCache));
             Ensure.Any.IsNotNull(cache, nameof(cache));
 
             _profileStore = profileStore;
             _categoryStore = categoryStore;
             _linkStore = linkStore;
+            _profileCache = profileCache;
             _cache = cache;
         }
 
@@ -88,7 +92,11 @@
                     };
 
                     // Store the link update
-                    var categoryLinkTask = _linkStore.StoreCategoryLink(category.Group, category.Name, change, cancellationToken);
+                    var categoryLinkTask = _linkStore.StoreCategoryLink(
+                        category.Group,
+                        category.Name,
+                        change,
+                        cancellationToken);
 
                     categoryTasks.Add(categoryLinkTask);
 
@@ -119,7 +127,7 @@
             {
                 await _profileStore.StoreProfile(profile, cancellationToken).ConfigureAwait(false);
 
-                _cache.StoreProfile(profile);
+                _profileCache.StoreProfile(profile);
             }
         }
     }

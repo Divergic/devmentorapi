@@ -103,7 +103,8 @@
             {
                 var actual = await target.Put(group, name, model, CancellationToken.None).ConfigureAwait(false);
 
-                actual.Should().BeOfType<NotFoundResult>();
+                actual.Should().BeOfType<ErrorMessageResult>().Which.StatusCode.Should()
+                    .Be((int)HttpStatusCode.NotFound);
             }
         }
 
@@ -123,7 +124,8 @@
                 var actual = await target.Put(group.ToString(), name, model, CancellationToken.None)
                     .ConfigureAwait(false);
 
-                actual.Should().BeOfType<NotFoundResult>();
+                actual.Should().BeOfType<ErrorMessageResult>().Which.StatusCode.Should()
+                    .Be((int)HttpStatusCode.NotFound);
             }
         }
 

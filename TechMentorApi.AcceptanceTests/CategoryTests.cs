@@ -52,7 +52,7 @@
             // It is currently not visible so we should have it returned here
             secondCategories.Should().NotContain(x => x.Group == expected.Group && x.Name == expected.Name);
         }
-
+        
         [Fact]
         public async Task PutMakesCategoryVisibleImmediatelyTest()
         {

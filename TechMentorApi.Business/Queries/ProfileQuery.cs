@@ -11,13 +11,13 @@
 
     public class ProfileQuery : IProfileQuery
     {
-        private readonly ICacheManager _cache;
+        private readonly IProfileCache _cache;
         private readonly ICategoryQuery _query;
         private readonly IProfileStore _store;
 
         public ProfileQuery(
             IProfileStore store,
-            ICacheManager cache,
+            IProfileCache cache,
             ICategoryQuery query)
         {
             Ensure.Any.IsNotNull(store, nameof(store));
