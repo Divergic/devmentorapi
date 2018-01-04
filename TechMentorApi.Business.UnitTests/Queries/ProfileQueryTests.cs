@@ -21,7 +21,7 @@
             var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Unavailable);
 
             var store = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
             var query = Substitute.For<ICategoryQuery>();
 
             var sut = new ProfileQuery(store, cache, query);
@@ -43,7 +43,7 @@
                 .Set(x => x.BannedAt = DateTimeOffset.UtcNow);
 
             var store = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
             var query = Substitute.For<ICategoryQuery>();
 
             var sut = new ProfileQuery(store, cache, query);
@@ -66,7 +66,7 @@
                 .Set(x => x.BannedAt = DateTimeOffset.UtcNow);
 
             var store = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
             var query = Substitute.For<ICategoryQuery>();
 
             var sut = new ProfileQuery(store, cache, query);
@@ -88,7 +88,7 @@
             var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Unavailable);
 
             var store = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
             var query = Substitute.For<ICategoryQuery>();
 
             var sut = new ProfileQuery(store, cache, query);
@@ -110,7 +110,7 @@
                 .Set(x => x.BannedAt = null);
 
             var store = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
             var query = Substitute.For<ICategoryQuery>();
 
             var sut = new ProfileQuery(store, cache, query);
@@ -133,7 +133,7 @@
                 .Set(x => x.BannedAt = null);
 
             var store = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
             var query = Substitute.For<ICategoryQuery>();
 
             var sut = new ProfileQuery(store, cache, query);
@@ -155,7 +155,7 @@
             var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Unavailable);
 
             var store = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
             var query = Substitute.For<ICategoryQuery>();
 
             var sut = new ProfileQuery(store, cache, query);
@@ -173,7 +173,7 @@
         public void GetProfileThrowsExceptionWithEmptyIdTest()
         {
             var store = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
             var query = Substitute.For<ICategoryQuery>();
 
             var sut = new ProfileQuery(store, cache, query);
@@ -211,7 +211,7 @@
             var visibleCategories = categories.Where(x => x.Visible);
 
             var store = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
             var query = Substitute.For<ICategoryQuery>();
 
             var sut = new ProfileQuery(store, cache, query);
@@ -260,7 +260,7 @@
             var visibleCategories = categories.Where(x => x.Visible);
 
             var store = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
             var query = Substitute.For<ICategoryQuery>();
 
             var sut = new ProfileQuery(store, cache, query);
@@ -310,7 +310,7 @@
             var visibleCategories = categories.Where(x => x.Visible);
 
             var store = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
             var query = Substitute.For<ICategoryQuery>();
 
             var sut = new ProfileQuery(store, cache, query);
@@ -340,7 +340,7 @@
                 .Set(x => x.BannedAt = null);
 
             var store = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
             var query = Substitute.For<ICategoryQuery>();
 
             var sut = new ProfileQuery(store, cache, query);
@@ -371,7 +371,7 @@
             var categories = Model.Create<Collection<Category>>();
 
             var store = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
             var query = Substitute.For<ICategoryQuery>();
 
             var sut = new ProfileQuery(store, cache, query);
@@ -397,7 +397,7 @@
             var categories = Model.Create<Collection<Category>>();
 
             var store = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
             var query = Substitute.For<ICategoryQuery>();
 
             var sut = new ProfileQuery(store, cache, query);
@@ -425,7 +425,7 @@
             var visibleCategories = categories.Where(x => x.Visible);
 
             var store = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
             var query = Substitute.For<ICategoryQuery>();
 
             var sut = new ProfileQuery(store, cache, query);
@@ -451,7 +451,7 @@
             var visibleCategories = categories.Where(x => x.Visible);
 
             var store = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
             var query = Substitute.For<ICategoryQuery>();
 
             var sut = new ProfileQuery(store, cache, query);
@@ -477,7 +477,7 @@
             var visibleCategories = categories.Where(x => x.Visible);
 
             var store = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
             var query = Substitute.For<ICategoryQuery>();
 
             var sut = new ProfileQuery(store, cache, query);
@@ -509,7 +509,7 @@
             var visibleCategories = categories.Where(x => x.Visible);
 
             var store = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
             var query = Substitute.For<ICategoryQuery>();
 
             var sut = new ProfileQuery(store, cache, query);
@@ -551,7 +551,7 @@
             var visibleCategories = categories.Where(x => x.Visible);
 
             var store = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
             var query = Substitute.For<ICategoryQuery>();
 
             var sut = new ProfileQuery(store, cache, query);
@@ -576,7 +576,7 @@
                 .Set(x => x.BannedAt = null);
 
             var store = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
             var query = Substitute.For<ICategoryQuery>();
 
             var sut = new ProfileQuery(store, cache, query);
@@ -598,7 +598,7 @@
                 .Set(x => x.BannedAt = DateTimeOffset.UtcNow);
 
             var store = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
             var query = Substitute.For<ICategoryQuery>();
 
             var sut = new ProfileQuery(store, cache, query);
@@ -621,7 +621,7 @@
                 .Set(x => x.BannedAt = null);
 
             var store = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
             var query = Substitute.For<ICategoryQuery>();
 
             var sut = new ProfileQuery(store, cache, query);
@@ -643,7 +643,7 @@
             var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Unavailable);
 
             var store = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
             var query = Substitute.For<ICategoryQuery>();
 
             var sut = new ProfileQuery(store, cache, query);
@@ -663,7 +663,7 @@
             var expected = Model.Create<Profile>().Set(x => x.BannedAt = DateTimeOffset.UtcNow);
 
             var store = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
             var query = Substitute.For<ICategoryQuery>();
 
             var sut = new ProfileQuery(store, cache, query);
@@ -685,7 +685,7 @@
             var expected = Model.Create<Profile>().Set(x => x.Status = ProfileStatus.Hidden);
 
             var store = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
             var query = Substitute.For<ICategoryQuery>();
 
             var sut = new ProfileQuery(store, cache, query);
@@ -705,7 +705,7 @@
         public void GetPublicProfileThrowsExceptionWithEmptyIdTest()
         {
             var store = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
             var query = Substitute.For<ICategoryQuery>();
 
             var sut = new ProfileQuery(store, cache, query);
@@ -730,7 +730,7 @@
         [Fact]
         public void ThrowsExceptionWhenCreatedWithNullProfileStoreTest()
         {
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
             var query = Substitute.For<ICategoryQuery>();
 
             Action action = () => new ProfileQuery(null, cache, query);
@@ -742,7 +742,7 @@
         public void ThrowsExceptionWhenCreatedWithNullQueryTest()
         {
             var store = Substitute.For<IProfileStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
 
             Action action = () => new ProfileQuery(store, cache, null);
 

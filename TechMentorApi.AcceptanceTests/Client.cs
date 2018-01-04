@@ -45,14 +45,21 @@
             response.StatusCode.Should().Be(expectedCode);
         }
 
-        public static Task Get(
+        public static async Task Get(
             Uri address,
             ILogger logger = null,
             ClaimsIdentity identity = null,
             HttpStatusCode expectedCode = HttpStatusCode.OK,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            return GetInternal(address, logger, identity, expectedCode, cancellationToken);
+            var data = await GetInternal(address, logger, identity, expectedCode, cancellationToken).ConfigureAwait(false);
+
+            if (data?.Length > 0)
+            {
+                var content = Encoding.UTF8.GetString(data);
+
+                logger?.LogInformation(content?.Trim());
+            }
         }
 
         public static async Task<T> Get<T>(

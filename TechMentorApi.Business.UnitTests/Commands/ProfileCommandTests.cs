@@ -24,7 +24,7 @@
             var store = Substitute.For<IProfileStore>();
             var calculator = Substitute.For<IProfileChangeCalculator>();
             var processor = Substitute.For<IProfileChangeProcessor>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
 
             var sut = new ProfileCommand(store, calculator, processor, cache);
 
@@ -47,7 +47,7 @@
             var store = Substitute.For<IProfileStore>();
             var calculator = Substitute.For<IProfileChangeCalculator>();
             var processor = Substitute.For<IProfileChangeProcessor>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
 
             var sut = new ProfileCommand(store, calculator, processor, cache);
 
@@ -72,7 +72,7 @@
             var store = Substitute.For<IProfileStore>();
             var calculator = Substitute.For<IProfileChangeCalculator>();
             var processor = Substitute.For<IProfileChangeProcessor>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
 
             var sut = new ProfileCommand(store, calculator, processor, cache);
 
@@ -100,7 +100,7 @@
             var store = Substitute.For<IProfileStore>();
             var calculator = Substitute.For<IProfileChangeCalculator>();
             var processor = Substitute.For<IProfileChangeProcessor>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
 
             var sut = new ProfileCommand(store, calculator, processor, cache);
 
@@ -124,7 +124,7 @@
             var store = Substitute.For<IProfileStore>();
             var calculator = Substitute.For<IProfileChangeCalculator>();
             var processor = Substitute.For<IProfileChangeProcessor>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
 
             var sut = new ProfileCommand(store, calculator, processor, cache);
 
@@ -151,7 +151,7 @@
             var store = Substitute.For<IProfileStore>();
             var calculator = Substitute.For<IProfileChangeCalculator>();
             var processor = Substitute.For<IProfileChangeProcessor>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
 
             var sut = new ProfileCommand(store, calculator, processor, cache);
 
@@ -177,7 +177,7 @@
             var store = Substitute.For<IProfileStore>();
             var calculator = Substitute.For<IProfileChangeCalculator>();
             var processor = Substitute.For<IProfileChangeProcessor>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
 
             var sut = new ProfileCommand(store, calculator, processor, cache);
 
@@ -198,7 +198,7 @@
             var store = Substitute.For<IProfileStore>();
             var calculator = Substitute.For<IProfileChangeCalculator>();
             var processor = Substitute.For<IProfileChangeProcessor>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
 
             var sut = new ProfileCommand(store, calculator, processor, cache);
 
@@ -225,7 +225,7 @@
         {
             var profileStore = Substitute.For<IProfileStore>();
             var processor = Substitute.For<IProfileChangeProcessor>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
 
             Action action = () => new ProfileCommand(profileStore, null, processor, cache);
 
@@ -237,7 +237,7 @@
         {
             var profileStore = Substitute.For<IProfileStore>();
             var calculator = Substitute.For<IProfileChangeCalculator>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
 
             Action action = () => new ProfileCommand(profileStore, calculator, null, cache);
 
@@ -247,7 +247,7 @@
         [Fact]
         public void ThrowsExceptionWhenCreatedWithNullProfileStoreTest()
         {
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
             var calculator = Substitute.For<IProfileChangeCalculator>();
             var processor = Substitute.For<IProfileChangeProcessor>();
 
@@ -268,7 +268,7 @@
             var store = Substitute.For<IProfileStore>();
             var calculator = Substitute.For<IProfileChangeCalculator>();
             var processor = Substitute.For<IProfileChangeProcessor>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
 
             var sut = new ProfileCommand(store, calculator, processor, cache);
 
@@ -295,7 +295,7 @@
             var store = Substitute.For<IProfileStore>();
             var calculator = Substitute.For<IProfileChangeCalculator>();
             var processor = Substitute.For<IProfileChangeProcessor>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
 
             var sut = new ProfileCommand(store, calculator, processor, cache);
 
@@ -324,7 +324,7 @@
             var store = Substitute.For<IProfileStore>();
             var calculator = Substitute.For<IProfileChangeCalculator>();
             var processor = Substitute.For<IProfileChangeProcessor>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
 
             var sut = new ProfileCommand(store, calculator, processor, cache);
 
@@ -351,7 +351,7 @@
             var store = Substitute.For<IProfileStore>();
             var calculator = Substitute.For<IProfileChangeCalculator>();
             var processor = Substitute.For<IProfileChangeProcessor>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
 
             var sut = new ProfileCommand(store, calculator, processor, cache);
 
@@ -377,7 +377,7 @@
             var store = Substitute.For<IProfileStore>();
             var calculator = Substitute.For<IProfileChangeCalculator>();
             var processor = Substitute.For<IProfileChangeProcessor>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
 
             var sut = new ProfileCommand(store, calculator, processor, cache);
 
@@ -403,7 +403,7 @@
             var store = Substitute.For<IProfileStore>();
             var calculator = Substitute.For<IProfileChangeCalculator>();
             var processor = Substitute.For<IProfileChangeProcessor>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
 
             var sut = new ProfileCommand(store, calculator, processor, cache);
 
@@ -435,7 +435,7 @@
             var store = Substitute.For<IProfileStore>();
             var calculator = Substitute.For<IProfileChangeCalculator>();
             var processor = Substitute.For<IProfileChangeProcessor>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
 
             var sut = new ProfileCommand(store, calculator, processor, cache);
 
@@ -466,7 +466,7 @@
             var store = Substitute.For<IProfileStore>();
             var calculator = Substitute.For<IProfileChangeCalculator>();
             var processor = Substitute.For<IProfileChangeProcessor>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
 
             var sut = new ProfileCommand(store, calculator, processor, cache);
 
@@ -493,7 +493,7 @@
             var store = Substitute.For<IProfileStore>();
             var calculator = Substitute.For<IProfileChangeCalculator>();
             var processor = Substitute.For<IProfileChangeProcessor>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
 
             var sut = new ProfileCommand(store, calculator, processor, cache);
 
@@ -521,7 +521,7 @@
             var store = Substitute.For<IProfileStore>();
             var calculator = Substitute.For<IProfileChangeCalculator>();
             var processor = Substitute.For<IProfileChangeProcessor>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
 
             var sut = new ProfileCommand(store, calculator, processor, cache);
 
@@ -538,7 +538,7 @@
             var store = Substitute.For<IProfileStore>();
             var calculator = Substitute.For<IProfileChangeCalculator>();
             var processor = Substitute.For<IProfileChangeProcessor>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
 
             var sut = new ProfileCommand(store, calculator, processor, cache);
 
@@ -564,7 +564,7 @@
             var store = Substitute.For<IProfileStore>();
             var calculator = Substitute.For<IProfileChangeCalculator>();
             var processor = Substitute.For<IProfileChangeProcessor>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<IProfileCache>();
 
             var sut = new ProfileCommand(store, calculator, processor, cache);
 

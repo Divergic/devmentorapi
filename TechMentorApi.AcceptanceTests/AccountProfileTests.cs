@@ -146,7 +146,8 @@
         {
             var account = Model.Using<ProfileBuildStrategy>().Create<Account>();
             var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>()
-                .Set(x => x.BannedAt = DateTimeOffset.UtcNow).Save(_logger, account).ConfigureAwait(false);
+                .Set(x => x.BannedAt = DateTimeOffset.UtcNow).ClearCategories().Save(_logger, account)
+                .ConfigureAwait(false);
             var identity = ClaimsIdentityFactory.Build(account, profile);
             var address = ApiLocation.AccountProfile;
 
@@ -183,7 +184,8 @@
         {
             var account = Model.Using<ProfileBuildStrategy>().Create<Account>();
             var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>()
-                .Set(x => x.Status = ProfileStatus.Hidden).Save(_logger, account).ConfigureAwait(false);
+                .Set(x => x.Status = ProfileStatus.Hidden).ClearCategories().Save(_logger, account)
+                .ConfigureAwait(false);
             var identity = ClaimsIdentityFactory.Build(account, profile);
             var address = ApiLocation.AccountProfile;
 
@@ -330,7 +332,8 @@
         {
             var account = Model.Create<Account>();
             var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>()
-                .Set(x => x.BannedAt = DateTimeOffset.UtcNow).Save(_logger, account).ConfigureAwait(false);
+                .Set(x => x.BannedAt = DateTimeOffset.UtcNow).ClearCategories().Save(_logger, account)
+                .ConfigureAwait(false);
             var user = ClaimsIdentityFactory.Build(account, profile);
 
             profile.BannedAt = null;

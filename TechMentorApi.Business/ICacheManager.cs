@@ -6,30 +6,22 @@
 
     public interface ICacheManager
     {
-        Account GetAccount(string username);
-
         ICollection<Category> GetCategories();
+
+        Category GetCategory(CategoryGroup group, string name);
 
         ICollection<Guid> GetCategoryLinks(ProfileFilter filter);
 
-        Profile GetProfile(Guid id);
-
-        ICollection<ProfileResult> GetProfileResults();
-
         void RemoveCategories();
+
+        void RemoveCategory(CategoryGroup group, string name);
 
         void RemoveCategoryLinks(ProfileFilter filter);
 
-        void RemoveProfile(Guid id);
-
-        void StoreAccount(Account account);
-
         void StoreCategories(ICollection<Category> categories);
 
+        void StoreCategory(Category category);
+
         void StoreCategoryLinks(ProfileFilter filter, ICollection<Guid> links);
-
-        void StoreProfile(Profile profile);
-
-        void StoreProfileResults(ICollection<ProfileResult> results);
     }
 }

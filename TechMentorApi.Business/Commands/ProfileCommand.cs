@@ -10,7 +10,7 @@
 
     public class ProfileCommand : IProfileCommand
     {
-        private readonly ICacheManager _cache;
+        private readonly IProfileCache _cache;
         private readonly IProfileChangeCalculator _calculator;
         private readonly IProfileChangeProcessor _processor;
         private readonly IProfileStore _store;
@@ -19,7 +19,7 @@
             IProfileStore store,
             IProfileChangeCalculator calculator,
             IProfileChangeProcessor processor,
-            ICacheManager cache)
+            IProfileCache cache)
         {
             Ensure.Any.IsNotNull(store, nameof(store));
             Ensure.Any.IsNotNull(calculator, nameof(calculator));

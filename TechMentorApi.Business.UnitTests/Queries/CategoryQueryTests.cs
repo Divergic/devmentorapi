@@ -27,7 +27,7 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                cache.GetCategories().Returns((ICollection<Category>) null);
+                cache.GetCategories().Returns((ICollection<Category>)null);
                 store.GetAllCategories(tokenSource.Token).Returns(expected);
 
                 await sut.GetCategories(ReadType.All, tokenSource.Token).ConfigureAwait(false);
@@ -67,7 +67,7 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                cache.GetCategories().Returns((ICollection<Category>) null);
+                cache.GetCategories().Returns((ICollection<Category>)null);
                 store.GetAllCategories(tokenSource.Token).Returns(expected);
 
                 var sut = new CategoryQuery(store, cache);
@@ -88,8 +88,8 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                cache.GetCategories().Returns((ICollection<Category>) null);
-                store.GetAllCategories(tokenSource.Token).Returns((IEnumerable<Category>) null);
+                cache.GetCategories().Returns((ICollection<Category>)null);
+                store.GetAllCategories(tokenSource.Token).Returns((IEnumerable<Category>)null);
 
                 var actual = await sut.GetCategories(ReadType.All, tokenSource.Token).ConfigureAwait(false);
 
@@ -131,13 +131,135 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                cache.GetCategories().Returns((ICollection<Category>) null);
+                cache.GetCategories().Returns((ICollection<Category>)null);
                 store.GetAllCategories(tokenSource.Token).Returns(categories);
 
                 var actual = await sut.GetCategories(ReadType.VisibleOnly, tokenSource.Token).ConfigureAwait(false);
 
                 actual.ShouldAllBeEquivalentTo(expected);
             }
+        }
+
+        [Fact]
+        public async Task GetCategoryDoesNotCacheNullValueFromStoreTest()
+        {
+            var expected = Model.Create<Category>();
+
+            var store = Substitute.For<ICategoryStore>();
+            var cache = Substitute.For<ICacheManager>();
+
+            var sut = new CategoryQuery(store, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                store.GetCategory(expected.Group, expected.Name, tokenSource.Token).Returns((Category)null);
+
+                var actual = await sut.GetCategory(ReadType.All, expected.Group, expected.Name, tokenSource.Token)
+                    .ConfigureAwait(false);
+
+                actual.Should().BeNull();
+                cache.DidNotReceive().StoreCategory(Arg.Any<Category>());
+            }
+        }
+
+        [Theory]
+        [InlineData(ReadType.All, true, true)]
+        [InlineData(ReadType.All, false, true)]
+        [InlineData(ReadType.VisibleOnly, true, true)]
+        [InlineData(ReadType.VisibleOnly, false, false)]
+        public async Task GetCategoryReturnsCategoryBasedOnReadTypeAndVisibilityTest(
+            ReadType readType,
+            bool isVisible,
+            bool valueReturned)
+        {
+            var expected = Model.Create<Category>().Set(x => x.Visible = isVisible);
+
+            var store = Substitute.For<ICategoryStore>();
+            var cache = Substitute.For<ICacheManager>();
+
+            var sut = new CategoryQuery(store, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                store.GetCategory(expected.Group, expected.Name, tokenSource.Token).Returns(expected);
+
+                var actual = await sut.GetCategory(readType, expected.Group, expected.Name, tokenSource.Token)
+                    .ConfigureAwait(false);
+
+                if (valueReturned)
+                {
+                    actual.ShouldBeEquivalentTo(expected);
+                }
+                else
+                {
+                    actual.Should().BeNull();
+                }
+            }
+        }
+
+        [Fact]
+        public async Task GetCategoryReturnsCategoryFromCacheTest()
+        {
+            var expected = Model.Create<Category>();
+
+            var store = Substitute.For<ICategoryStore>();
+            var cache = Substitute.For<ICacheManager>();
+
+            var sut = new CategoryQuery(store, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                store.GetCategory(expected.Group, expected.Name, tokenSource.Token).Returns(expected);
+
+                var actual = await sut.GetCategory(ReadType.All, expected.Group, expected.Name, tokenSource.Token)
+                    .ConfigureAwait(false);
+
+                actual.ShouldBeEquivalentTo(expected);
+                cache.Received().StoreCategory(expected);
+            }
+        }
+
+        [Fact]
+        public async Task GetCategoryStoresValueInCacheWhenReturnedFromStoreTest()
+        {
+            var expected = Model.Create<Category>();
+
+            var store = Substitute.For<ICategoryStore>();
+            var cache = Substitute.For<ICacheManager>();
+
+            var sut = new CategoryQuery(store, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                cache.GetCategory(expected.Group, expected.Name).Returns(expected);
+
+                var actual = await sut.GetCategory(ReadType.All, expected.Group, expected.Name, tokenSource.Token)
+                    .ConfigureAwait(false);
+
+                actual.ShouldBeEquivalentTo(expected);
+                await store.DidNotReceive().GetCategory(
+                    Arg.Any<CategoryGroup>(),
+                    Arg.Any<string>(),
+                    Arg.Any<CancellationToken>()).ConfigureAwait(false);
+            }
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("  ")]
+        public void GetCategoryThrowsExceptionWithInvalidNameTest(string name)
+        {
+            var store = Substitute.For<ICategoryStore>();
+            var cache = Substitute.For<ICacheManager>();
+
+            var sut = new CategoryQuery(store, cache);
+
+            Func<Task> actual = async () =>
+                await sut.GetCategory(ReadType.VisibleOnly, CategoryGroup.Skill, name, CancellationToken.None)
+                    .ConfigureAwait(false);
+
+            actual.ShouldThrow<ArgumentException>();
         }
 
         [Fact]

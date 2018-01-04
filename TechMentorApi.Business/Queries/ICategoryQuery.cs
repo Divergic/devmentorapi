@@ -8,5 +8,11 @@
     public interface ICategoryQuery
     {
         Task<IEnumerable<Category>> GetCategories(ReadType readType, CancellationToken cancellationToken);
+
+        Task<Category> GetCategory(
+            ReadType readType,
+            CategoryGroup group,
+            string name,
+            CancellationToken cancellationToken);
     }
 }

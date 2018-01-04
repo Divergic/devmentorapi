@@ -2,84 +2,15 @@
 {
     using System;
     using System.Collections.Generic;
-    using TechMentorApi.Business;
-    using TechMentorApi.Model;
     using FluentAssertions;
     using Microsoft.Extensions.Caching.Memory;
     using ModelBuilder;
     using NSubstitute;
+    using TechMentorApi.Model;
     using Xunit;
 
     public class CacheManagerTests
     {
-        [Fact]
-        public void GetAccountReturnsCachedAccountTest()
-        {
-            var expected = new Account
-            {
-                Id = Guid.NewGuid(),
-                Provider = Guid.NewGuid().ToString(),
-                Subject = Guid.NewGuid().ToString()
-            };
-            var username = expected.Provider + "|" + expected.Subject;
-            var cacheKey = "Account|" + username;
-
-            var cache = Substitute.For<IMemoryCache>();
-            var config = Substitute.For<ICacheConfig>();
-
-            object value;
-
-            cache.TryGetValue(cacheKey, out value).Returns(
-                x =>
-                {
-                    x[1] = expected.Id;
-
-                    return true;
-                });
-
-            var sut = new CacheManager(cache, config);
-
-            var actual = sut.GetAccount(username);
-
-            actual.ShouldBeEquivalentTo(expected);
-        }
-
-        [Fact]
-        public void GetAccountReturnsNullWhenCachedAccountNotFoundTest()
-        {
-            var username = Guid.NewGuid().ToString();
-            var cacheKey = "Account|" + username;
-
-            var cache = Substitute.For<IMemoryCache>();
-            var config = Substitute.For<ICacheConfig>();
-
-            object value;
-
-            cache.TryGetValue(cacheKey, out value).Returns(x => false);
-
-            var sut = new CacheManager(cache, config);
-
-            var actual = sut.GetAccount(username);
-
-            actual.Should().BeNull();
-        }
-
-        [Theory]
-        [InlineData(null)]
-        [InlineData("")]
-        [InlineData("  ")]
-        public void GetAccountThrowsExceptionWithInvalidUsernameTest(string username)
-        {
-            var cache = Substitute.For<IMemoryCache>();
-            var config = Substitute.For<ICacheConfig>();
-
-            var sut = new CacheManager(cache, config);
-
-            Action action = () => sut.GetAccount(username);
-
-            action.ShouldThrow<ArgumentException>();
-        }
-
         [Fact]
         public void GetCategoriesReturnsCachedCategoriesTest()
         {
@@ -186,55 +117,10 @@
         }
 
         [Fact]
-        public void GetProfileResultsReturnsCachedProfileResultsTest()
+        public void GetCategoryReturnsCachedCategoryTest()
         {
-            var expected = Model.Create<List<ProfileResult>>();
-            const string CacheKey = "ProfileResults";
-
-            var cache = Substitute.For<IMemoryCache>();
-            var config = Substitute.For<ICacheConfig>();
-
-            object value;
-
-            cache.TryGetValue(CacheKey, out value).Returns(
-                x =>
-                {
-                    x[1] = expected;
-
-                    return true;
-                });
-
-            var sut = new CacheManager(cache, config);
-
-            var actual = sut.GetProfileResults();
-
-            actual.ShouldBeEquivalentTo(expected);
-        }
-
-        [Fact]
-        public void GetProfileResultsReturnsNullWhenCachedProfileResultsNotFoundTest()
-        {
-            const string CacheKey = "ProfileResults";
-
-            var cache = Substitute.For<IMemoryCache>();
-            var config = Substitute.For<ICacheConfig>();
-
-            object value;
-
-            cache.TryGetValue(CacheKey, out value).Returns(x => false);
-
-            var sut = new CacheManager(cache, config);
-
-            var actual = sut.GetProfileResults();
-
-            actual.Should().BeNull();
-        }
-
-        [Fact]
-        public void GetProfileReturnsCachedProfileTest()
-        {
-            var expected = Model.Create<Profile>();
-            var cacheKey = "Profile|" + expected.Id;
+            var expected = Model.Create<Category>();
+            var cacheKey = "Category|" + expected.Group + "|" + expected.Name;
 
             var cache = Substitute.For<IMemoryCache>();
             var config = Substitute.For<ICacheConfig>();
@@ -251,16 +137,16 @@
 
             var sut = new CacheManager(cache, config);
 
-            var actual = sut.GetProfile(expected.Id);
+            var actual = sut.GetCategory(expected.Group, expected.Name);
 
             actual.ShouldBeEquivalentTo(expected);
         }
 
         [Fact]
-        public void GetProfileReturnsNullWhenCachedProfileNotFoundTest()
+        public void GetCategoryReturnsNullWhenCachedCategoryNotFoundTest()
         {
-            var id = Guid.NewGuid();
-            var cacheKey = "Profile|" + id;
+            var expected = Model.Create<Category>();
+            var cacheKey = "Category|" + expected.Group + "|" + expected.Name;
 
             var cache = Substitute.For<IMemoryCache>();
             var config = Substitute.For<ICacheConfig>();
@@ -271,24 +157,9 @@
 
             var sut = new CacheManager(cache, config);
 
-            var actual = sut.GetProfile(id);
+            var actual = sut.GetCategory(expected.Group, expected.Name);
 
             actual.Should().BeNull();
-        }
-
-        [Fact]
-        public void GetProfileThrowsExceptionWithInvalidIdTest()
-        {
-            var id = Guid.Empty;
-
-            var cache = Substitute.For<IMemoryCache>();
-            var config = Substitute.For<ICacheConfig>();
-
-            var sut = new CacheManager(cache, config);
-
-            Action action = () => sut.GetProfile(id);
-
-            action.ShouldThrow<ArgumentException>();
         }
 
         [Fact]
@@ -331,69 +202,21 @@
 
             cache.Received().Remove("Categories");
         }
-
+        
         [Fact]
-        public void RemoveProfileDeletesProfileFromCacheTest()
+        public void RemoveCategoryRemovesFromCacheTest()
         {
-            var expected = Model.Create<Profile>();
-            var cacheKey = "Profile|" + expected.Id;
+            var expected = Model.Create<Category>();
+            var cacheKey = "Category|" + expected.Group + "|" + expected.Name;
 
             var cache = Substitute.For<IMemoryCache>();
             var config = Substitute.For<ICacheConfig>();
 
             var sut = new CacheManager(cache, config);
 
-            sut.RemoveProfile(expected.Id);
+            sut.RemoveCategory(expected.Group, expected.Name);
 
             cache.Received().Remove(cacheKey);
-        }
-
-        [Fact]
-        public void RemoveProfileThrowsExceptionWithEmptyIdTest()
-        {
-            var cache = Substitute.For<IMemoryCache>();
-            var config = Substitute.For<ICacheConfig>();
-
-            var sut = new CacheManager(cache, config);
-
-            Action action = () => sut.RemoveProfile(Guid.Empty);
-
-            action.ShouldThrow<ArgumentException>();
-        }
-
-        [Fact]
-        public void StoreAccountThrowsExceptionWithNullAccountTest()
-        {
-            var cache = Substitute.For<IMemoryCache>();
-            var config = Substitute.For<ICacheConfig>();
-
-            var sut = new CacheManager(cache, config);
-
-            Action action = () => sut.StoreAccount(null);
-
-            action.ShouldThrow<ArgumentNullException>();
-        }
-
-        [Fact]
-        public void StoreAccountWritesAccountToCacheTest()
-        {
-            var expected = Model.Create<Account>();
-            var cacheExpiry = TimeSpan.FromMinutes(23);
-            var cacheKey = "Account|" + expected.Username;
-
-            var cache = Substitute.For<IMemoryCache>();
-            var config = Substitute.For<ICacheConfig>();
-            var cacheEntry = Substitute.For<ICacheEntry>();
-
-            config.AccountExpiration.Returns(cacheExpiry);
-            cache.CreateEntry(cacheKey).Returns(cacheEntry);
-
-            var sut = new CacheManager(cache, config);
-
-            sut.StoreAccount(expected);
-
-            cacheEntry.Value.Should().Be(expected.Id);
-            cacheEntry.SlidingExpiration.Should().Be(cacheExpiry);
         }
 
         [Fact]
@@ -483,70 +306,35 @@
         }
 
         [Fact]
-        public void StoreProfileResultsThrowsExceptionWithNullProfileResultsTest()
+        public void StoreCategoryThrowsExceptionWithNullCategoryTest()
         {
             var cache = Substitute.For<IMemoryCache>();
             var config = Substitute.For<ICacheConfig>();
 
             var sut = new CacheManager(cache, config);
 
-            Action action = () => sut.StoreProfileResults(null);
+            Action action = () => sut.StoreCategory(null);
 
             action.ShouldThrow<ArgumentNullException>();
         }
 
         [Fact]
-        public void StoreProfileResultsWritesProfileResultsToCacheTest()
+        public void StoreCategoryWritesCategoryToCacheTest()
         {
-            var expected = Model.Create<List<ProfileResult>>();
+            var expected = Model.Create<Category>();
+            var cacheKey = "Category|" + expected.Group + "|" + expected.Name;
             var cacheExpiry = TimeSpan.FromMinutes(23);
-            const string CacheKey = "ProfileResults";
 
             var cache = Substitute.For<IMemoryCache>();
             var config = Substitute.For<ICacheConfig>();
             var cacheEntry = Substitute.For<ICacheEntry>();
 
-            config.ProfileResultsExpiration.Returns(cacheExpiry);
-            cache.CreateEntry(CacheKey).Returns(cacheEntry);
-
-            var sut = new CacheManager(cache, config);
-
-            sut.StoreProfileResults(expected);
-
-            cacheEntry.Value.Should().Be(expected);
-            cacheEntry.SlidingExpiration.Should().Be(cacheExpiry);
-        }
-
-        [Fact]
-        public void StoreProfileThrowsExceptionWithNullProfileTest()
-        {
-            var cache = Substitute.For<IMemoryCache>();
-            var config = Substitute.For<ICacheConfig>();
-
-            var sut = new CacheManager(cache, config);
-
-            Action action = () => sut.StoreProfile(null);
-
-            action.ShouldThrow<ArgumentNullException>();
-        }
-
-        [Fact]
-        public void StoreProfileWritesProfileToCacheTest()
-        {
-            var expected = Model.Create<Profile>();
-            var cacheExpiry = TimeSpan.FromMinutes(23);
-            var cacheKey = "Profile|" + expected.Id;
-
-            var cache = Substitute.For<IMemoryCache>();
-            var config = Substitute.For<ICacheConfig>();
-            var cacheEntry = Substitute.For<ICacheEntry>();
-
-            config.ProfileExpiration.Returns(cacheExpiry);
+            config.CategoriesExpiration.Returns(cacheExpiry);
             cache.CreateEntry(cacheKey).Returns(cacheEntry);
 
             var sut = new CacheManager(cache, config);
 
-            sut.StoreProfile(expected);
+            sut.StoreCategory(expected);
 
             cacheEntry.Value.Should().Be(expected);
             cacheEntry.SlidingExpiration.Should().Be(cacheExpiry);

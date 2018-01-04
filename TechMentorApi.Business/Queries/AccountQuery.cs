@@ -10,25 +10,28 @@
     public class AccountQuery : IAccountQuery
     {
         private readonly IAccountStore _accountStore;
-        private readonly ICacheManager _cache;
+        private readonly IAccountCache _accountCache;
         private readonly IProfileStore _profileStore;
+        private readonly IProfileCache _profileCache;
 
-        public AccountQuery(IAccountStore accountStore, IProfileStore profileStore, ICacheManager cache)
+        public AccountQuery(IAccountStore accountStore, IProfileStore profileStore, IAccountCache accountCache, IProfileCache profileCache)
         {
             Ensure.Any.IsNotNull(accountStore, nameof(accountStore));
             Ensure.Any.IsNotNull(profileStore, nameof(profileStore));
-            Ensure.Any.IsNotNull(cache, nameof(cache));
+            Ensure.Any.IsNotNull(accountCache, nameof(accountCache));
+            Ensure.Any.IsNotNull(profileCache, nameof(profileCache));
 
             _accountStore = accountStore;
             _profileStore = profileStore;
-            _cache = cache;
+            _accountCache = accountCache;
+            _profileCache = profileCache;
         }
 
         public async Task<Account> GetAccount(User user, CancellationToken cancellationToken)
         {
             Ensure.Any.IsNotNull(user, nameof(user));
 
-            var cachedAccount = _cache.GetAccount(user.Username);
+            var cachedAccount = _accountCache.GetAccount(user.Username);
 
             if (cachedAccount != null)
             {
@@ -44,10 +47,10 @@
                 // This account has just been created
                 var profile = await CreateProfile(account.Id, user, cancellationToken).ConfigureAwait(false);
 
-                _cache.StoreProfile(profile);
+                _profileCache.StoreProfile(profile);
             }
 
-            _cache.StoreAccount(account);
+            _accountCache.StoreAccount(account);
 
             return account;
         }

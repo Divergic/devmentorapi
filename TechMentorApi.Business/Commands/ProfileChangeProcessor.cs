@@ -15,26 +15,30 @@
         private readonly ICategoryStore _categoryStore;
         private readonly IEventTrigger _eventTrigger;
         private readonly ICategoryLinkStore _linkStore;
+        private readonly IProfileCache _profileCache;
         private readonly IProfileStore _profileStore;
 
         public ProfileChangeProcessor(
             IProfileStore profileStore,
             ICategoryStore categoryStore,
             ICategoryLinkStore linkStore,
-            ICacheManager cache,
-            IEventTrigger eventTrigger)
+            IEventTrigger eventTrigger,
+            IProfileCache profileCache,
+            ICacheManager cache)
         {
             Ensure.Any.IsNotNull(profileStore, nameof(profileStore));
             Ensure.Any.IsNotNull(categoryStore, nameof(categoryStore));
             Ensure.Any.IsNotNull(linkStore, nameof(linkStore));
+            Ensure.Any.IsNotNull(profileCache, nameof(profileCache));
             Ensure.Any.IsNotNull(cache, nameof(cache));
             Ensure.Any.IsNotNull(eventTrigger, nameof(eventTrigger));
 
             _profileStore = profileStore;
             _categoryStore = categoryStore;
             _linkStore = linkStore;
-            _cache = cache;
             _eventTrigger = eventTrigger;
+            _profileCache = profileCache;
+            _cache = cache;
         }
 
         public async Task Execute(Profile profile, ProfileChangeResult changes, CancellationToken cancellationToken)
@@ -58,6 +62,8 @@
             ProfileChangeResult changes,
             CancellationToken cancellationToken)
         {
+            var cacheItemsToRemove = new List<ProfileFilter>();
+            
             // Get the current categories
             var categories =
                 (await _categoryStore.GetAllCategories(cancellationToken).ConfigureAwait(false)).FastToList();
@@ -125,8 +131,7 @@
                     CategoryName = category.Name
                 };
 
-                // Clear the cache to ensure that this profile is reflected in the category links on subsequent calls
-                _cache.RemoveCategoryLinks(filter);
+                    cacheItemsToRemove.Add(filter);
 
                 // Update the category data
                 var categoryTask = _categoryStore.StoreCategory(category, cancellationToken);
@@ -137,9 +142,24 @@
             // Run all the category task changes together
             await Task.WhenAll(categoryTasks).ConfigureAwait(false);
 
+            UpdateCacheStore(categories, cacheItemsToRemove);
+        }
+
+        private void UpdateCacheStore(ICollection<Category> categories, IEnumerable<ProfileFilter> filters)
+        {
             // We either made changes to the category link count or a category was added
             // Store the new category list in the cache
             _cache.StoreCategories(categories);
+
+            foreach (var filter in filters)
+            {
+                // Clear the cache to ensure that this profile is reflected in the category links on subsequent calls
+                _cache.RemoveCategoryLinks(filter);
+
+                // Remove the category from the cache
+                _cache.RemoveCategory(filter);
+            }
+
         }
 
         private async Task UpdateProfile(Profile profile, CancellationToken cancellationToken)
@@ -149,7 +169,7 @@
 
             await Task.WhenAll(storeTask, triggerTask).ConfigureAwait(false);
 
-            _cache.StoreProfile(profile);
+            _profileCache.StoreProfile(profile);
         }
     }
 }
