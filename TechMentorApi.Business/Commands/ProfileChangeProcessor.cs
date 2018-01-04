@@ -173,7 +173,7 @@
 
             await Task.WhenAll(storeTask, triggerTask).ConfigureAwait(false);
 
-            _cache.StoreProfile(profile);
+            _profileCache.StoreProfile(profile);
         }
     }
 }
