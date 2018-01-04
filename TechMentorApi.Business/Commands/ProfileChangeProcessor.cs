@@ -44,6 +44,8 @@
 
             if (changes.CategoryChanges.Count > 0)
             {
+                var cacheItemsToRemove = new List<ProfileFilter>();
+
                 // Get the current categories
                 var categories = (await _categoryStore.GetAllCategories(cancellationToken).ConfigureAwait(false))
                     .FastToList();
@@ -106,8 +108,7 @@
                         CategoryName = category.Name
                     };
 
-                    // Clear the cache to ensure that this profile is reflected in the category links on subsequent calls
-                    _cache.RemoveCategoryLinks(filter);
+                    cacheItemsToRemove.Add(filter);
 
                     // Update the category data
                     var categoryTask = _categoryStore.StoreCategory(category, cancellationToken);
@@ -118,9 +119,7 @@
                 // Run all the category task changes together
                 await Task.WhenAll(categoryTasks).ConfigureAwait(false);
 
-                // We either made changes to the category link count or a category was added
-                // Store the new category list in the cache
-                _cache.StoreCategories(categories);
+                UpdateCacheStore(categories, cacheItemsToRemove);
             }
 
             if (changes.ProfileChanged)
@@ -129,6 +128,23 @@
 
                 _profileCache.StoreProfile(profile);
             }
+        }
+
+        private void UpdateCacheStore(ICollection<Category> categories, IEnumerable<ProfileFilter> filters)
+        {
+            // We either made changes to the category link count or a category was added
+            // Store the new category list in the cache
+            _cache.StoreCategories(categories);
+
+            foreach (var filter in filters)
+            {
+                // Clear the cache to ensure that this profile is reflected in the category links on subsequent calls
+                _cache.RemoveCategoryLinks(filter);
+
+                // Remove the category from the cache
+                _cache.RemoveCategory(filter);
+            }
+
         }
     }
 }

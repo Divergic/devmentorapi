@@ -60,6 +60,7 @@
             await _store.StoreCategory(category, cancellationToken).ConfigureAwait(false);
 
             _cache.RemoveCategories();
+            _cache.RemoveCategory(category);
         }
     }
 }

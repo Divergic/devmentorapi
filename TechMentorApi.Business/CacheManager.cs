@@ -48,9 +48,9 @@
             _cache.Remove(CategoriesCacheKey);
         }
 
-        public void RemoveCategory(Category category)
+        public void RemoveCategory(CategoryGroup group, string name)
         {
-            var cacheKey = BuildCategoryCacheKey(category.Group, category.Name);
+            var cacheKey = BuildCategoryCacheKey(group, name);
 
             _cache.Remove(cacheKey);
         }

@@ -14,7 +14,7 @@
 
         void RemoveCategories();
 
-        void RemoveCategory(Category category);
+        void RemoveCategory(CategoryGroup group, string name);
 
         void RemoveCategoryLinks(ProfileFilter filter);
 

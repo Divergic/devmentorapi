@@ -18,7 +18,7 @@
     using TechMentorApi.Security;
     using TechMentorApi.ViewModels;
 
-    public class CategoriesController : Controller
+    public class CategoriesController : AuthController
     {
         private readonly ICategoryCommand _command;
         private readonly ICategoryQuery _query;
@@ -95,26 +95,6 @@
             await _command.CreateCategory(model, cancellationToken).ConfigureAwait(false);
 
             return new StatusCodeResult((int) HttpStatusCode.Created);
-        }
-
-        private bool IsAdministrator()
-        {
-            if (User == null)
-            {
-                return false;
-            }
-
-            if (User.Identity?.IsAuthenticated == false)
-            {
-                return false;
-            }
-
-            if (User.IsInRole(Role.Administrator))
-            {
-                return true;
-            }
-
-            return false;
         }
     }
 }

@@ -76,6 +76,7 @@
                     .ConfigureAwait(false);
 
                 cache.Received().RemoveCategories();
+                cache.Received().RemoveCategory(expected.Group, expected.Name);
             }
         }
 
@@ -188,6 +189,7 @@
                 await store.Received().StoreCategory(expected, tokenSource.Token).ConfigureAwait(false);
 
                 cache.Received().RemoveCategories();
+                cache.Received().RemoveCategory(expected.Group, expected.Name);
             }
         }
 

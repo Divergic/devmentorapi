@@ -10,20 +10,27 @@
     {
         public static Uri Category(CategoryGroup group, string name)
         {
-            return new Uri(Config.WebsiteAddress,
-                "/categories/" + group + "/" + UrlEncode(name));
+            return Category(group.ToString(), name);
+        }
+
+        public static Uri Category(string group, string name)
+        {
+            return new Uri(Config.WebsiteAddress, "/categories/" + UrlEncode(group) + "/" + UrlEncode(name));
         }
 
         public static Uri Category(NewCategory category)
         {
-            return new Uri(Config.WebsiteAddress,
-                "/categories/" + category.Group + "/" + UrlEncode(category.Name));
+            return Category(category.Group.ToString(), category.Name);
         }
 
         public static Uri Category(Category category)
         {
-            return new Uri(Config.WebsiteAddress,
-                "/categories/" + category.Group + "/" + UrlEncode(category.Name));
+            return Category(category.Group.ToString(), category.Name);
+        }
+
+        public static Uri Category(Skill skill)
+        {
+            return Category("skill", skill.Name);
         }
 
         public static Uri PhotoFor(PhotoDetails details)
@@ -51,8 +58,7 @@
 
             foreach (var filter in filters)
             {
-                criteria.Add(filter.CategoryGroup.ToString().ToLowerInvariant() + "=" +
-                             UrlEncode(filter.CategoryName));
+                criteria.Add(filter.CategoryGroup.ToString().ToLowerInvariant() + "=" + UrlEncode(filter.CategoryName));
             }
 
             var query = criteria.Aggregate((x, y) => x + "&" + y);

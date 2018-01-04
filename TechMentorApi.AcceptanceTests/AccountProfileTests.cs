@@ -27,9 +27,13 @@
         public static IEnumerable<object[]> InvalidYearDataSource()
         {
             yield return new object[]
-                {1988};
+            {
+                1988
+            };
             yield return new object[]
-                {DateTimeOffset.UtcNow.Year + 1};
+            {
+                DateTimeOffset.UtcNow.Year + 1
+            };
         }
 
         [Fact]
@@ -120,7 +124,9 @@
 
                 var profileTask = Client.Get<Profile>(profileAddress, null, identity);
                 var tasks = new List<Task>
-                    {profileTask};
+                {
+                    profileTask
+                };
 
                 for (var categoryCount = 0; categoryCount < 10; categoryCount++)
                 {
@@ -138,7 +144,8 @@
         {
             var account = Model.Using<ProfileBuildStrategy>().Create<Account>();
             var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>()
-                .Set(x => x.BannedAt = DateTimeOffset.UtcNow).Save(_logger, account).ConfigureAwait(false);
+                .Set(x => x.BannedAt = DateTimeOffset.UtcNow).ClearCategories().Save(_logger, account)
+                .ConfigureAwait(false);
             var identity = ClaimsIdentityFactory.Build(account, profile);
             var address = ApiLocation.AccountProfile;
 
@@ -175,7 +182,8 @@
         {
             var account = Model.Using<ProfileBuildStrategy>().Create<Account>();
             var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>()
-                .Set(x => x.Status = ProfileStatus.Hidden).Save(_logger, account).ConfigureAwait(false);
+                .Set(x => x.Status = ProfileStatus.Hidden).ClearCategories().Save(_logger, account)
+                .ConfigureAwait(false);
             var identity = ClaimsIdentityFactory.Build(account, profile);
             var address = ApiLocation.AccountProfile;
 
@@ -231,7 +239,8 @@
         {
             var account = Model.Create<Account>();
             var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>()
-                .Set(x => x.BannedAt = DateTimeOffset.UtcNow).Save(_logger, account).ConfigureAwait(false);
+                .Set(x => x.BannedAt = DateTimeOffset.UtcNow).ClearCategories().Save(_logger, account)
+                .ConfigureAwait(false);
             var user = ClaimsIdentityFactory.Build(account, profile);
 
             profile.BannedAt = null;
@@ -316,7 +325,7 @@
         public async Task PutReturnsBadRequestForInvalidProfileStatusTest()
         {
             var expected = Model.Using<ProfileBuildStrategy>().Create<UpdatableProfile>()
-                .Set(x => x.Status = (ProfileStatus) int.MaxValue);
+                .Set(x => x.Status = (ProfileStatus)int.MaxValue);
             var user = ClaimsIdentityFactory.Build(null, expected);
 
             await Client.Put(ApiLocation.AccountProfile, _logger, expected, user, HttpStatusCode.BadRequest)
@@ -328,7 +337,7 @@
         {
             var expected = Model.Using<ProfileBuildStrategy>().Create<UpdatableProfile>();
             var skill = Model.Using<ProfileBuildStrategy>().Create<Skill>()
-                .Set(x => x.Level = (SkillLevel) int.MaxValue);
+                .Set(x => x.Level = (SkillLevel)int.MaxValue);
 
             expected.Skills.Add(skill);
 
@@ -414,8 +423,7 @@
         [Fact]
         public async Task PutReturnsBadRequestWhenAcceptCoCIsFalseTest()
         {
-            var expected = Model.Using<ProfileBuildStrategy>().Create<UpdatableProfile>()
-                .Set(x => x.AcceptCoC = false);
+            var expected = Model.Using<ProfileBuildStrategy>().Create<UpdatableProfile>().Set(x => x.AcceptCoC = false);
             var user = ClaimsIdentityFactory.Build(null, expected);
 
             await Client.Put(ApiLocation.AccountProfile, _logger, expected, user, HttpStatusCode.BadRequest)

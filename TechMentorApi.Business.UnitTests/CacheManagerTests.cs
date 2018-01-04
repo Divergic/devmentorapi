@@ -202,7 +202,7 @@
 
             cache.Received().Remove("Categories");
         }
-
+        
         [Fact]
         public void RemoveCategoryRemovesFromCacheTest()
         {
@@ -214,7 +214,7 @@
 
             var sut = new CacheManager(cache, config);
 
-            sut.RemoveCategory(expected);
+            sut.RemoveCategory(expected.Group, expected.Name);
 
             cache.Received().Remove(cacheKey);
         }
