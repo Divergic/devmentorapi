@@ -7,7 +7,9 @@
     using System.Threading.Tasks;
     using FluentAssertions;
     using Microsoft.Extensions.Logging;
+    using Microsoft.WindowsAzure.Storage;
     using ModelBuilder;
+    using Newtonsoft.Json;
     using TechMentorApi.Model;
     using TechMentorApi.ViewModels;
     using Xunit;
@@ -232,6 +234,97 @@
 
             await Client.Put(ApiLocation.AccountProfile, _logger, expected, user, HttpStatusCode.NoContent)
                 .ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task PutCreatesQueueMessageForNewCategoryTest()
+        {
+            var categoryToKeep = Model.Using<ProfileBuildStrategy>().Create<Skill>();
+            var profile = Model.Using<ProfileBuildStrategy>().Create<UpdatableProfile>().Set(
+                x =>
+                {
+                    x.Gender = null;
+                    x.Skills.Clear();
+                    x.Languages.Clear();
+
+                    x.Skills.Add(categoryToKeep);
+                });
+            var user = ClaimsIdentityFactory.Build(null, profile);
+
+            await Client.Put(ApiLocation.AccountProfile, _logger, profile, user, HttpStatusCode.NoContent)
+                .ConfigureAwait(false);
+
+            const string queueName = "newcategories";
+            var expected = CategoryGroup.Skill + Environment.NewLine + categoryToKeep.Name;
+
+            var storageAccount = CloudStorageAccount.Parse(Config.Storage.ConnectionString);
+            var client = storageAccount.CreateCloudQueueClient();
+            var queue = client.GetQueueReference(queueName);
+
+            var queueItem = await queue.GetMessageAsync().ConfigureAwait(false);
+
+            while (queueItem != null)
+            {
+                var actual = queueItem.AsString;
+
+                if (actual == expected)
+                {
+                    // We found the item
+                    return;
+                }
+
+                // Check the next queue item
+                queueItem = await queue.GetMessageAsync().ConfigureAwait(false);
+            }
+
+            throw new InvalidOperationException("Expected queue item was not found.");
+        }
+
+        [Fact]
+        public async Task PutCreatesQueueMessageForUpdatedProfileTest()
+        {
+            var categoryToKeep = Model.Using<ProfileBuildStrategy>().Create<Skill>();
+            var profile = Model.Using<ProfileBuildStrategy>().Create<UpdatableProfile>().Set(
+                x =>
+                {
+                    x.Gender = null;
+                    x.Skills.Clear();
+                    x.Languages.Clear();
+                    x.About = Guid.NewGuid().ToString();
+
+                    x.Skills.Add(categoryToKeep);
+                });
+            var user = ClaimsIdentityFactory.Build(null, profile);
+
+            await Client.Put(ApiLocation.AccountProfile, _logger, profile, user, HttpStatusCode.NoContent)
+                .ConfigureAwait(false);
+
+            const string queueName = "updatedprofiles";
+
+            var storageAccount = CloudStorageAccount.Parse(Config.Storage.ConnectionString);
+            var client = storageAccount.CreateCloudQueueClient();
+            var queue = client.GetQueueReference(queueName);
+
+            var queueItem = await queue.GetMessageAsync().ConfigureAwait(false);
+
+            while (queueItem != null)
+            {
+                var messageContent = queueItem.AsString;
+
+                if (messageContent.Contains(profile.About))
+                {
+                    var actual = JsonConvert.DeserializeObject<UpdatableProfile>(messageContent);
+
+                    actual.ShouldBeEquivalentTo(profile);
+
+                    return;
+                }
+
+                // Check the next queue item
+                queueItem = await queue.GetMessageAsync().ConfigureAwait(false);
+            }
+
+            throw new InvalidOperationException("Expected queue item was not found.");
         }
 
         [Fact]

@@ -11,7 +11,7 @@
 
         public Skill(Skill source)
         {
-            Ensure.That(source, nameof(source)).IsNotNull();
+            Ensure.Any.IsNotNull(source, nameof(source));
 
             Level = source.Level;
             Name = source.Name;

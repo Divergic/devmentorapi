@@ -46,5 +46,10 @@
 
             return items;
         }
+
+        public static Task WriteMessage<T>(this IQueueStore<T> queue, T message, CancellationToken cancellationToken)
+        {
+            return queue.WriteMessage(message, null, null, cancellationToken);
+        }
     }
 }
