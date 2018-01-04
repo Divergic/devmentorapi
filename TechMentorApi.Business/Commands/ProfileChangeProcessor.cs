@@ -143,10 +143,6 @@
             await Task.WhenAll(categoryTasks).ConfigureAwait(false);
 
             UpdateCacheStore(categories, cacheItemsToRemove);
-
-            // We either made changes to the category link count or a category was added
-            // Store the new category list in the cache
-            _cache.StoreCategories(categories);
         }
 
         private void UpdateCacheStore(ICollection<Category> categories, IEnumerable<ProfileFilter> filters)
