@@ -2,6 +2,7 @@
 {
     using System.ComponentModel.DataAnnotations;
     using EnsureThat;
+    using TechMentorApi.Model.Properties;
 
     public class Skill
     {
@@ -23,6 +24,7 @@
         public SkillLevel Level { get; set; }
 
         [Required]
+        [RegularExpression("^[^\\\\/]*$", ErrorMessageResourceName = "NoSlashAttribute_MessageFormat", ErrorMessageResourceType = typeof(Resources))]
         public string Name { get; set; }
 
         [ValidPastYear(1989)]

@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
+    using TechMentorApi.Model.Properties;
 
     public class UpdatableProfile
     {
@@ -17,7 +18,7 @@
 
         public string About { get; set; }
 
-        [RequireBooleanAttribute]
+        [RequireBoolean]
         public bool AcceptCoC { get; set; }
 
         public int? BirthYear { get; set; }
@@ -29,10 +30,12 @@
         [Required]
         public string FirstName { get; set; }
 
+        [RegularExpression("^[^\\\\/]*$", ErrorMessageResourceName = "NoSlashAttribute_MessageFormat", ErrorMessageResourceType = typeof(Resources))]
         public string Gender { get; set; }
 
         public string GitHubUsername { get; set; }
 
+        [NoSlash]
         public ICollection<string> Languages
         {
             get => _languages;
