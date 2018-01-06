@@ -198,9 +198,8 @@
         [InlineData("C#")]
         [InlineData("C++")]
         [InlineData("VB6")]
-        [InlineData("Delphi/Object Pascal")]
         [InlineData("Assembly language")]
-        [InlineData("PL/SQL")]
+        [InlineData("T-SQL")]
         [InlineData("Objective-C")]
         public async Task PutAddsSkillWithNonAlphabetCharactersTest(string categoryName)
         {
