@@ -70,6 +70,15 @@ namespace TechMentorApi.Model.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The {0} value must not contain / or \..
+        /// </summary>
+        internal static string NoSlashAttribute_MessageFormat {
+            get {
+                return ResourceManager.GetString("NoSlashAttribute_MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The requested item was not found..
         /// </summary>
         internal static string NotFoundException_Message {

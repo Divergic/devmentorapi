@@ -198,9 +198,8 @@
         [InlineData("C#")]
         [InlineData("C++")]
         [InlineData("VB6")]
-        [InlineData("Delphi/Object Pascal")]
         [InlineData("Assembly language")]
-        [InlineData("PL/SQL")]
+        [InlineData("T-SQL")]
         [InlineData("Objective-C")]
         public async Task PutAddsSkillWithNonAlphabetCharactersTest(string categoryName)
         {
@@ -402,6 +401,41 @@
         }
 
         [Theory]
+        [InlineData("some\\value")]
+        [InlineData("some/value")]
+        [InlineData("\\somevalue")]
+        [InlineData("/somevalue")]
+        [InlineData("somevalue\\")]
+        [InlineData("somevalue/")]
+        public async Task PutReturnsBadRequestForInvalidGenderTest(string gender)
+        {
+            var expected = Model.Using<ProfileBuildStrategy>().Create<UpdatableProfile>().Set(x => x.Gender = gender);
+
+            var user = ClaimsIdentityFactory.Build(null, expected);
+
+            await Client.Put(ApiLocation.AccountProfile, _logger, expected, user, HttpStatusCode.BadRequest)
+                .ConfigureAwait(false);
+        }
+
+        [Theory]
+        [InlineData("some\\value")]
+        [InlineData("some/value")]
+        [InlineData("\\somevalue")]
+        [InlineData("/somevalue")]
+        [InlineData("somevalue\\")]
+        [InlineData("somevalue/")]
+        public async Task PutReturnsBadRequestForInvalidLanguageTest(string language)
+        {
+            var expected = Model.Using<ProfileBuildStrategy>().Create<UpdatableProfile>()
+                .Set(x => x.Languages.Add(language));
+
+            var user = ClaimsIdentityFactory.Build(null, expected);
+
+            await Client.Put(ApiLocation.AccountProfile, _logger, expected, user, HttpStatusCode.BadRequest)
+                .ConfigureAwait(false);
+        }
+
+        [Theory]
         [InlineData(null)]
         [InlineData("")]
         public async Task PutReturnsBadRequestForInvalidLastNameTest(string lastName)
@@ -443,6 +477,12 @@
         [Theory]
         [InlineData(null)]
         [InlineData("")]
+        [InlineData("some\\value")]
+        [InlineData("some/value")]
+        [InlineData("\\somevalue")]
+        [InlineData("/somevalue")]
+        [InlineData("somevalue\\")]
+        [InlineData("somevalue/")]
         public async Task PutReturnsBadRequestForInvalidSkillNameTest(string name)
         {
             var expected = Model.Using<ProfileBuildStrategy>().Create<UpdatableProfile>();

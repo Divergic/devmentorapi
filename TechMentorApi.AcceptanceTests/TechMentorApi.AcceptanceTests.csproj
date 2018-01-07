@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ConfigureAwaitChecker.Analyzer" Version="1.0.0" />
+    <PackageReference Include="ConfigureAwaitChecker.Analyzer" Version="1.0.1" />
     <PackageReference Include="fluentassertions" Version="4.19.4" />
     <PackageReference Include="jose-jwt" Version="2.4.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="1.1.0" />
