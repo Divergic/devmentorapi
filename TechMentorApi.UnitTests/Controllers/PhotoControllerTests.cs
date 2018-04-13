@@ -2,6 +2,7 @@
 {
     using System;
     using System.IO;
+    using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
     using FluentAssertions;
@@ -61,7 +62,7 @@
                 {
                     var actual = await target.Get(profileId, photoId, tokenSource.Token).ConfigureAwait(false);
 
-                    actual.Should().BeOfType<ErrorMessageResult>();
+                    actual.Should().BeOfType<ErrorMessageResult>().Which.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
                 }
             }
         }
@@ -80,7 +81,7 @@
                 {
                     var actual = await target.Get(profileId, photoId, tokenSource.Token).ConfigureAwait(false);
 
-                    actual.Should().BeOfType<ErrorMessageResult>();
+                    actual.Should().BeOfType<ErrorMessageResult>().Which.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
                 }
             }
         }
@@ -99,7 +100,7 @@
                 {
                     var actual = await target.Get(profileId, photoId, tokenSource.Token).ConfigureAwait(false);
 
-                    actual.Should().BeOfType<ErrorMessageResult>();
+                    actual.Should().BeOfType<ErrorMessageResult>().Which.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
                 }
             }
         }

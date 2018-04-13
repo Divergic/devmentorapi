@@ -63,7 +63,7 @@
                     var result = actual.As<OkObjectResult>();
                     var resultValues = result.Value as IEnumerable<Category>;
 
-                    resultValues.Should().AllBeEquivalentTo(categories);
+                    resultValues.Should().BeEquivalentTo(categories);
                 }
             }
         }
@@ -99,7 +99,7 @@
                     var result = actual.As<OkObjectResult>();
                     var resultValues = result.Value as IEnumerable<PublicCategory>;
 
-                    resultValues.Should().AllBeEquivalentTo(categories, opt => opt.ExcludingMissingMembers());
+                    resultValues.Should().BeEquivalentTo(categories, opt => opt.ExcludingMissingMembers());
                 }
             }
         }
@@ -141,7 +141,7 @@
                     var result = actual.As<OkObjectResult>();
                     var resultValues = result.Value as IEnumerable<PublicCategory>;
 
-                    resultValues.Should().AllBeEquivalentTo(categories, opt => opt.ExcludingMissingMembers());
+                    resultValues.Should().BeEquivalentTo(categories, opt => opt.ExcludingMissingMembers());
                 }
             }
         }
@@ -179,7 +179,7 @@
                     var result = actual.As<OkObjectResult>();
                     var resultValues = result.Value as IEnumerable<PublicCategory>;
 
-                    resultValues.Should().AllBeEquivalentTo(categories, opt => opt.ExcludingMissingMembers());
+                    resultValues.Should().BeEquivalentTo(categories, opt => opt.ExcludingMissingMembers());
                 }
             }
         }
@@ -202,7 +202,7 @@
 
                     var result = actual.As<StatusCodeResult>();
 
-                    result.StatusCode.Should().Be((int) HttpStatusCode.Created);
+                    result.StatusCode.Should().Be((int)HttpStatusCode.Created);
 
                     await command.Received().CreateCategory(expected, tokenSource.Token).ConfigureAwait(false);
                 }
@@ -220,7 +220,7 @@
                 var actual = await target.Post(null, CancellationToken.None).ConfigureAwait(false);
 
                 actual.Should().BeOfType<ErrorMessageResult>().Which.StatusCode.Should()
-                    .Be((int) HttpStatusCode.BadRequest);
+                    .Be((int)HttpStatusCode.BadRequest);
             }
         }
 

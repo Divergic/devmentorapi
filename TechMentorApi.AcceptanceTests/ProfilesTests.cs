@@ -297,7 +297,7 @@
             var address = new Uri(ApiLocation.Profiles + "?unknown=filter");
             var secondActual = await Client.Get<List<ProfileResult>>(address, _logger).ConfigureAwait(false);
 
-            secondActual.Should().AllBeEquivalentTo(firstActual);
+            secondActual.Should().BeEquivalentTo(firstActual);
         }
 
         [Fact]

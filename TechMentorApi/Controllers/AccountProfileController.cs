@@ -29,7 +29,7 @@
         }
 
         /// <summary>
-        ///     Gets the profile by its identifier.
+        ///     Gets the profile.
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>
@@ -37,17 +37,17 @@
         /// </returns>
         [Route("profile")]
         [HttpGet]
-        [ProducesResponseType(typeof(Profile), (int) HttpStatusCode.OK)]
-        [SwaggerResponse((int) HttpStatusCode.OK, typeof(Profile))]
-        [SwaggerResponse((int) HttpStatusCode.NotFound, null, "The profile does not exist.")]
+        [ProducesResponseType(typeof(Profile), (int)HttpStatusCode.OK)]
+        [SwaggerResponse((int)HttpStatusCode.OK, typeof(Profile))]
+        [SwaggerResponse((int)HttpStatusCode.NotFound, null, "The profile does not exist.")]
         public async Task<IActionResult> Get(CancellationToken cancellationToken)
         {
             var profileId = User.Identity.GetClaimValue<Guid>(ClaimType.ProfileId);
 
             // See Issue 35 - https://github.com/Divergic/techmentorapi/issues/35
             // The problem is that the account and profile are stored separately
-            // This can cause a race condition if multiple concurrent authenticated calls are made to the API for a new account. 
-            // The first call writes the account, then the profile. 
+            // This can cause a race condition if multiple concurrent authenticated calls are made to the API for a new account.
+            // The first call writes the account, then the profile.
             // The second call will find the account exists, but the profile may have not been created yet causing a 404
             // We need a retry attempt here to ensure try to recover from this scenario
             // This can be removed in the future if the storage mechanism is changed to one that supports atomic transactions
@@ -71,8 +71,8 @@
         /// <param name="cancellationToken">The cancellation token.</param>
         [Route("profile")]
         [HttpPut]
-        [ProducesResponseType((int) HttpStatusCode.NoContent)]
-        [SwaggerResponse((int) HttpStatusCode.NoContent)]
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
+        [SwaggerResponse((int)HttpStatusCode.NoContent)]
         public async Task<IActionResult> Put([FromBody] UpdatableProfile model, CancellationToken cancellationToken)
         {
             if (model == null)

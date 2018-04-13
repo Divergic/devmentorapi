@@ -33,7 +33,7 @@
                 await sut.GetCategories(ReadType.All, tokenSource.Token).ConfigureAwait(false);
 
                 cache.Received().StoreCategories(
-                    Verify.That<ICollection<Category>>(x => x.Should().AllBeEquivalentTo(expected)));
+                    Verify.That<ICollection<Category>>(x => x.Should().BeEquivalentTo(expected)));
             }
         }
 
@@ -74,7 +74,7 @@
 
                 var actual = await sut.GetCategories(ReadType.All, tokenSource.Token).ConfigureAwait(false);
 
-                actual.Should().AllBeEquivalentTo(expected);
+                actual.Should().BeEquivalentTo(expected);
             }
         }
 
@@ -114,7 +114,7 @@
             {
                 var actual = await sut.GetCategories(ReadType.VisibleOnly, tokenSource.Token).ConfigureAwait(false);
 
-                actual.Should().AllBeEquivalentTo(expected);
+                actual.Should().BeEquivalentTo(expected);
             }
         }
 
@@ -136,7 +136,7 @@
 
                 var actual = await sut.GetCategories(ReadType.VisibleOnly, tokenSource.Token).ConfigureAwait(false);
 
-                actual.Should().AllBeEquivalentTo(expected);
+                actual.Should().BeEquivalentTo(expected);
             }
         }
 

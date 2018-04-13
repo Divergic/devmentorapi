@@ -1,9 +1,5 @@
 ﻿namespace TechMentorApi.UnitTests.Controllers
 {
-    using System;
-    using System.Net;
-    using System.Threading;
-    using System.Threading.Tasks;
     using FluentAssertions;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
@@ -11,6 +7,10 @@
     using Microsoft.AspNetCore.Routing;
     using ModelBuilder;
     using NSubstitute;
+    using System;
+    using System.Net;
+    using System.Threading;
+    using System.Threading.Tasks;
     using TechMentorApi.Business.Commands;
     using TechMentorApi.Business.Queries;
     using TechMentorApi.Controllers;
@@ -84,7 +84,7 @@
 
                     var actual = await target.Get(tokenSource.Token).ConfigureAwait(false);
 
-                    actual.Should().BeOfType<ErrorMessageResult>();
+                    actual.Should().BeOfType<ErrorMessageResult>().Which.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
 
                     await query.Received(4).GetProfile(account.Id, tokenSource.Token).ConfigureAwait(false);
                 }
@@ -92,7 +92,7 @@
         }
 
         [Fact]
-        public async Task GetReturnsNotFoundWhenManagerReturnsNullTest()
+        public async Task GetReturnsNotFoundWhenQueryReturnsNullTest()
         {
             var account = Model.Create<Account>();
             var user = ClaimsIdentityFactory.BuildPrincipal(account);
@@ -116,7 +116,7 @@
 
                     var actual = await target.Get(tokenSource.Token).ConfigureAwait(false);
 
-                    actual.Should().BeOfType<ErrorMessageResult>();
+                    actual.Should().BeOfType<ErrorMessageResult>().Which.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
                 }
             }
         }
@@ -203,7 +203,7 @@
                 var actual = await target.Put(null, CancellationToken.None).ConfigureAwait(false);
 
                 actual.Should().BeOfType<ErrorMessageResult>().Which.StatusCode.Should()
-                    .Be((int) HttpStatusCode.BadRequest);
+                    .Be((int)HttpStatusCode.BadRequest);
             }
         }
 

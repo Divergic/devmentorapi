@@ -1,6 +1,7 @@
 ﻿namespace TechMentorApi.UnitTests.Controllers
 {
     using System;
+    using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
     using FluentAssertions;
@@ -54,7 +55,7 @@
         }
 
         [Fact]
-        public async Task DeleteReturnsNotFoundWhenManagerReturnsNullTest()
+        public async Task DeleteReturnsNotFoundWhenCommandReturnsNullTest()
         {
             var id = Guid.NewGuid();
 
@@ -75,7 +76,7 @@
 
                     var actual = await target.Delete(id, tokenSource.Token).ConfigureAwait(false);
 
-                    actual.Should().BeOfType<ErrorMessageResult>();
+                    actual.Should().BeOfType<ErrorMessageResult>().Which.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
                 }
             }
         }
@@ -102,13 +103,13 @@
 
                     var actual = await target.Delete(id, tokenSource.Token).ConfigureAwait(false);
 
-                    actual.Should().BeOfType<ErrorMessageResult>();
+                    actual.Should().BeOfType<ErrorMessageResult>().Which.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
                 }
             }
         }
 
         [Fact]
-        public async Task GetReturnsNotFoundWhenManagerReturnsNullTest()
+        public async Task GetReturnsNotFoundWhenQueryReturnsNullTest()
         {
             var id = Guid.NewGuid();
 
@@ -129,7 +130,7 @@
 
                     var actual = await target.Get(id, tokenSource.Token).ConfigureAwait(false);
 
-                    actual.Should().BeOfType<ErrorMessageResult>();
+                    actual.Should().BeOfType<ErrorMessageResult>().Which.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
                 }
             }
         }
@@ -156,7 +157,7 @@
 
                     var actual = await target.Get(id, tokenSource.Token).ConfigureAwait(false);
 
-                    actual.Should().BeOfType<ErrorMessageResult>();
+                    actual.Should().BeOfType<ErrorMessageResult>().Which.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
                 }
             }
         }

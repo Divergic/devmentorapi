@@ -225,7 +225,7 @@
 
             actual.All(x => x.CategoryGroup == group).Should().BeTrue();
             actual.All(x => x.CategoryName.Equals(categoryName, StringComparison.OrdinalIgnoreCase)).Should().BeTrue();
-            actual.Should().AllBeEquivalentTo(
+            actual.Should().BeEquivalentTo(
                 changes.Where(x => x.ChangeType == CategoryLinkChangeType.Add),
                 opt => opt.ExcludingMissingMembers());
         }
@@ -256,7 +256,7 @@
 
             actual.All(x => x.CategoryGroup == group).Should().BeTrue();
             actual.All(x => x.CategoryName.Equals(categoryName, StringComparison.OrdinalIgnoreCase)).Should().BeTrue();
-            actual.Should().AllBeEquivalentTo(changes, opt => opt.ExcludingMissingMembers());
+            actual.Should().BeEquivalentTo(changes, opt => opt.ExcludingMissingMembers());
         }
 
         [Fact]
@@ -293,7 +293,7 @@
             actual.Should().HaveCount(1);
             actual.All(x => x.CategoryGroup == group).Should().BeTrue();
             actual.All(x => x.CategoryName.Equals(categoryName, StringComparison.OrdinalIgnoreCase)).Should().BeTrue();
-            actual.Should().AllBeEquivalentTo(
+            actual.Should().BeEquivalentTo(
                 changes.Where(x => x.ChangeType == CategoryLinkChangeType.Add),
                 opt => opt.ExcludingMissingMembers());
         }
@@ -325,7 +325,7 @@
 
             actual.All(x => x.CategoryGroup == group).Should().BeTrue();
             actual.All(x => x.CategoryName.Equals(categoryName, StringComparison.OrdinalIgnoreCase)).Should().BeTrue();
-            actual.Should().AllBeEquivalentTo(changes, opt => opt.ExcludingMissingMembers());
+            actual.Should().BeEquivalentTo(changes, opt => opt.ExcludingMissingMembers());
         }
 
         [Fact]
@@ -410,7 +410,7 @@
 
             actual.All(x => x.CategoryGroup == group).Should().BeTrue();
             actual.All(x => x.CategoryName.Equals(categoryName, StringComparison.OrdinalIgnoreCase)).Should().BeTrue();
-            actual.Should().AllBeEquivalentTo(changes, opt => opt.ExcludingMissingMembers());
+            actual.Should().BeEquivalentTo(changes, opt => opt.ExcludingMissingMembers());
         }
 
         [Theory]
