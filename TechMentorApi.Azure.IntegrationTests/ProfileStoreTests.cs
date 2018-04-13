@@ -1,14 +1,14 @@
 ﻿namespace TechMentorApi.Azure.IntegrationTests
 {
-    using System;
-    using System.Linq;
-    using System.Threading;
-    using System.Threading.Tasks;
     using FluentAssertions;
     using Microsoft.WindowsAzure.Storage;
     using Model;
     using ModelBuilder;
     using NSubstitute;
+    using System;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Xunit;
 
     public class ProfileStoreTests
@@ -64,6 +64,47 @@
 
             actual.Should().BeEquivalentTo(profile, opt => opt.Excluding(x => x.BannedAt));
             actual.BannedAt.Should().Be(bannedAt);
+        }
+
+        [Fact]
+        public async Task DeleteProfileIgnoresProfileNotFoundTest()
+        {
+            var sut = new ProfileStore(Config.Storage);
+
+            var actual = await sut.DeleteProfile(Guid.NewGuid(), CancellationToken.None)
+                .ConfigureAwait(false);
+
+            actual.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task DeleteProfileRemovesProfileTest()
+        {
+            var profile = Model.Create<Profile>();
+
+            var sut = new ProfileStore(Config.Storage);
+
+            await sut.StoreProfile(profile, CancellationToken.None).ConfigureAwait(false);
+
+            var deletedProfile = await sut.DeleteProfile(profile.Id, CancellationToken.None)
+                .ConfigureAwait(false);
+
+            deletedProfile.Should().BeEquivalentTo(profile);
+
+            var actual = await sut.GetProfile(profile.Id, CancellationToken.None).ConfigureAwait(false);
+
+            actual.Should().BeNull();
+        }
+
+        [Fact]
+        public void DeleteProfileThrowsExceptionWithEmptyIdTest()
+        {
+            var sut = new ProfileStore(Config.Storage);
+
+            Func<Task> action = async () => await sut.DeleteProfile(Guid.Empty, CancellationToken.None)
+                .ConfigureAwait(false);
+
+            action.Should().Throw<ArgumentException>();
         }
 
         [Fact]
