@@ -52,7 +52,7 @@
 
                     var result = actual.As<OkObjectResult>();
 
-                    result.Value.ShouldBeEquivalentTo(profile);
+                    result.Value.Should().BeEquivalentTo(profile);
 
                     await query.Received(4).GetProfile(account.Id, tokenSource.Token).ConfigureAwait(false);
                 }
@@ -153,7 +153,7 @@
 
                     var result = actual.As<OkObjectResult>();
 
-                    result.Value.ShouldBeEquivalentTo(profile);
+                    result.Value.Should().BeEquivalentTo(profile);
                 }
             }
         }
@@ -214,7 +214,7 @@
 
             Action action = () => new AccountProfileController(query, null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -224,7 +224,7 @@
 
             Action action = () => new AccountProfileController(null, command);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
     }
 }

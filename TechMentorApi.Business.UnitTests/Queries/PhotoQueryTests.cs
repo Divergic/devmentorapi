@@ -29,7 +29,7 @@
                 var actual = await sut.GetPhoto(expected.ProfileId, expected.Id, tokenSource.Token)
                     .ConfigureAwait(false);
 
-                actual.ShouldBeEquivalentTo(expected);
+                actual.Should().BeEquivalentTo(expected);
             }
         }
 
@@ -38,7 +38,7 @@
         {
             Action action = () => new PhotoQuery(null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
     }
 }

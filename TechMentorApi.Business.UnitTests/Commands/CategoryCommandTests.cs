@@ -110,7 +110,7 @@
             Func<Task> action = async () => await sut.CreateCategory(null, CancellationToken.None)
                 .ConfigureAwait(false);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -120,7 +120,7 @@
 
             Action action = () => new CategoryCommand(store, null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -130,7 +130,7 @@
 
             Action action = () => new CategoryCommand(null, cache);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -230,7 +230,7 @@
                 Func<Task> action = async () =>
                     await sut.UpdateCategory(expected, tokenSource.Token).ConfigureAwait(false);
 
-                action.ShouldThrow<NotFoundException>();
+                action.Should().Throw<NotFoundException>();
             }
         }
 
@@ -245,7 +245,7 @@
             Func<Task> action = async () =>
                 await sut.UpdateCategory(null, CancellationToken.None).ConfigureAwait(false);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
     }
 }

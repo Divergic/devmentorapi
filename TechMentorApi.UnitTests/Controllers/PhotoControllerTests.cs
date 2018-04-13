@@ -109,7 +109,7 @@
         {
             Action action = () => new PhotoController(null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
     }
 }

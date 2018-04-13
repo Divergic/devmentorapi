@@ -205,7 +205,7 @@
             Func<Task> action = async () => await sut.BanProfile(Guid.Empty, bannedAt, CancellationToken.None)
                 .ConfigureAwait(false);
 
-            action.ShouldThrow<ArgumentException>();
+            action.Should().Throw<ArgumentException>();
         }
 
         [Fact]
@@ -217,7 +217,7 @@
 
             Action action = () => new ProfileCommand(profileStore, calculator, processor, null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -229,7 +229,7 @@
 
             Action action = () => new ProfileCommand(profileStore, null, processor, cache);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -241,7 +241,7 @@
 
             Action action = () => new ProfileCommand(profileStore, calculator, null, cache);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -253,7 +253,7 @@
 
             Action action = () => new ProfileCommand(null, calculator, processor, cache);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -307,7 +307,7 @@
                 await sut.UpdateProfile(profile.Id, expected, tokenSource.Token).ConfigureAwait(false);
 
                 await processor.Received().Execute(
-                    Verify.That<Profile>(x => x.ShouldBeEquivalentTo(expected, opt => opt.ExcludingMissingMembers())),
+                    Verify.That<Profile>(x => x.Should().BeEquivalentTo(expected, opt => opt.ExcludingMissingMembers())),
                     changeResult,
                     tokenSource.Token).ConfigureAwait(false);
             }
@@ -528,7 +528,7 @@
             Func<Task> action = async () => await sut.UpdateProfile(profileId, profile, CancellationToken.None)
                 .ConfigureAwait(false);
 
-            action.ShouldThrow<ArgumentException>();
+            action.Should().Throw<ArgumentException>();
         }
 
         [Fact]
@@ -545,7 +545,7 @@
             Func<Task> action = async () => await sut.UpdateProfile(profileId, null, CancellationToken.None)
                 .ConfigureAwait(false);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Theory]
@@ -582,7 +582,7 @@
                 cache.Received().StoreProfileResults(
                     Verify.That<ICollection<ProfileResult>>(
                         x => x.Single(y => y.Id == profile.Id)
-                            .ShouldBeEquivalentTo(expected, opt => opt.ExcludingMissingMembers())));
+                            .Should().BeEquivalentTo(expected, opt => opt.ExcludingMissingMembers())));
             }
         }
     }

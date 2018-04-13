@@ -11,7 +11,7 @@
         {
             Action action = () => new ValidPastYearAttribute(DateTimeOffset.UtcNow.Year);
 
-            action.ShouldNotThrow();
+            action.Should().NotThrow();
         }
 
         [Theory]
@@ -48,7 +48,7 @@
         {
             Action action = () => new ValidPastYearAttribute(DateTimeOffset.UtcNow.Year + 1);
 
-            action.ShouldThrow<ArgumentException>();
+            action.Should().Throw<ArgumentException>();
         }
     }
 }

@@ -40,7 +40,7 @@
 
                     var actual = await sut.CreatePhoto(expected, tokenSource.Token).ConfigureAwait(false);
 
-                    actual.ShouldBeEquivalentTo(details);
+                    actual.Should().BeEquivalentTo(details);
 
                     resizedPhoto.Received().Dispose();
                 }
@@ -58,7 +58,7 @@
 
             Func<Task> action = async () => await sut.CreatePhoto(null, CancellationToken.None).ConfigureAwait(false);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -69,7 +69,7 @@
 
             Action action = () => new PhotoCommand(store, resizer, null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -80,7 +80,7 @@
 
             Action action = () => new PhotoCommand(store, null, config);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -91,7 +91,7 @@
 
             Action action = () => new PhotoCommand(null, resizer, config);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
     }
 }

@@ -24,8 +24,8 @@
         [Fact]
         public async Task GetReturnsStoredPhotoForAnonymousUserTest()
         {
-            var account = Model.Using<ProfileBuildStrategy>().Create<Account>();
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearCategories()
+            var account = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Account>();
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().ClearCategories()
                 .Save(_logger, account).ConfigureAwait(false);
             var identity = ClaimsIdentityFactory.Build(account, profile);
             var address = ApiLocation.AccountProfilePhotos;
@@ -46,8 +46,8 @@
         [Fact]
         public async Task GetReturnsStoredPhotoForProfileIdentityTest()
         {
-            var account = Model.Using<ProfileBuildStrategy>().Create<Account>();
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearCategories()
+            var account = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Account>();
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().ClearCategories()
                 .Save(_logger, account).ConfigureAwait(false);
             var identity = ClaimsIdentityFactory.Build(account, profile);
             var address = ApiLocation.AccountProfilePhotos;
@@ -68,8 +68,8 @@
         [Fact]
         public async Task GetReturnsStoredPhotoWithoutHashQueryTest()
         {
-            var account = Model.Using<ProfileBuildStrategy>().Create<Account>();
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearCategories()
+            var account = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Account>();
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().ClearCategories()
                 .Save(_logger, account).ConfigureAwait(false);
             var identity = ClaimsIdentityFactory.Build(account, profile);
             var address = ApiLocation.AccountProfilePhotos;

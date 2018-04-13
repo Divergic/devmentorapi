@@ -19,7 +19,7 @@
 
             Action action = () => new UpdatedProfileQueue(configuration);
 
-            action.ShouldThrow<ArgumentException>();
+            action.Should().Throw<ArgumentException>();
         }
 
         [Fact]
@@ -27,7 +27,7 @@
         {
             Action action = () => new UpdatedProfileQueue(null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
     }
 }

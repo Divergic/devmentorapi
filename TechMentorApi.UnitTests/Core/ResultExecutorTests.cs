@@ -78,7 +78,7 @@
 
             Func<Task> action = async () => await sut.Execute(context, result).ConfigureAwait(false);
 
-            action.ShouldThrow<InvalidOperationException>();
+            action.Should().Throw<InvalidOperationException>();
         }
 
         [Fact]
@@ -98,7 +98,7 @@
 
             Func<Task> action = async () => await sut.Execute(null, result).ConfigureAwait(false);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -118,7 +118,7 @@
 
             Func<Task> action = async () => await sut.Execute(context, null).ConfigureAwait(false);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -126,7 +126,7 @@
         {
             Action action = () => new ResultExecutor(null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
     }
 }

@@ -28,7 +28,7 @@
 
             var sut = new ProfileResult(profile);
 
-            sut.ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+            sut.Should().BeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
         }
 
         [Fact]
@@ -38,7 +38,7 @@
 
             var sut = new ProfileResult(profile);
 
-            sut.ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+            sut.Should().BeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
         }
     }
 }

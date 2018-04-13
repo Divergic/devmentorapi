@@ -62,7 +62,7 @@
 
             Action action = () => sut.GetBinder(null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
     }
 }

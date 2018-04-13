@@ -1006,7 +1006,7 @@
 
             Action action = () => sut.CalculateChanges(null, updated);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -1019,7 +1019,7 @@
 
             Action action = () => sut.CalculateChanges(original, null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Theory]
@@ -1098,7 +1098,7 @@
 
             Action action = () => sut.RemoveAllCategoryLinks(null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         private static object[] BuildGuidPropertyTestScenario(

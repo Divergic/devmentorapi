@@ -158,7 +158,7 @@
 
             Func<Task> action = async () => await sut.BindModelAsync(null).ConfigureAwait(false);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
     }
 }

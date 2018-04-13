@@ -24,7 +24,7 @@
         {
             Action action = () => new User(username);
 
-            action.ShouldThrow<ArgumentException>();
+            action.Should().Throw<ArgumentException>();
         }
     }
 }

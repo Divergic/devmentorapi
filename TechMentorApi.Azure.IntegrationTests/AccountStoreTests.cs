@@ -52,7 +52,7 @@
 
             var secondActual = await sut.GetAccount(provider, username, CancellationToken.None).ConfigureAwait(false);
 
-            secondActual.ShouldBeEquivalentTo(firstActual, opt => opt.Excluding(x => x.IsNewAccount));
+            secondActual.Should().BeEquivalentTo(firstActual, opt => opt.Excluding(x => x.IsNewAccount));
             secondActual.IsNewAccount.Should().BeFalse();
         }
 
@@ -130,7 +130,7 @@
             Func<Task> action = async () =>
                 await sut.GetAccount(provider, username, CancellationToken.None).ConfigureAwait(false);
 
-            action.ShouldThrow<StorageException>();
+            action.Should().Throw<StorageException>();
         }
 
         [Theory]
@@ -147,7 +147,7 @@
             Func<Task> action = async () => await sut.GetAccount(provider, username, CancellationToken.None)
                 .ConfigureAwait(false);
 
-            action.ShouldThrow<ArgumentException>();
+            action.Should().Throw<ArgumentException>();
         }
 
         [Theory]
@@ -162,7 +162,7 @@
 
             Action action = () => new AccountStore(config);
 
-            action.ShouldThrow<ArgumentException>();
+            action.Should().Throw<ArgumentException>();
         }
 
         [Fact]
@@ -170,7 +170,7 @@
         {
             Action action = () => new AccountStore(null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         private class ConflictAccountStoreWrapper : AccountStore

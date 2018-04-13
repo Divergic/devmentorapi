@@ -31,7 +31,7 @@
 
             Action action = () => new ClaimsTransformer(manager, null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -41,7 +41,7 @@
 
             Action action = () => new ClaimsTransformer(null, logger);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]

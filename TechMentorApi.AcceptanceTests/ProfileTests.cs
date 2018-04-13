@@ -27,9 +27,9 @@
         [Fact]
         public async Task DeleteBansAccountTest()
         {
-            var account = Model.Using<ProfileBuildStrategy>().Create<Account>();
+            var account = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Account>();
             var accountIdentity = ClaimsIdentityFactory.Build(account);
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save(_logger, account)
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().Save(_logger, account)
                 .ConfigureAwait(false);
             var address = ApiLocation.ProfileFor(profile.Id);
             var identity = ClaimsIdentityFactory.Build().AsAdministrator();
@@ -45,7 +45,7 @@
         [Fact]
         public async Task DeleteReturnsForbiddenWhenUserNotAdministratorTest()
         {
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save().ConfigureAwait(false);
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().Save().ConfigureAwait(false);
             var address = ApiLocation.ProfileFor(profile.Id);
             var identity = ClaimsIdentityFactory.Build();
 
@@ -65,7 +65,7 @@
         public async Task DeleteReturnsNotFoundWhenProfileAlreadyBannedTest()
         {
             var account = Model.Create<Account>();
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>()
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>()
                 .Save(_logger, account)
                 .ConfigureAwait(false);
             var newCategory = profile.Skills.First();
@@ -112,7 +112,7 @@
         [Fact]
         public async Task DeleteReturnsUnauthorizedForAnonymousUserTest()
         {
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save().ConfigureAwait(false);
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().Save().ConfigureAwait(false);
             var address = ApiLocation.ProfileFor(profile.Id);
 
             await Client.Delete(address, _logger, null, HttpStatusCode.Unauthorized).ConfigureAwait(false);
@@ -121,7 +121,7 @@
         [Fact]
         public async Task GetDoesNotReturnProfileEmailTest()
         {
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save().ConfigureAwait(false);
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().Save().ConfigureAwait(false);
             var address = ApiLocation.ProfileFor(profile.Id);
 
             var actual = await Client.Get<Profile>(address, _logger).ConfigureAwait(false);
@@ -148,7 +148,7 @@
                 await category.Save(_logger).ConfigureAwait(false);
             }
 
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Set(x => x.Gender = categoryName)
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().Set(x => x.Gender = categoryName)
                 .Save(_logger).ConfigureAwait(false);
 
             var address = ApiLocation.ProfileFor(profile.Id);
@@ -184,7 +184,7 @@
                 await category.Save(_logger).ConfigureAwait(false);
             }
 
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>()
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>()
                 .Set(x => x.Languages.Add(categoryName))
                 .Save(_logger).ConfigureAwait(false);
 
@@ -221,7 +221,7 @@
                 await category.Save(_logger).ConfigureAwait(false);
             }
 
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>()
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>()
                 .Set(x => x.Skills.First().Name = categoryName)
                 .Save(_logger).ConfigureAwait(false);
 
@@ -242,7 +242,7 @@
         [Fact]
         public async Task GetReturnsCategoryCorrectlyWhenToggledBetweenVisibleAndInvisibleTest()
         {
-            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearCategories()
+            var profile = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().ClearCategories()
                 .Set(x => x.Gender = Guid.NewGuid().ToString());
 
             await profile.SaveAllCategories().ConfigureAwait(false);
@@ -282,7 +282,7 @@
         [Fact]
         public async Task GetReturnsNotFoundForBannedProfileTest()
         {
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>()
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>()
                 .Set(x => x.BannedAt = DateTimeOffset.UtcNow).Save(_logger).ConfigureAwait(false);
             var address = ApiLocation.ProfileFor(profile.Id);
 
@@ -292,7 +292,7 @@
         [Fact]
         public async Task GetReturnsNotFoundForHiddenProfileTest()
         {
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>()
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>()
                 .Set(x => x.Status = ProfileStatus.Hidden).Save(_logger).ConfigureAwait(false);
             var address = ApiLocation.ProfileFor(profile.Id);
 
@@ -302,7 +302,7 @@
         [Fact]
         public async Task GetReturnsNotFoundForInvalidIdTest()
         {
-            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>();
+            var profile = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>();
             var address = ApiLocation.ProfileFor(profile.Id);
 
             await Client.Get(address, _logger, null, HttpStatusCode.NotFound).ConfigureAwait(false);
@@ -311,8 +311,8 @@
         [Fact]
         public async Task GetReturnsSkillAfterApprovedForAnonymousUserTest()
         {
-            var account = Model.Using<ProfileBuildStrategy>().Create<Account>();
-            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearCategories();
+            var account = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Account>();
+            var profile = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().ClearCategories();
             
             profile = await profile.Save(_logger, account).ConfigureAwait(false);
 
@@ -344,7 +344,7 @@
         [Fact]
         public async Task GetReturnsOkForAnonymousUserTest()
         {
-            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>();
+            var profile = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>();
 
             await profile.SaveAllCategories().ConfigureAwait(false);
 
@@ -354,13 +354,13 @@
 
             var actual = await Client.Get<PublicProfile>(address, _logger).ConfigureAwait(false);
 
-            actual.ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+            actual.Should().BeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
         }
 
         [Fact]
         public async Task GetReturnsOkForAnonymousUserWhenGenderIsNullTest()
         {
-            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>().Set(x => x.Gender = null);
+            var profile = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().Set(x => x.Gender = null);
 
             await profile.SaveAllCategories().ConfigureAwait(false);
 
@@ -370,13 +370,13 @@
 
             var actual = await Client.Get<PublicProfile>(address, _logger).ConfigureAwait(false);
 
-            actual.ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+            actual.Should().BeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
         }
 
         [Fact]
         public async Task GetReturnsOkForAnonymousUserWhenLanguagesIsNullTest()
         {
-            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>().Set(x => x.Languages = null);
+            var profile = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().Set(x => x.Languages = null);
 
             await profile.SaveAllCategories().ConfigureAwait(false);
 
@@ -386,13 +386,13 @@
 
             var actual = await Client.Get<PublicProfile>(address, _logger).ConfigureAwait(false);
 
-            actual.ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+            actual.Should().BeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
         }
 
         [Fact]
         public async Task GetReturnsOkForAnonymousUserWhenSkillsIsNullTest()
         {
-            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>().Set(x => x.Skills = null);
+            var profile = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().Set(x => x.Skills = null);
 
             await profile.SaveAllCategories().ConfigureAwait(false);
 
@@ -402,7 +402,7 @@
 
             var actual = await Client.Get<PublicProfile>(address, _logger).ConfigureAwait(false);
 
-            actual.ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+            actual.Should().BeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
         }
     }
 }

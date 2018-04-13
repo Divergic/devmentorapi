@@ -27,7 +27,7 @@
         [Fact]
         public async Task GetDoesNotReturnUnapprovedCategoryCreatedByProfilePutForAnonymousUserTest()
         {
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save().ConfigureAwait(false);
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().Save().ConfigureAwait(false);
             var newCategory = profile.Skills.First();
             var address = ApiLocation.Categories;
 
@@ -39,7 +39,7 @@
         [Fact]
         public async Task GetDoesNotReturnUnapprovedCategoryCreatedByProfilePutForAuthenticatedUserTest()
         {
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save().ConfigureAwait(false);
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().Save().ConfigureAwait(false);
             var newCategory = profile.Skills.First();
             var address = ApiLocation.Categories;
             var identity = ClaimsIdentityFactory.Build();
@@ -64,7 +64,7 @@
         [Fact]
         public async Task GetReturnsCategoryCreatedByProfilePutAfterApprovalByAdministratorTest()
         {
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save().ConfigureAwait(false);
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().Save().ConfigureAwait(false);
             var newCategory = profile.Skills.First();
             var address = ApiLocation.Categories;
             var categoryApproval = new NewCategory
@@ -89,7 +89,7 @@
         public async Task
             GetReturnsCategoryWithCorrectLinkCountWhenCreatedByProfilePutAfterApprovalByAdministratorTest()
         {
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save().ConfigureAwait(false);
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().Save().ConfigureAwait(false);
             var newCategory = profile.Skills.First();
             var address = ApiLocation.Categories;
             var categoryApproval = new NewCategory
@@ -112,7 +112,7 @@
         public async Task GetReturnsCategoryWithCorrectLinkCountWhenProfileBannedTest()
         {
             var account = Model.Create<Account>();
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save(_logger, account)
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().Save(_logger, account)
                 .ConfigureAwait(false);
             var newCategory = profile.Skills.First();
             var address = ApiLocation.Categories;
@@ -141,7 +141,7 @@
         [Fact]
         public async Task GetReturnsCategoryWithCorrectLinkCountWhenProfileIsAddedToExistingCategoryTest()
         {
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save().ConfigureAwait(false);
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().Save().ConfigureAwait(false);
             var newCategory = profile.Skills.First();
             var address = ApiLocation.Categories;
             var categoryApproval = new NewCategory
@@ -153,7 +153,7 @@
 
             await Client.Post(address, _logger, categoryApproval, administrator).ConfigureAwait(false);
 
-            await Model.Using<ProfileBuildStrategy>().Create<Profile>()
+            await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>()
                 .Set(x => x.Skills.First().Name = newCategory.Name).Save().ConfigureAwait(false);
 
             var actual = await Client.Get<List<PublicCategory>>(address, _logger).ConfigureAwait(false);
@@ -170,7 +170,7 @@
             ProfileStatus status)
         {
             var account = Model.Create<Account>();
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Set(x => x.Status = status)
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().Set(x => x.Status = status)
                 .Save(_logger, account)
                 .ConfigureAwait(false);
             var newCategory = profile.Skills.First();
@@ -208,7 +208,7 @@
         public async Task GetReturnsCategoryWithCorrectLinkCountWhenProfileIsRemovedFromExistingCategoryTest()
         {
             var account = Model.Create<Account>();
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save(_logger, account)
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().Save(_logger, account)
                 .ConfigureAwait(false);
             var newCategory = profile.Skills.First();
             var address = ApiLocation.Categories;
@@ -235,7 +235,7 @@
         [Fact]
         public async Task GetReturnsUnapprovedCategoryCreatedByProfilePutForAdministratorTest()
         {
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save().ConfigureAwait(false);
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().Save().ConfigureAwait(false);
             var newCategory = profile.Skills.First();
             var address = ApiLocation.Categories;
             var identity = ClaimsIdentityFactory.Build().AsAdministrator();

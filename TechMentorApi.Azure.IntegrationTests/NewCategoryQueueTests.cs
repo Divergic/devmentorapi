@@ -23,7 +23,7 @@
 
             Action action = () => new NewCategoryQueue(configuration);
 
-            action.ShouldThrow<ArgumentException>();
+            action.Should().Throw<ArgumentException>();
         }
 
         [Fact]
@@ -31,7 +31,7 @@
         {
             Action action = () => new NewCategoryQueue(null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -76,7 +76,7 @@
             Func<Task> action = async () =>
                 await target.WriteMessage(null, CancellationToken.None).ConfigureAwait(false);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
     }
 }

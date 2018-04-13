@@ -89,7 +89,7 @@
             
             Action action = () => sut.GetValidationResult(skill.YearLastUsed, context);
 
-            action.ShouldThrow<InvalidOperationException>();
+            action.Should().Throw<InvalidOperationException>();
         }
 
         [Fact]
@@ -97,7 +97,7 @@
         {
             Action action = () => new GreaterOrEqualToAttribute(null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
     }
 }

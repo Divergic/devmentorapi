@@ -406,7 +406,7 @@
             Func<Task> action = async () =>
                 await sut.Execute(profile, null, CancellationToken.None).ConfigureAwait(false);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -432,7 +432,7 @@
             Func<Task> action = async () =>
                 await sut.Execute(null, changes, CancellationToken.None).ConfigureAwait(false);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -554,7 +554,7 @@
                 profileCache,
                 null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -574,7 +574,7 @@
                 profileCache,
                 cacheManager);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -594,7 +594,7 @@
                 profileCache,
                 cacheManager);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -614,7 +614,7 @@
                 profileCache,
                 cacheManager);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -634,7 +634,7 @@
                 null,
                 cacheManager);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -654,7 +654,7 @@
                 profileCache,
                 cacheManager);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
     }
 }

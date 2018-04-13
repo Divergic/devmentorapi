@@ -201,7 +201,7 @@
 
             Action action = () => new ProfileController(query, null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -211,7 +211,7 @@
 
             Action action = () => new ProfileController(null, command);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
     }
 }

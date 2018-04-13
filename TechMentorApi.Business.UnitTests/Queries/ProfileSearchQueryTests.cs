@@ -68,8 +68,8 @@
                 var actual = (await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false)).ToList();
 
                 actual.Should().HaveCount(2);
-                actual.Single(x => x.Id == expected[3].Id).ShouldBeEquivalentTo(expected[3]);
-                actual.Single(x => x.Id == expected[5].Id).ShouldBeEquivalentTo(expected[5]);
+                actual.Single(x => x.Id == expected[3].Id).Should().BeEquivalentTo(expected[3]);
+                actual.Single(x => x.Id == expected[5].Id).Should().BeEquivalentTo(expected[5]);
 
                 categoryCache.DidNotReceive().GetCategoryLinks(filters[1]);
             }
@@ -113,7 +113,7 @@
                 categoryCache.Received().StoreCategoryLinks(
                     filters[0],
                     Verify.That<ICollection<Guid>>(
-                        x => x.ShouldBeEquivalentTo(categoryLinks.Select(y => y.ProfileId))));
+                        x => x.Should().BeEquivalentTo(categoryLinks.Select(y => y.ProfileId))));
             }
         }
 
@@ -178,7 +178,7 @@
                 var actual = (await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false)).ToList();
 
                 actual.Should().HaveCount(1);
-                actual.Single(x => x.Id == expected[3].Id).ShouldBeEquivalentTo(expected[3]);
+                actual.Single(x => x.Id == expected[3].Id).Should().BeEquivalentTo(expected[3]);
                 actual.Should().NotContain(x => x.Id == expected[5].Id);
             }
         }
@@ -299,8 +299,8 @@
                 var actual = (await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false)).ToList();
 
                 actual.Should().HaveCount(2);
-                actual.Single(x => x.Id == expected[3].Id).ShouldBeEquivalentTo(expected[3]);
-                actual.Single(x => x.Id == expected[5].Id).ShouldBeEquivalentTo(expected[5]);
+                actual.Single(x => x.Id == expected[3].Id).Should().BeEquivalentTo(expected[3]);
+                actual.Single(x => x.Id == expected[5].Id).Should().BeEquivalentTo(expected[5]);
             }
         }
 
@@ -394,7 +394,7 @@
 
                 var actual = await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false);
 
-                actual.ShouldBeEquivalentTo(expected);
+                actual.Should().BeEquivalentTo(expected);
             }
         }
 
@@ -426,7 +426,7 @@
 
                 var actual = await sut.GetProfileResults(null, tokenSource.Token).ConfigureAwait(false);
 
-                actual.ShouldBeEquivalentTo(expected);
+                actual.Should().BeEquivalentTo(expected);
             }
         }
 
@@ -459,9 +459,9 @@
 
                 var actual = await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false);
 
-                actual.ShouldBeEquivalentTo(expected);
+                actual.Should().BeEquivalentTo(expected);
                 profileCache.Received().StoreProfileResults(
-                    Verify.That<ICollection<ProfileResult>>(x => x.ShouldBeEquivalentTo(expected)));
+                    Verify.That<ICollection<ProfileResult>>(x => x.Should().BeEquivalentTo(expected)));
             }
         }
 
@@ -506,9 +506,9 @@
 
                 var actual = await sut.GetProfileResults(null, tokenSource.Token).ConfigureAwait(false);
 
-                actual.ShouldBeEquivalentTo(expected);
+                actual.Should().BeEquivalentTo(expected);
                 profileCache.Received().StoreProfileResults(
-                    Verify.That<ICollection<ProfileResult>>(x => x.ShouldBeEquivalentTo(expected)));
+                    Verify.That<ICollection<ProfileResult>>(x => x.Should().BeEquivalentTo(expected)));
             }
         }
 
@@ -951,8 +951,8 @@
                 var actual = (await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false)).ToList();
 
                 actual.Should().HaveCount(2);
-                actual.Single(x => x.Id == expected[3].Id).ShouldBeEquivalentTo(expected[3]);
-                actual.Single(x => x.Id == expected[5].Id).ShouldBeEquivalentTo(expected[5]);
+                actual.Single(x => x.Id == expected[3].Id).Should().BeEquivalentTo(expected[3]);
+                actual.Single(x => x.Id == expected[5].Id).Should().BeEquivalentTo(expected[5]);
             }
         }
 
@@ -1040,8 +1040,8 @@
                 var actual = (await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false)).ToList();
 
                 actual.Should().HaveCount(2);
-                actual.Single(x => x.Id == expected[3].Id).ShouldBeEquivalentTo(expected[3]);
-                actual.Single(x => x.Id == expected[5].Id).ShouldBeEquivalentTo(expected[5]);
+                actual.Single(x => x.Id == expected[3].Id).Should().BeEquivalentTo(expected[3]);
+                actual.Single(x => x.Id == expected[5].Id).Should().BeEquivalentTo(expected[5]);
             }
         }
 
@@ -1095,8 +1095,8 @@
                 var actual = (await sut.GetProfileResults(filters, tokenSource.Token).ConfigureAwait(false)).ToList();
 
                 actual.Should().HaveCount(2);
-                actual.Single(x => x.Id == expected[3].Id).ShouldBeEquivalentTo(expected[3]);
-                actual.Single(x => x.Id == expected[5].Id).ShouldBeEquivalentTo(expected[5]);
+                actual.Single(x => x.Id == expected[3].Id).Should().BeEquivalentTo(expected[3]);
+                actual.Single(x => x.Id == expected[5].Id).Should().BeEquivalentTo(expected[5]);
             }
         }
 
@@ -1228,7 +1228,7 @@
                 categoryCache.Received(1).StoreCategoryLinks(
                     filters[0],
                     Verify.That<ICollection<Guid>>(
-                        x => x.ShouldBeEquivalentTo(categoryLinks.Select(y => y.ProfileId))));
+                        x => x.Should().BeEquivalentTo(categoryLinks.Select(y => y.ProfileId))));
                 categoryCache.Received(2).GetCategoryLinks(filters[0]);
             }
         }
@@ -1243,7 +1243,7 @@
 
             Action action = () => new ProfileSearchQuery(query, profileStore, linkStore, profileCache, null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -1256,7 +1256,7 @@
 
             Action action = () => new ProfileSearchQuery(query, profileStore, null, profileCache, categoryCache);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -1269,7 +1269,7 @@
 
             Action action = () => new ProfileSearchQuery(query, profileStore, linkStore, null, categoryCache);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -1282,7 +1282,7 @@
 
             Action action = () => new ProfileSearchQuery(query, null, linkStore, profileCache, categoryCache);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -1295,7 +1295,7 @@
 
             Action action = () => new ProfileSearchQuery(null, profileStore, linkStore, profileCache, categoryCache);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
     }
 }

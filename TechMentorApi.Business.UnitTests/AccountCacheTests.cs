@@ -39,7 +39,7 @@
 
             var actual = sut.GetAccount(username);
 
-            actual.ShouldBeEquivalentTo(expected);
+            actual.Should().BeEquivalentTo(expected);
         }
 
         [Fact]
@@ -75,7 +75,7 @@
 
             Action action = () => sut.GetAccount(username);
 
-            action.ShouldThrow<ArgumentException>();
+            action.Should().Throw<ArgumentException>();
         }
 
         [Fact]
@@ -88,7 +88,7 @@
 
             Action action = () => sut.StoreAccount(null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]

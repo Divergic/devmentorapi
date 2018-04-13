@@ -26,8 +26,8 @@
         {
             Ensure.String.IsNotNullOrWhiteSpace(connectionString, nameof(connectionString));
             Ensure.String.IsNotNullOrWhiteSpace(queueName, nameof(queueName));
-            Ensure.That(queueName.Length, nameof(queueName.Length)).IsGt(2);
-            Ensure.That(queueName.Length, nameof(queueName.Length)).IsLt(64);
+            Ensure.Comparable.IsGt(queueName.Length, 2, nameof(queueName.Length));
+            Ensure.Comparable.IsLt(queueName.Length, 64, nameof(queueName.Length));
 
             if (NameExpression.IsMatch(queueName) == false)
             {

@@ -105,7 +105,7 @@
 
             Func<Task> action = async () => await sut.Invoke(null).ConfigureAwait(false);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -116,7 +116,7 @@
 
             Action action = () => new ShieldExceptionMiddleware(null, logger, executor);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -127,7 +127,7 @@
 
             Action action = () => new ShieldExceptionMiddleware(next, logger, null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -138,7 +138,7 @@
 
             Action action = () => new ShieldExceptionMiddleware(next, null, executor);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
     }
 }

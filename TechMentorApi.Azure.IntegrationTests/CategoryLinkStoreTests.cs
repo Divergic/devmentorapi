@@ -60,7 +60,7 @@
             Func<Task> action = async () => await sut
                 .GetCategoryLinks(CategoryGroup.Gender, categoryName, CancellationToken.None).ConfigureAwait(false);
 
-            action.ShouldThrow<ArgumentException>();
+            action.Should().Throw<ArgumentException>();
         }
 
         [Theory]
@@ -151,7 +151,7 @@
             Func<Task> action = async () => await sut
                 .StoreCategoryLink(group, categoryName, change, CancellationToken.None).ConfigureAwait(false);
 
-            action.ShouldNotThrow();
+            action.Should().NotThrow();
         }
 
         [Fact]
@@ -176,7 +176,7 @@
             Func<Task> action = async () => await sut
                 .StoreCategoryLink(group, categoryName, change, CancellationToken.None).ConfigureAwait(false);
 
-            action.ShouldNotThrow();
+            action.Should().NotThrow();
         }
 
         [Fact]
@@ -225,7 +225,7 @@
 
             actual.All(x => x.CategoryGroup == group).Should().BeTrue();
             actual.All(x => x.CategoryName.Equals(categoryName, StringComparison.OrdinalIgnoreCase)).Should().BeTrue();
-            actual.ShouldAllBeEquivalentTo(
+            actual.Should().AllBeEquivalentTo(
                 changes.Where(x => x.ChangeType == CategoryLinkChangeType.Add),
                 opt => opt.ExcludingMissingMembers());
         }
@@ -256,7 +256,7 @@
 
             actual.All(x => x.CategoryGroup == group).Should().BeTrue();
             actual.All(x => x.CategoryName.Equals(categoryName, StringComparison.OrdinalIgnoreCase)).Should().BeTrue();
-            actual.ShouldAllBeEquivalentTo(changes, opt => opt.ExcludingMissingMembers());
+            actual.Should().AllBeEquivalentTo(changes, opt => opt.ExcludingMissingMembers());
         }
 
         [Fact]
@@ -293,7 +293,7 @@
             actual.Should().HaveCount(1);
             actual.All(x => x.CategoryGroup == group).Should().BeTrue();
             actual.All(x => x.CategoryName.Equals(categoryName, StringComparison.OrdinalIgnoreCase)).Should().BeTrue();
-            actual.ShouldAllBeEquivalentTo(
+            actual.Should().AllBeEquivalentTo(
                 changes.Where(x => x.ChangeType == CategoryLinkChangeType.Add),
                 opt => opt.ExcludingMissingMembers());
         }
@@ -325,7 +325,7 @@
 
             actual.All(x => x.CategoryGroup == group).Should().BeTrue();
             actual.All(x => x.CategoryName.Equals(categoryName, StringComparison.OrdinalIgnoreCase)).Should().BeTrue();
-            actual.ShouldAllBeEquivalentTo(changes, opt => opt.ExcludingMissingMembers());
+            actual.Should().AllBeEquivalentTo(changes, opt => opt.ExcludingMissingMembers());
         }
 
         [Fact]
@@ -368,7 +368,7 @@
             Func<Task> action = async () => await sut
                 .StoreCategoryLinks(group, categoryName, changes, CancellationToken.None).ConfigureAwait(false);
 
-            action.ShouldNotThrow();
+            action.Should().NotThrow();
         }
 
         [Fact]
@@ -383,7 +383,7 @@
                 .StoreCategoryLinks(CategoryGroup.Gender, categoryName, changes, CancellationToken.None)
                 .ConfigureAwait(false);
 
-            action.ShouldNotThrow();
+            action.Should().NotThrow();
         }
 
         [Fact]
@@ -410,7 +410,7 @@
 
             actual.All(x => x.CategoryGroup == group).Should().BeTrue();
             actual.All(x => x.CategoryName.Equals(categoryName, StringComparison.OrdinalIgnoreCase)).Should().BeTrue();
-            actual.ShouldAllBeEquivalentTo(changes, opt => opt.ExcludingMissingMembers());
+            actual.Should().AllBeEquivalentTo(changes, opt => opt.ExcludingMissingMembers());
         }
 
         [Theory]
@@ -427,7 +427,7 @@
                 .StoreCategoryLinks(CategoryGroup.Gender, categoryName, changes, CancellationToken.None)
                 .ConfigureAwait(false);
 
-            action.ShouldThrow<ArgumentException>();
+            action.Should().Throw<ArgumentException>();
         }
 
         [Fact]
@@ -441,7 +441,7 @@
                 .StoreCategoryLinks(CategoryGroup.Gender, categoryName, null, CancellationToken.None)
                 .ConfigureAwait(false);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Theory]
@@ -458,7 +458,7 @@
                 .StoreCategoryLink(CategoryGroup.Gender, categoryName, change, CancellationToken.None)
                 .ConfigureAwait(false);
 
-            action.ShouldThrow<ArgumentException>();
+            action.Should().Throw<ArgumentException>();
         }
 
         [Fact]
@@ -472,7 +472,7 @@
                 .StoreCategoryLink(CategoryGroup.Gender, categoryName, null, CancellationToken.None)
                 .ConfigureAwait(false);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -480,7 +480,7 @@
         {
             Action action = () => new AccountStore(null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
     }
 }

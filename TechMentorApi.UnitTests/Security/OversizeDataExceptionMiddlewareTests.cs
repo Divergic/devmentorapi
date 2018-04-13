@@ -81,7 +81,7 @@
 
             Func<Task> action = async () => await sut.Invoke(context).ConfigureAwait(false);
 
-            action.ShouldThrow<InvalidDataException>();
+            action.Should().Throw<InvalidDataException>();
         }
 
         [Fact]
@@ -101,7 +101,7 @@
 
             Func<Task> action = async () => await sut.Invoke(context).ConfigureAwait(false);
 
-            action.ShouldThrow<InvalidOperationException>();
+            action.Should().Throw<InvalidOperationException>();
         }
 
         [Fact]
@@ -116,7 +116,7 @@
 
             Func<Task> action = async () => await sut.Invoke(null).ConfigureAwait(false);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -128,7 +128,7 @@
 
             Action action = () => new OversizeDataExceptionMiddleware(next, logger, executor, null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -140,7 +140,7 @@
 
             Action action = () => new OversizeDataExceptionMiddleware(null, logger, executor, config);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -152,7 +152,7 @@
 
             Action action = () => new OversizeDataExceptionMiddleware(next, logger, null, config);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -164,7 +164,7 @@
 
             Action action = () => new OversizeDataExceptionMiddleware(next, null, executor, config);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
     }
 }

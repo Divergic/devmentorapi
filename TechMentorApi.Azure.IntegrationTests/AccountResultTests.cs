@@ -15,7 +15,7 @@
 
             var sut = new AccountResult(account);
 
-            sut.ShouldBeEquivalentTo(account, opt => opt.ExcludingMissingMembers());
+            sut.Should().BeEquivalentTo(account, opt => opt.ExcludingMissingMembers());
         }
 
         [Fact]
@@ -23,7 +23,7 @@
         {
             Action action = () => new AccountResult(null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
     }
 }

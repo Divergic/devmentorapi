@@ -38,7 +38,7 @@
 
             var sut = new PublicProfile(profile);
 
-            sut.ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+            sut.Should().BeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
         }
 
         [Fact]
@@ -63,7 +63,7 @@
         {
             Action action = () => new PublicProfile(null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
     }
 }

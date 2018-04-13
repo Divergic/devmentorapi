@@ -34,7 +34,7 @@
 
             var actual = sut.GetCategories();
 
-            actual.ShouldBeEquivalentTo(expected);
+            actual.Should().BeEquivalentTo(expected);
         }
 
         [Fact]
@@ -80,7 +80,7 @@
 
             var actual = sut.GetCategoryLinks(filter);
 
-            actual.ShouldBeEquivalentTo(expected);
+            actual.Should().BeEquivalentTo(expected);
         }
 
         [Fact]
@@ -113,7 +113,7 @@
 
             Action action = () => sut.GetCategoryLinks(null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -139,7 +139,7 @@
 
             var actual = sut.GetCategory(expected.Group, expected.Name);
 
-            actual.ShouldBeEquivalentTo(expected);
+            actual.Should().BeEquivalentTo(expected);
         }
 
         [Fact]
@@ -187,7 +187,7 @@
 
             Action action = () => sut.RemoveCategoryLinks(null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -229,7 +229,7 @@
 
             Action action = () => sut.StoreCategories(null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -265,7 +265,7 @@
 
             Action action = () => sut.StoreCategoryLinks(filter, null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -279,7 +279,7 @@
 
             Action action = () => sut.StoreCategoryLinks(null, links);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -315,7 +315,7 @@
 
             Action action = () => sut.StoreCategory(null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -347,7 +347,7 @@
 
             Action action = () => new CacheManager(null, config);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -357,7 +357,7 @@
 
             Action action = () => new CacheManager(cache, null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
     }
 }

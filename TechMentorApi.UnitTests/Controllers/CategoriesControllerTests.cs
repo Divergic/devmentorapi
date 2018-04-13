@@ -63,7 +63,7 @@
                     var result = actual.As<OkObjectResult>();
                     var resultValues = result.Value as IEnumerable<Category>;
 
-                    resultValues.ShouldAllBeEquivalentTo(categories);
+                    resultValues.Should().AllBeEquivalentTo(categories);
                 }
             }
         }
@@ -99,7 +99,7 @@
                     var result = actual.As<OkObjectResult>();
                     var resultValues = result.Value as IEnumerable<PublicCategory>;
 
-                    resultValues.ShouldAllBeEquivalentTo(categories, opt => opt.ExcludingMissingMembers());
+                    resultValues.Should().AllBeEquivalentTo(categories, opt => opt.ExcludingMissingMembers());
                 }
             }
         }
@@ -141,7 +141,7 @@
                     var result = actual.As<OkObjectResult>();
                     var resultValues = result.Value as IEnumerable<PublicCategory>;
 
-                    resultValues.ShouldAllBeEquivalentTo(categories, opt => opt.ExcludingMissingMembers());
+                    resultValues.Should().AllBeEquivalentTo(categories, opt => opt.ExcludingMissingMembers());
                 }
             }
         }
@@ -179,7 +179,7 @@
                     var result = actual.As<OkObjectResult>();
                     var resultValues = result.Value as IEnumerable<PublicCategory>;
 
-                    resultValues.ShouldAllBeEquivalentTo(categories, opt => opt.ExcludingMissingMembers());
+                    resultValues.Should().AllBeEquivalentTo(categories, opt => opt.ExcludingMissingMembers());
                 }
             }
         }
@@ -231,7 +231,7 @@
 
             Action action = () => new CategoriesController(query, null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -241,7 +241,7 @@
 
             Action action = () => new CategoriesController(null, command);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
     }
 }

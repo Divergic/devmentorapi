@@ -26,7 +26,7 @@
 
             var sut = new PublicCategory(category);
 
-            sut.ShouldBeEquivalentTo(category, opt => opt.ExcludingMissingMembers());
+            sut.Should().BeEquivalentTo(category, opt => opt.ExcludingMissingMembers());
         }
 
         [Fact]
@@ -34,7 +34,7 @@
         {
             Action action = () => new PublicCategory(null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
     }
 }
