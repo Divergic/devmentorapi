@@ -1,15 +1,20 @@
 ﻿namespace TechMentorApi.AcceptanceTests
 {
+    using FluentAssertions;
+    using Microsoft.Extensions.Logging;
+    using Microsoft.WindowsAzure.Storage;
+    using Microsoft.WindowsAzure.Storage.Table;
+    using ModelBuilder;
+    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
+    using System.Security.Principal;
+    using System.Threading;
     using System.Threading.Tasks;
-    using FluentAssertions;
-    using Microsoft.Extensions.Logging;
-    using Microsoft.WindowsAzure.Storage;
-    using ModelBuilder;
-    using Newtonsoft.Json;
+    using TechMentorApi.AcceptanceTests.Properties;
+    using TechMentorApi.Azure;
     using TechMentorApi.Model;
     using TechMentorApi.ViewModels;
     using Xunit;
@@ -36,6 +41,134 @@
             {
                 DateTimeOffset.UtcNow.Year + 1
             };
+        }
+
+        [Fact]
+        public async Task DeleteRemovesAccountFromPublicViewTest()
+        {
+            var profile = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>();
+            var account = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Account>();
+            var identity = ClaimsIdentityFactory.Build(account, profile);
+
+            await profile.SaveAllCategories(_logger).ConfigureAwait(false);
+
+            profile = await profile.Save(_logger, account).ConfigureAwait(false);
+
+            var address = ApiLocation.AccountProfile;
+
+            await Client.Delete(address, _logger, identity, HttpStatusCode.NoContent).ConfigureAwait(false);
+
+            var profileAddress = ApiLocation.ProfileFor(profile.Id);
+
+            await Client.Get<PublicProfile>(profileAddress, _logger, null, HttpStatusCode.NotFound).ConfigureAwait(false);
+
+            await IsDeleted(profile.Id, identity).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task DeleteRemovesAccountFromSearchResultsTest()
+        {
+            var profile = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>();
+            var account = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Account>();
+            var identity = ClaimsIdentityFactory.Build(account, profile);
+            var filters = new List<ProfileFilter>
+            {
+                new ProfileFilter
+                {
+                    CategoryGroup = CategoryGroup.Language,
+                    CategoryName = profile.Languages.Skip(2).First()
+                }
+            };
+            var searchAddress = ApiLocation.ProfilesMatching(filters);
+
+            var actual = await profile.Save(_logger, account).ConfigureAwait(false);
+
+            await profile.SaveAllCategories(_logger).ConfigureAwait(false);
+
+            var address = ApiLocation.AccountProfile;
+
+            await Client.Delete(address, _logger, identity, HttpStatusCode.NoContent).ConfigureAwait(false);
+
+            var profileResults = await Client.Get<List<ProfileResult>>(searchAddress, _logger).ConfigureAwait(false);
+
+            profileResults.Should().NotContain(x => x.Id == profile.Id);
+
+            await IsDeleted(actual.Id, identity).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task DeleteRemovesMultipleProfilePhotosTest()
+        {
+            var profile = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>();
+            var account = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Account>();
+            var identity = ClaimsIdentityFactory.Build(account, profile);
+
+            await profile.SaveAllCategories(_logger).ConfigureAwait(false);
+
+            profile = await profile.Save(_logger, account).ConfigureAwait(false);
+
+            var photosAddress = ApiLocation.AccountProfilePhotos;
+
+            await Client.PostFile<PhotoDetails>(photosAddress, _logger, Resources.photo, identity)
+                .ConfigureAwait(false);
+            await Client.PostFile<PhotoDetails>(photosAddress, _logger, Resources.photo, identity)
+                .ConfigureAwait(false);
+
+            var address = ApiLocation.AccountProfile;
+
+            await Client.Delete(address, _logger, identity, HttpStatusCode.NoContent).ConfigureAwait(false);
+
+            await IsDeleted(profile.Id, identity).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task DeleteRemovesNewAccountTest()
+        {
+            var profile = new Profile
+            {
+                FirstName = Guid.NewGuid().ToString(),
+                LastName = Guid.NewGuid().ToString(),
+                Email = Guid.NewGuid().ToString("N") + "@test.com"
+            };
+            var identity = ClaimsIdentityFactory.Build(null, profile);
+            var address = ApiLocation.AccountProfile;
+
+            var actual = await Client.Get<Profile>(address, _logger, identity).ConfigureAwait(false);
+
+            await Client.Delete(address, _logger, identity, HttpStatusCode.NoContent).ConfigureAwait(false);
+
+            await IsDeleted(actual.Id, identity).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task DeleteRemovesSingleProfilePhotoTest()
+        {
+            var profile = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>();
+            var account = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Account>();
+            var identity = ClaimsIdentityFactory.Build(account, profile);
+
+            await profile.SaveAllCategories(_logger).ConfigureAwait(false);
+
+            profile = await profile.Save(_logger, account).ConfigureAwait(false);
+
+            var photosAddress = ApiLocation.AccountProfilePhotos;
+
+            await Client.PostFile<PhotoDetails>(photosAddress, _logger, Resources.photo, identity)
+                .ConfigureAwait(false);
+
+            var address = ApiLocation.AccountProfile;
+
+            await Client.Delete(address, _logger, identity, HttpStatusCode.NoContent).ConfigureAwait(false);
+
+            await IsDeleted(profile.Id, identity).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task DeleteReturnsForbiddenForAnonymousUserTest()
+        {
+            var address = ApiLocation.AccountProfile;
+
+            await Client.Delete(address, _logger, null, HttpStatusCode.Unauthorized).ConfigureAwait(false);
         }
 
         [Fact]
@@ -632,6 +765,34 @@
             var actual = await Client.Get<Profile>(ApiLocation.AccountProfile, _logger, user).ConfigureAwait(false);
 
             actual.Should().BeEquivalentTo(expected, opt => opt.ExcludingMissingMembers());
+        }
+
+        private async Task IsDeleted(Guid profileId, IIdentity identity)
+        {
+            var accountReference = new Account(identity.Name);
+            var accountStore = new AccountStore(Config.Storage);
+            var storageAccount = CloudStorageAccount.Parse(Config.AzureConnectionString);
+            var adapter = new AccountAdapter(accountReference);
+            var operation = TableOperation.Retrieve<AccountAdapter>(accountReference.Provider, accountReference.Subject);
+
+            var client = storageAccount.CreateCloudTableClient();
+            var table = client.GetTableReference("Accounts");
+
+            var accountResult = await table.ExecuteAsync(operation).ConfigureAwait(false);
+
+            accountResult.HttpStatusCode.Should().Be(404);
+
+            var profileStore = new ProfileStore(Config.Storage);
+
+            var storedProfile = await profileStore.GetProfile(profileId, CancellationToken.None).ConfigureAwait(false);
+
+            storedProfile.Should().BeNull();
+
+            var photoStore = new PhotoStore(Config.Storage);
+
+            var storedPhotos = await photoStore.GetPhotos(profileId, CancellationToken.None).ConfigureAwait(false);
+
+            storedPhotos.Should().BeEmpty();
         }
     }
 }

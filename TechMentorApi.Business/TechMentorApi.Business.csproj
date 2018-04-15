@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TechMentorApi.Azure\TechMentorApi.Azure.csproj" />
+    <ProjectReference Include="..\TechMentorApi.Management\TechMentorApi.Management.csproj" />
     <ProjectReference Include="..\TechMentorApi.Model\TechMentorApi.Model.csproj" />
   </ItemGroup>
 

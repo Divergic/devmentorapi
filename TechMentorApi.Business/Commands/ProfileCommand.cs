@@ -52,18 +52,22 @@
         {
             Ensure.Guid.IsNotEmpty(profileId, nameof(profileId));
 
-            var profile = await _store.DeleteProfile(profileId, cancellationToken).ConfigureAwait(false);
+            var profile = await _store.GetProfile(profileId, cancellationToken).ConfigureAwait(false);
 
             if (profile == null)
             {
                 return;
             }
 
-            // We will mark the profile (in memory) as hidden here so that the hide profile logic will ensure that the profile is not added back into the profile results cache
+            // We will mark the profile (in memory) as hidden here so that the hide profile logic
+            // will ensure that the profile is not added back into the profile results cache
             profile.Status = ProfileStatus.Hidden;
 
-            // Remove all the category links, profile cache and profile results cache entries related to this profile
+            // Remove all the category links, profile cache and profile results cache entries related
+            // to this profile
             await HideProfile(profile, cancellationToken).ConfigureAwait(false);
+
+            await _store.DeleteProfile(profileId, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task UpdateProfile(Guid profileId, UpdatableProfile profile, CancellationToken cancellationToken)
@@ -121,8 +125,8 @@
 
             if (cachedResult != null)
             {
-                // We found this profile in the cache, the profile has been updated, has been deleted or is hidden or banned
-                // We need to start by removing the existing profile from the cache
+                // We found this profile in the cache, the profile has been updated, has been deleted
+                // or is hidden or banned We need to start by removing the existing profile from the cache
                 results.Remove(cachedResult);
                 cacheRequiresUpdate = true;
             }

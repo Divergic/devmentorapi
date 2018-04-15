@@ -222,6 +222,7 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
+                store.GetProfile(profile.Id, tokenSource.Token).Returns(profile);
                 calculator.RemoveAllCategoryLinks(profile).Returns(new ProfileChangeResult());
                 store.DeleteProfile(profile.Id, tokenSource.Token).Returns(profile);
                 cache.GetProfileResults().Returns((ICollection<ProfileResult>)null);
@@ -246,6 +247,7 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
+                store.GetProfile(profile.Id, tokenSource.Token).Returns(profile);
                 calculator.RemoveAllCategoryLinks(profile).Returns(new ProfileChangeResult());
                 store.DeleteProfile(profile.Id, tokenSource.Token).Returns(profile);
 
@@ -291,6 +293,7 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
+                store.GetProfile(profile.Id, tokenSource.Token).Returns(profile);
                 calculator.RemoveAllCategoryLinks(profile).Returns(changeResult);
                 store.DeleteProfile(profile.Id, tokenSource.Token).Returns(profile);
 
@@ -303,7 +306,7 @@
         [Fact]
         public async Task DeleteProfileRemovesProfileFromCacheTest()
         {
-            var expected = Model.Create<Profile>();
+            var profile = Model.Create<Profile>();
 
             var store = Substitute.For<IProfileStore>();
             var calculator = Substitute.For<IProfileChangeCalculator>();
@@ -314,12 +317,13 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                calculator.RemoveAllCategoryLinks(expected).Returns(new ProfileChangeResult());
-                store.DeleteProfile(expected.Id, tokenSource.Token).Returns(expected);
+                store.GetProfile(profile.Id, tokenSource.Token).Returns(profile);
+                calculator.RemoveAllCategoryLinks(profile).Returns(new ProfileChangeResult());
+                store.DeleteProfile(profile.Id, tokenSource.Token).Returns(profile);
 
-                await sut.DeleteProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
+                await sut.DeleteProfile(profile.Id, tokenSource.Token).ConfigureAwait(false);
 
-                cache.Received().RemoveProfile(expected.Id);
+                cache.Received().RemoveProfile(profile.Id);
                 cache.DidNotReceive().StoreProfile(Arg.Any<Profile>());
             }
         }
@@ -342,6 +346,7 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
+                store.GetProfile(profile.Id, tokenSource.Token).Returns(profile);
                 calculator.RemoveAllCategoryLinks(profile).Returns(new ProfileChangeResult());
                 store.DeleteProfile(profile.Id, tokenSource.Token).Returns(profile);
                 cache.GetProfileResults().Returns(cacheResults);
@@ -367,6 +372,7 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
+                store.GetProfile(profile.Id, tokenSource.Token).Returns(profile);
                 calculator.RemoveAllCategoryLinks(profile).Returns(new ProfileChangeResult());
                 store.DeleteProfile(profile.Id, tokenSource.Token).Returns(profile);
 
@@ -760,9 +766,9 @@
 
                 await sut.UpdateProfile(profile.Id, expected, tokenSource.Token).ConfigureAwait(false);
 
-                // This is a mouthful.
-                // We want to make sure that the profile results being put into the cache contains only a single item
-                // matching our updated profile and that has all the same data as the updated profile
+                // This is a mouthful. We want to make sure that the profile results being put into
+                // the cache contains only a single item matching our updated profile and that has
+                // all the same data as the updated profile
                 cache.Received().StoreProfileResults(
                     Verify.That<ICollection<ProfileResult>>(
                         x => x.Single(y => y.Id == profile.Id)

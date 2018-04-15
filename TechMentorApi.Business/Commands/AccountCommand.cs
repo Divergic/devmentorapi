@@ -1,19 +1,45 @@
-﻿using System;
+﻿using EnsureThat;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
+using TechMentorApi.Azure;
+using TechMentorApi.Management;
+using TechMentorApi.Model;
 
 namespace TechMentorApi.Business.Commands
 {
     public class AccountCommand : IAccountCommand
     {
-        public Task DeleteAccount(string username, Guid profileId, CancellationToken cancellationToken)
-        {
-            // Remove profile photos
-            // Remove profile
-            // Remove account
-            // Remove account from Auth0
+        private readonly IAccountStore _accountStore;
+        private readonly IPhotoCommand _photoCommand;
+        private readonly IProfileCommand _profileCommand;
+        private readonly IUserStore _userStore;
 
-            throw new NotImplementedException();
+        public AccountCommand(IPhotoCommand photoCommand, IProfileCommand profileCommand, IUserStore userStore, IAccountStore accountStore)
+        {
+            Ensure.Any.IsNotNull(photoCommand, nameof(photoCommand));
+            Ensure.Any.IsNotNull(profileCommand, nameof(profileCommand));
+            Ensure.Any.IsNotNull(userStore, nameof(userStore));
+            Ensure.Any.IsNotNull(accountStore, nameof(accountStore));
+
+            _photoCommand = photoCommand;
+            _profileCommand = profileCommand;
+            _userStore = userStore;
+            _accountStore = accountStore;
+        }
+
+        public async Task DeleteAccount(string username, Guid profileId, CancellationToken cancellationToken)
+        {
+            Ensure.String.IsNotNullOrWhiteSpace(username, nameof(username));
+            Ensure.Guid.IsNotEmpty(profileId, nameof(profileId));
+
+            await _photoCommand.DeletePhotos(profileId, cancellationToken).ConfigureAwait(false);
+            await _profileCommand.DeleteProfile(profileId, cancellationToken).ConfigureAwait(false);
+
+            var account = new Account(username);
+
+            await _accountStore.DeleteAccount(account.Provider, account.Subject, cancellationToken).ConfigureAwait(false);
+            await _userStore.DeleteUser(username, cancellationToken).ConfigureAwait(false);
         }
     }
 }

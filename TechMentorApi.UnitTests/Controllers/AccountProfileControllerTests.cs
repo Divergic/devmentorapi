@@ -21,14 +21,15 @@
     public class AccountProfileControllerTests
     {
         [Fact]
-        public async Task GetAttemptsToGetProfileMultipleTimesTest()
+        public async Task DeleteReturnsNoContentTest()
         {
             var account = Model.Create<Account>();
             var profile = Model.Create<Profile>();
             var user = ClaimsIdentityFactory.BuildPrincipal(account);
 
-            var query = Substitute.For<IProfileQuery>();
-            var command = Substitute.For<IProfileCommand>();
+            var profileQuery = Substitute.For<IProfileQuery>();
+            var profileCommand = Substitute.For<IProfileCommand>();
+            var accountCommand = Substitute.For<IAccountCommand>();
             var httpContext = Substitute.For<HttpContext>();
 
             httpContext.User = user;
@@ -40,9 +41,43 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                query.GetProfile(account.Id, tokenSource.Token).Returns(null, null, null, profile);
+                using (var target = new AccountProfileController(profileQuery, profileCommand, accountCommand))
+                {
+                    target.ControllerContext = controllerContext;
 
-                using (var target = new AccountProfileController(query, command))
+                    var actual = await target.Delete(tokenSource.Token).ConfigureAwait(false);
+
+                    await accountCommand.Received().DeleteAccount(user.Identity.Name, account.Id, tokenSource.Token).ConfigureAwait(false);
+
+                    actual.Should().BeOfType<NoContentResult>();
+                }
+            }
+        }
+
+        [Fact]
+        public async Task GetAttemptsToGetProfileMultipleTimesTest()
+        {
+            var account = Model.Create<Account>();
+            var profile = Model.Create<Profile>();
+            var user = ClaimsIdentityFactory.BuildPrincipal(account);
+
+            var profileQuery = Substitute.For<IProfileQuery>();
+            var profileCommand = Substitute.For<IProfileCommand>();
+            var accountCommand = Substitute.For<IAccountCommand>();
+            var httpContext = Substitute.For<HttpContext>();
+
+            httpContext.User = user;
+
+            var routerData = new RouteData();
+            var actionDescriptor = new ControllerActionDescriptor();
+            var actionContext = new ActionContext(httpContext, routerData, actionDescriptor);
+            var controllerContext = new ControllerContext(actionContext);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                profileQuery.GetProfile(account.Id, tokenSource.Token).Returns(null, null, null, profile);
+
+                using (var target = new AccountProfileController(profileQuery, profileCommand, accountCommand))
                 {
                     target.ControllerContext = controllerContext;
 
@@ -54,7 +89,7 @@
 
                     result.Value.Should().BeEquivalentTo(profile);
 
-                    await query.Received(4).GetProfile(account.Id, tokenSource.Token).ConfigureAwait(false);
+                    await profileQuery.Received(4).GetProfile(account.Id, tokenSource.Token).ConfigureAwait(false);
                 }
             }
         }
@@ -65,8 +100,9 @@
             var account = Model.Create<Account>();
             var user = ClaimsIdentityFactory.BuildPrincipal(account);
 
-            var query = Substitute.For<IProfileQuery>();
-            var command = Substitute.For<IProfileCommand>();
+            var profileQuery = Substitute.For<IProfileQuery>();
+            var profileCommand = Substitute.For<IProfileCommand>();
+            var accountCommand = Substitute.For<IAccountCommand>();
             var httpContext = Substitute.For<HttpContext>();
 
             httpContext.User = user;
@@ -78,7 +114,7 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                using (var target = new AccountProfileController(query, command))
+                using (var target = new AccountProfileController(profileQuery, profileCommand, accountCommand))
                 {
                     target.ControllerContext = controllerContext;
 
@@ -86,7 +122,7 @@
 
                     actual.Should().BeOfType<ErrorMessageResult>().Which.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
 
-                    await query.Received(4).GetProfile(account.Id, tokenSource.Token).ConfigureAwait(false);
+                    await profileQuery.Received(4).GetProfile(account.Id, tokenSource.Token).ConfigureAwait(false);
                 }
             }
         }
@@ -97,8 +133,9 @@
             var account = Model.Create<Account>();
             var user = ClaimsIdentityFactory.BuildPrincipal(account);
 
-            var query = Substitute.For<IProfileQuery>();
-            var command = Substitute.For<IProfileCommand>();
+            var profileQuery = Substitute.For<IProfileQuery>();
+            var profileCommand = Substitute.For<IProfileCommand>();
+            var accountCommand = Substitute.For<IAccountCommand>();
             var httpContext = Substitute.For<HttpContext>();
 
             httpContext.User = user;
@@ -110,7 +147,7 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                using (var target = new AccountProfileController(query, command))
+                using (var target = new AccountProfileController(profileQuery, profileCommand, accountCommand))
                 {
                     target.ControllerContext = controllerContext;
 
@@ -128,8 +165,9 @@
             var profile = Model.Create<Profile>();
             var user = ClaimsIdentityFactory.BuildPrincipal(account);
 
-            var query = Substitute.For<IProfileQuery>();
-            var command = Substitute.For<IProfileCommand>();
+            var profileQuery = Substitute.For<IProfileQuery>();
+            var profileCommand = Substitute.For<IProfileCommand>();
+            var accountCommand = Substitute.For<IAccountCommand>();
             var httpContext = Substitute.For<HttpContext>();
 
             httpContext.User = user;
@@ -141,9 +179,9 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                query.GetProfile(account.Id, tokenSource.Token).Returns(profile);
+                profileQuery.GetProfile(account.Id, tokenSource.Token).Returns(profile);
 
-                using (var target = new AccountProfileController(query, command))
+                using (var target = new AccountProfileController(profileQuery, profileCommand, accountCommand))
                 {
                     target.ControllerContext = controllerContext;
 
@@ -165,8 +203,9 @@
             var expected = Model.Create<UpdatableProfile>();
             var user = ClaimsIdentityFactory.BuildPrincipal(account);
 
-            var query = Substitute.For<IProfileQuery>();
-            var command = Substitute.For<IProfileCommand>();
+            var profileQuery = Substitute.For<IProfileQuery>();
+            var profileCommand = Substitute.For<IProfileCommand>();
+            var accountCommand = Substitute.For<IAccountCommand>();
             var httpContext = Substitute.For<HttpContext>();
 
             httpContext.User = user;
@@ -178,7 +217,7 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                using (var target = new AccountProfileController(query, command))
+                using (var target = new AccountProfileController(profileQuery, profileCommand, accountCommand))
                 {
                     target.ControllerContext = controllerContext;
 
@@ -186,7 +225,7 @@
 
                     actual.Should().BeOfType<NoContentResult>();
 
-                    await command.Received().UpdateProfile(account.Id, expected, tokenSource.Token)
+                    await profileCommand.Received().UpdateProfile(account.Id, expected, tokenSource.Token)
                         .ConfigureAwait(false);
                 }
             }
@@ -195,10 +234,11 @@
         [Fact]
         public async Task PutReturnsBadRequestWithNoPutDataTest()
         {
-            var query = Substitute.For<IProfileQuery>();
-            var command = Substitute.For<IProfileCommand>();
+            var profileQuery = Substitute.For<IProfileQuery>();
+            var profileCommand = Substitute.For<IProfileCommand>();
+            var accountCommand = Substitute.For<IAccountCommand>();
 
-            using (var target = new AccountProfileController(query, command))
+            using (var target = new AccountProfileController(profileQuery, profileCommand, accountCommand))
             {
                 var actual = await target.Put(null, CancellationToken.None).ConfigureAwait(false);
 
@@ -208,21 +248,35 @@
         }
 
         [Fact]
-        public void ThrowsExceptionWhenCreatedWithNullCommandTest()
+        public void ThrowsExceptionWhenCreatedWithNullAccountCommandTest()
         {
-            var query = Substitute.For<IProfileQuery>();
+            var profileQuery = Substitute.For<IProfileQuery>();
+            var profileCommand = Substitute.For<IProfileCommand>();
+            var accountCommand = Substitute.For<IAccountCommand>();
 
-            Action action = () => new AccountProfileController(query, null);
+            Action action = () => new AccountProfileController(profileQuery, profileCommand, null);
 
             action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
-        public void ThrowsExceptionWhenCreatedWithNullQueryTest()
+        public void ThrowsExceptionWhenCreatedWithNullProfileCommandTest()
         {
-            var command = Substitute.For<IProfileCommand>();
+            var profileQuery = Substitute.For<IProfileQuery>();
+            var accountCommand = Substitute.For<IAccountCommand>();
 
-            Action action = () => new AccountProfileController(null, command);
+            Action action = () => new AccountProfileController(profileQuery, null, accountCommand);
+
+            action.Should().Throw<ArgumentNullException>();
+        }
+
+        [Fact]
+        public void ThrowsExceptionWhenCreatedWithNullProfileQueryTest()
+        {
+            var profileCommand = Substitute.For<IProfileCommand>();
+            var accountCommand = Substitute.For<IAccountCommand>();
+
+            Action action = () => new AccountProfileController(null, profileCommand, accountCommand);
 
             action.Should().Throw<ArgumentNullException>();
         }

@@ -25,7 +25,7 @@
 
             if (account != null)
             {
-                username = account.Subject;
+                username = account.Provider + "|" + account.Subject;
             }
 
             if (username.IndexOf("|", StringComparison.OrdinalIgnoreCase) == -1)
