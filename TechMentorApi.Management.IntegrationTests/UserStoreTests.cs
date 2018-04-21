@@ -10,7 +10,7 @@ namespace TechMentorApi.Management.IntegrationTests
         [Fact]
         public async Task IgnoresWhenUserNotFoundTest()
         {
-            var username = "google-oauth2|123123123123123123";  // This user does not exist
+            var username = "google -oauth2|123123123123123123";  // This user does not exist
             var client = new HttpClient();
             var config = Config.Auth0Management;
 
