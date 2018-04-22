@@ -91,7 +91,7 @@
 
             sut.RemoveAccount(username);
 
-            cache.Received().Remove(username);
+            cache.Received().Remove(cacheKey);
         }
 
         [Theory]
