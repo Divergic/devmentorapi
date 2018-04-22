@@ -24,8 +24,9 @@ namespace TechMentorApi.Business.UnitTests.Commands
             var profileCommand = Substitute.For<IProfileCommand>();
             var userCommand = Substitute.For<IUserStore>();
             var accountStore = Substitute.For<IAccountStore>();
+            var cache = Substitute.For<IAccountCache>();
 
-            var sut = new AccountCommand(photoCommand, profileCommand, userCommand, accountStore);
+            var sut = new AccountCommand(photoCommand, profileCommand, userCommand, accountStore, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -57,8 +58,9 @@ namespace TechMentorApi.Business.UnitTests.Commands
             var profileCommand = Substitute.For<IProfileCommand>();
             var userCommand = Substitute.For<IUserStore>();
             var accountStore = Substitute.For<IAccountStore>();
+            var cache = Substitute.For<IAccountCache>();
 
-            var sut = new AccountCommand(photoCommand, profileCommand, userCommand, accountStore);
+            var sut = new AccountCommand(photoCommand, profileCommand, userCommand, accountStore, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -90,8 +92,9 @@ namespace TechMentorApi.Business.UnitTests.Commands
             var profileCommand = Substitute.For<IProfileCommand>();
             var userCommand = Substitute.For<IUserStore>();
             var accountStore = Substitute.For<IAccountStore>();
+            var cache = Substitute.For<IAccountCache>();
 
-            var sut = new AccountCommand(photoCommand, profileCommand, userCommand, accountStore);
+            var sut = new AccountCommand(photoCommand, profileCommand, userCommand, accountStore, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -123,8 +126,9 @@ namespace TechMentorApi.Business.UnitTests.Commands
             var profileCommand = Substitute.For<IProfileCommand>();
             var userCommand = Substitute.For<IUserStore>();
             var accountStore = Substitute.For<IAccountStore>();
+            var cache = Substitute.For<IAccountCache>();
 
-            var sut = new AccountCommand(photoCommand, profileCommand, userCommand, accountStore);
+            var sut = new AccountCommand(photoCommand, profileCommand, userCommand, accountStore, cache);
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -134,6 +138,7 @@ namespace TechMentorApi.Business.UnitTests.Commands
                 await profileCommand.Received().DeleteProfile(profileId, tokenSource.Token).ConfigureAwait(false);
                 await userCommand.Received().DeleteUser(username, tokenSource.Token).ConfigureAwait(false);
                 await accountStore.Received().DeleteAccount(account.Provider, account.Subject, tokenSource.Token).ConfigureAwait(false);
+                cache.Received().RemoveAccount(username);
             }
         }
 
@@ -147,8 +152,9 @@ namespace TechMentorApi.Business.UnitTests.Commands
             var profileCommand = Substitute.For<IProfileCommand>();
             var userCommand = Substitute.For<IUserStore>();
             var accountStore = Substitute.For<IAccountStore>();
+            var cache = Substitute.For<IAccountCache>();
 
-            var sut = new AccountCommand(photoCommand, profileCommand, userCommand, accountStore);
+            var sut = new AccountCommand(photoCommand, profileCommand, userCommand, accountStore, cache);
 
             Func<Task> action = async () => await sut.DeleteAccount(username, profileId, CancellationToken.None).ConfigureAwait(false);
 
@@ -167,8 +173,9 @@ namespace TechMentorApi.Business.UnitTests.Commands
             var profileCommand = Substitute.For<IProfileCommand>();
             var userCommand = Substitute.For<IUserStore>();
             var accountStore = Substitute.For<IAccountStore>();
+            var cache = Substitute.For<IAccountCache>();
 
-            var sut = new AccountCommand(photoCommand, profileCommand, userCommand, accountStore);
+            var sut = new AccountCommand(photoCommand, profileCommand, userCommand, accountStore, cache);
 
             Func<Task> action = async () => await sut.DeleteAccount(username, profileId, CancellationToken.None).ConfigureAwait(false);
 
@@ -181,8 +188,9 @@ namespace TechMentorApi.Business.UnitTests.Commands
             var photoCommand = Substitute.For<IPhotoCommand>();
             var profileCommand = Substitute.For<IProfileCommand>();
             var userCommand = Substitute.For<IUserStore>();
+            var cache = Substitute.For<IAccountCache>();
 
-            Action action = () => new AccountCommand(photoCommand, profileCommand, userCommand, null);
+            Action action = () => new AccountCommand(photoCommand, profileCommand, userCommand, null, cache);
 
             action.Should().Throw<ArgumentNullException>();
         }
@@ -193,8 +201,9 @@ namespace TechMentorApi.Business.UnitTests.Commands
             var profileCommand = Substitute.For<IProfileCommand>();
             var userCommand = Substitute.For<IUserStore>();
             var accountStore = Substitute.For<IAccountStore>();
+            var cache = Substitute.For<IAccountCache>();
 
-            Action action = () => new AccountCommand(null, profileCommand, userCommand, accountStore);
+            Action action = () => new AccountCommand(null, profileCommand, userCommand, accountStore, cache);
 
             action.Should().Throw<ArgumentNullException>();
         }
@@ -205,8 +214,22 @@ namespace TechMentorApi.Business.UnitTests.Commands
             var photoCommand = Substitute.For<IPhotoCommand>();
             var userCommand = Substitute.For<IUserStore>();
             var accountStore = Substitute.For<IAccountStore>();
+            var cache = Substitute.For<IAccountCache>();
 
-            Action action = () => new AccountCommand(photoCommand, null, userCommand, accountStore);
+            Action action = () => new AccountCommand(photoCommand, null, userCommand, accountStore, cache);
+
+            action.Should().Throw<ArgumentNullException>();
+        }
+
+        [Fact]
+        public void ThrowsExceptionWithNullUserCacheTest()
+        {
+            var photoCommand = Substitute.For<IPhotoCommand>();
+            var profileCommand = Substitute.For<IProfileCommand>();
+            var userCommand = Substitute.For<IUserStore>();
+            var accountStore = Substitute.For<IAccountStore>();
+
+            Action action = () => new AccountCommand(photoCommand, profileCommand, userCommand, accountStore, null);
 
             action.Should().Throw<ArgumentNullException>();
         }
@@ -217,8 +240,9 @@ namespace TechMentorApi.Business.UnitTests.Commands
             var photoCommand = Substitute.For<IPhotoCommand>();
             var profileCommand = Substitute.For<IProfileCommand>();
             var accountStore = Substitute.For<IAccountStore>();
+            var cache = Substitute.For<IAccountCache>();
 
-            Action action = () => new AccountCommand(photoCommand, profileCommand, null, accountStore);
+            Action action = () => new AccountCommand(photoCommand, profileCommand, null, accountStore, cache);
 
             action.Should().Throw<ArgumentNullException>();
         }

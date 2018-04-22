@@ -172,6 +172,26 @@
         }
 
         [Fact]
+        public async Task GetAfterDeleteForSameIdentityCreatesProfileAsHiddenTest()
+        {
+            var profile = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>();
+            var account = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Account>();
+            var identity = ClaimsIdentityFactory.Build(account, profile);
+
+            await profile.SaveAllCategories(_logger).ConfigureAwait(false);
+
+            profile = await profile.Save(_logger, account).ConfigureAwait(false);
+
+            var address = ApiLocation.AccountProfile;
+
+            await Client.Delete(address, _logger, identity, HttpStatusCode.NoContent).ConfigureAwait(false);
+
+            var actual = await Client.Get<Profile>(address, _logger, identity).ConfigureAwait(false);
+
+            actual.Status.Should().Be(ProfileStatus.Hidden);
+        }
+
+        [Fact]
         public async Task GetForNewUserCreatesProfileAsHiddenTest()
         {
             var profile = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>();

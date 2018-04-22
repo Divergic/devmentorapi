@@ -68,7 +68,6 @@
             }
         }
 
-
         private async Task ApplyProfileId(ClaimsIdentity identity)
         {
             if (identity.HasClaim(x => x.Type == ClaimType.ProfileId))
