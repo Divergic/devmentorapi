@@ -1,8 +1,10 @@
 ﻿namespace TechMentorApi.Business.Commands
 {
+    using EnsureThat;
+    using System;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using EnsureThat;
     using TechMentorApi.Azure;
     using TechMentorApi.Model;
 
@@ -34,6 +36,17 @@
 
                 return photoDetails;
             }
+        }
+
+        public async Task DeletePhotos(Guid profileId, CancellationToken cancellationToken)
+        {
+            Ensure.Guid.IsNotEmpty(profileId, nameof(profileId));
+
+            var photoReferences = await _store.GetPhotos(profileId, cancellationToken).ConfigureAwait(false);
+
+            var tasks = photoReferences.Select(x => _store.DeletePhoto(profileId, x, cancellationToken));
+
+            await Task.WhenAll(tasks).ConfigureAwait(false);
         }
     }
 }

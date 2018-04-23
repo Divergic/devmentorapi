@@ -25,7 +25,7 @@
         {
             Action action = () => new PhotosController(null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -72,7 +72,7 @@
 
                         var value = result.Value.Should().BeOfType<PhotoDetails>().Which;
 
-                        value.ShouldBeEquivalentTo(photoDetails);
+                        value.Should().BeEquivalentTo(photoDetails);
                     }
                 }
             }

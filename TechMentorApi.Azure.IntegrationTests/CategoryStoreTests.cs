@@ -30,7 +30,7 @@
 
             var actual = categories.Single(x => x.Group == expected.Group && x.Name == expected.Name);
 
-            actual.ShouldBeEquivalentTo(expected);
+            actual.Should().BeEquivalentTo(expected);
         }
 
         [Fact]
@@ -76,7 +76,7 @@
             Func<Task> action = async () => await sut.CreateCategory(CategoryGroup.Gender, name, CancellationToken.None)
                 .ConfigureAwait(false);
 
-            action.ShouldThrow<ArgumentException>();
+            action.Should().Throw<ArgumentException>();
         }
 
         [Theory]
@@ -110,7 +110,7 @@
                 var actualEntry = actual.First(x => x.Group == entry.Group && x.Name == entry.Name);
 
                 actualEntry.Should().NotBeNull();
-                actualEntry.ShouldBeEquivalentTo(entry);
+                actualEntry.Should().BeEquivalentTo(entry);
             }
         }
 
@@ -182,7 +182,7 @@
             var actual = await sut.GetCategory(category.Group, category.Name, CancellationToken.None)
                 .ConfigureAwait(false);
 
-            actual.ShouldBeEquivalentTo(category);
+            actual.Should().BeEquivalentTo(category);
         }
 
         [Fact]
@@ -208,7 +208,7 @@
 
             var actual = categories.First(x => x.Group == expected.Group && x.Name == expected.Name);
 
-            actual.ShouldBeEquivalentTo(expected);
+            actual.Should().BeEquivalentTo(expected);
         }
 
         [Fact]
@@ -233,9 +233,10 @@
             var actual = categories.First(
                 x => x.Group == first.Group && x.Name.Equals(first.Name, StringComparison.OrdinalIgnoreCase));
 
-            actual.ShouldBeEquivalentTo(second);
+            actual.Should().BeEquivalentTo(second);
 
-            // The first entry should have been replaced with the second one based on the case insensitive name match (name is the rowkey)
+            // The first entry should have been replaced with the second one based on the case
+            // insensitive name match (name is the rowkey)
             categories.Should().NotContain(
                 x => x.Group == second.Group && x.Name.Equals(first.Name, StringComparison.Ordinal));
         }
@@ -247,7 +248,7 @@
 
             Func<Task> action = async () => await sut.StoreCategory(null, CancellationToken.None).ConfigureAwait(false);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -263,7 +264,7 @@
 
             var actual = categories.First(x => x.Group == expected.Group && x.Name == expected.Name);
 
-            actual.ShouldBeEquivalentTo(expected);
+            actual.Should().BeEquivalentTo(expected);
         }
 
         [Theory]
@@ -286,7 +287,7 @@
 
             var actual = categories.First(x => x.Group == expected.Group && x.Name == expected.Name);
 
-            actual.ShouldBeEquivalentTo(expected);
+            actual.Should().BeEquivalentTo(expected);
         }
 
         [Fact]
@@ -307,7 +308,7 @@
 
             var actual = categories.First(x => x.Group == expected.Group && x.Name == expected.Name);
 
-            actual.ShouldBeEquivalentTo(expected);
+            actual.Should().BeEquivalentTo(expected);
         }
 
         [Theory]
@@ -322,7 +323,7 @@
 
             Action action = () => new CategoryStore(config);
 
-            action.ShouldThrow<ArgumentException>();
+            action.Should().Throw<ArgumentException>();
         }
 
         [Fact]
@@ -330,7 +331,7 @@
         {
             Action action = () => new CategoryStore(null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
     }
 }

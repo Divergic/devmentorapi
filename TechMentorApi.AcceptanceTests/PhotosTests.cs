@@ -26,8 +26,8 @@
         [Fact]
         public async Task PostResizedPhotoRetainingAspectRatioWhenTooLargeTest()
         {
-            var account = Model.Using<ProfileBuildStrategy>().Create<Account>();
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearCategories()
+            var account = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Account>();
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().ClearCategories()
                 .Save(_logger, account).ConfigureAwait(false);
             var identity = ClaimsIdentityFactory.Build(account, profile);
             var address = ApiLocation.AccountProfilePhotos;
@@ -49,8 +49,8 @@
         [Fact]
         public async Task PostResizedPhotoWhenTooLargeTest()
         {
-            var account = Model.Using<ProfileBuildStrategy>().Create<Account>();
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearCategories()
+            var account = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Account>();
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().ClearCategories()
                 .Save(_logger, account).ConfigureAwait(false);
             var identity = ClaimsIdentityFactory.Build(account, profile);
             var address = ApiLocation.AccountProfilePhotos;
@@ -74,8 +74,8 @@
         [InlineData("image/gif")]
         public async Task PostReturnsBadRequestForUnsupportedContentTypeTest(string contentType)
         {
-            var account = Model.Using<ProfileBuildStrategy>().Create<Account>();
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearCategories()
+            var account = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Account>();
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().ClearCategories()
                 .Save(_logger, account).ConfigureAwait(false);
             var identity = ClaimsIdentityFactory.Build(account, profile);
             var address = ApiLocation.AccountProfilePhotos;
@@ -88,8 +88,8 @@
         [Fact]
         public async Task PostReturnsBadRequestWhenFileTooLargeTest()
         {
-            var account = Model.Using<ProfileBuildStrategy>().Create<Account>();
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearCategories()
+            var account = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Account>();
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().ClearCategories()
                 .Save(_logger, account).ConfigureAwait(false);
             var identity = ClaimsIdentityFactory.Build(account, profile);
             var address = ApiLocation.AccountProfilePhotos;
@@ -113,8 +113,8 @@
         [Fact]
         public async Task PostReturnsCreatedForNewPhotoTest()
         {
-            var account = Model.Using<ProfileBuildStrategy>().Create<Account>();
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearCategories()
+            var account = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Account>();
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().ClearCategories()
                 .Save(_logger, account).ConfigureAwait(false);
             var identity = ClaimsIdentityFactory.Build(account, profile);
             var address = ApiLocation.AccountProfilePhotos;
@@ -132,8 +132,8 @@
         [Fact]
         public async Task PostReturnsLocationOfCreatedPhotoTest()
         {
-            var account = Model.Using<ProfileBuildStrategy>().Create<Account>();
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearCategories()
+            var account = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Account>();
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().ClearCategories()
                 .Save(_logger, account).ConfigureAwait(false);
             var identity = ClaimsIdentityFactory.Build(account, profile);
             var address = ApiLocation.AccountProfilePhotos;

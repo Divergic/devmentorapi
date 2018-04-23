@@ -27,7 +27,7 @@
                 Config.Storage.ConnectionString,
                 "a-b-c-d-e-f-g-hij-k-l-m-n-o-p-q-r-stuv-w-x-y-z-0-1-2-3-4-5-6789");
 
-            action.ShouldNotThrow();
+            action.Should().NotThrow();
         }
 
         [Fact]
@@ -35,7 +35,7 @@
         {
             Action action = () => new StringStore(Config.Storage.ConnectionString, "a-1");
 
-            action.ShouldNotThrow();
+            action.Should().NotThrow();
         }
 
         [Theory]
@@ -48,7 +48,7 @@
 
             Action action = () => new StringStore(connectionString, queueName);
 
-            var exception = action.ShouldThrow<ArgumentException>().Which;
+            var exception = action.Should().Throw<ArgumentException>().Which;
 
             _output.WriteLine(exception.ToString());
         }
@@ -70,7 +70,7 @@
 
             Action action = () => new StringStore(connectionString, queueName);
 
-            var exception = action.ShouldThrow<ArgumentException>().Which;
+            var exception = action.Should().Throw<ArgumentException>().Which;
 
             _output.WriteLine(exception.ToString());
         }
@@ -96,7 +96,7 @@
                 var storedData = queueItem.AsString;
                 var actual = JsonConvert.DeserializeObject<Profile>(storedData);
 
-                actual.ShouldBeEquivalentTo(expected);
+                actual.Should().BeEquivalentTo(expected);
             }
             finally
             {
@@ -142,7 +142,7 @@
             Func<Task> action = async () =>
                 await target.WriteMessage(null, null, null, CancellationToken.None).ConfigureAwait(false);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]

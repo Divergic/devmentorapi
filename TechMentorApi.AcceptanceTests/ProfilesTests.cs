@@ -27,7 +27,7 @@
         [Fact]
         public async Task GetDoesNotReturnBannedProfileTest()
         {
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>()
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>()
                 .Set(x => x.BannedAt = DateTimeOffset.UtcNow).Save().ConfigureAwait(false);
 
             var actual = await Client.Get<List<ProfileResult>>(ApiLocation.Profiles, _logger).ConfigureAwait(false);
@@ -41,7 +41,7 @@
         public async Task GetDoesNotReturnProfileAfterGenderUpdatedTest(string newGender)
         {
             var account = Model.Create<Account>();
-            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>().Set(x => x.Gender = "Female");
+            var profile = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().Set(x => x.Gender = "Female");
 
             await profile.SaveAllCategories(_logger).ConfigureAwait(false);
 
@@ -60,7 +60,7 @@
             var firstActual = await Client.Get<List<ProfileResult>>(address, _logger).ConfigureAwait(false);
 
             firstActual.Single(x => x.Id == profile.Id)
-                .ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+                .Should().BeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
 
             await profile.Set(x => x.Gender = newGender).Save(_logger, account).ConfigureAwait(false);
 
@@ -73,7 +73,7 @@
         public async Task GetDoesNotReturnProfileAfterLanguageRemovedTest()
         {
             var account = Model.Create<Account>();
-            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>();
+            var profile = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>();
             var languageToRemoved = profile.Languages.First();
             var filters = new List<ProfileFilter>
             {
@@ -92,7 +92,7 @@
             var firstActual = await Client.Get<List<ProfileResult>>(address, _logger).ConfigureAwait(false);
 
             firstActual.Single(x => x.Id == profile.Id)
-                .ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+                .Should().BeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
 
             profile = await profile.Set(x => x.Languages.Remove(languageToRemoved)).Save(_logger, account)
                 .ConfigureAwait(false);
@@ -106,7 +106,7 @@
         public async Task GetDoesNotReturnProfileAfterProfileBannedWhenPreviouslyMatchedFilterTest()
         {
             var account = Model.Create<Account>();
-            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>();
+            var profile = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>();
 
             await profile.SaveAllCategories(_logger).ConfigureAwait(false);
 
@@ -125,7 +125,7 @@
             var firstActual = await Client.Get<List<ProfileResult>>(address, _logger).ConfigureAwait(false);
 
             firstActual.Single(x => x.Id == profile.Id)
-                .ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+                .Should().BeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
 
             await profile.Set(x => x.BannedAt = DateTimeOffset.UtcNow).Save(_logger, account).ConfigureAwait(false);
 
@@ -138,7 +138,7 @@
         public async Task GetDoesNotReturnProfileAfterProfileHiddenTest()
         {
             var account = Model.Create<Account>();
-            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>();
+            var profile = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>();
 
             await profile.SaveAllCategories(_logger).ConfigureAwait(false);
 
@@ -157,7 +157,7 @@
             var firstActual = await Client.Get<List<ProfileResult>>(address, _logger).ConfigureAwait(false);
 
             firstActual.Single(x => x.Id == profile.Id)
-                .ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+                .Should().BeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
 
             await profile.Set(x => x.Status = ProfileStatus.Hidden).Save(_logger, account).ConfigureAwait(false);
 
@@ -172,7 +172,7 @@
         public async Task GetDoesNotReturnProfileWhenBannedTest(ProfileStatus status)
         {
             var account = Model.Create<Account>();
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Set(x => x.Status = status)
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().Set(x => x.Status = status)
                 .Save(_logger, account).ConfigureAwait(false);
 
             var firstActual = await Client.Get<List<ProfileResult>>(ApiLocation.Profiles, _logger)
@@ -194,7 +194,7 @@
         public async Task GetDoesNotReturnProfileWhenUpdatedToHiddenTest(ProfileStatus status)
         {
             var account = Model.Create<Account>();
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Set(x => x.Status = status)
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().Set(x => x.Status = status)
                 .Save(_logger, account).ConfigureAwait(false);
 
             var firstActual = await Client.Get<List<ProfileResult>>(ApiLocation.Profiles, _logger)
@@ -214,7 +214,7 @@
         public async Task GetDoesReturnProfileAfterGenderUpdatedMatchesExistingFilterTest()
         {
             var account = Model.Create<Account>();
-            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearSkills().ClearLanguages();
+            var profile = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().ClearSkills().ClearLanguages();
             var newGender = Guid.NewGuid().ToString();
             var filters = new List<ProfileFilter>
             {
@@ -242,20 +242,20 @@
             var secondActual = await Client.Get<List<ProfileResult>>(address, _logger).ConfigureAwait(false);
 
             secondActual.Single(x => x.Id == profile.Id)
-                .ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+                .Should().BeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
         }
 
         [Fact]
         public async Task GetIgnoresFiltersOnUnapprovedCategoriesTest()
         {
-            var firstProfile = Model.Using<ProfileBuildStrategy>().Create<Profile>().Set(x => x.Languages.Clear())
+            var firstProfile = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().Set(x => x.Languages.Clear())
                 .Set(x => x.Languages.Add("English"));
 
             await firstProfile.SaveAllCategories(_logger).ConfigureAwait(false);
 
             firstProfile = await firstProfile.Save(_logger).ConfigureAwait(false);
 
-            var secondProfile = await Model.Using<ProfileBuildStrategy>().Create<Profile>()
+            var secondProfile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>()
                 .Set(x => x.Languages.Clear()).Set(x => x.Languages.Add("English"))
                 .Set(x => x.Gender = Guid.NewGuid().ToString()).Save(_logger).ConfigureAwait(false);
             var filters = new List<ProfileFilter>
@@ -276,28 +276,28 @@
             var actual = await Client.Get<List<ProfileResult>>(address, _logger).ConfigureAwait(false);
 
             actual.Single(x => x.Id == firstProfile.Id)
-                .ShouldBeEquivalentTo(firstProfile, opt => opt.ExcludingMissingMembers());
+                .Should().BeEquivalentTo(firstProfile, opt => opt.ExcludingMissingMembers());
             actual.Single(x => x.Id == secondProfile.Id)
-                .ShouldBeEquivalentTo(secondProfile, opt => opt.ExcludingMissingMembers().Excluding(x => x.Gender));
+                .Should().BeEquivalentTo(secondProfile, opt => opt.ExcludingMissingMembers().Excluding(x => x.Gender));
         }
 
         [Fact]
         public async Task GetIgnoresUnsupportedFiltersTest()
         {
             var account = Model.Create<Account>();
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save(_logger, account)
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().Save(_logger, account)
                 .ConfigureAwait(false);
 
             var firstActual = await Client.Get<List<ProfileResult>>(ApiLocation.Profiles, _logger)
                 .ConfigureAwait(false);
 
             firstActual.Single(x => x.Id == profile.Id)
-                .ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+                .Should().BeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
 
             var address = new Uri(ApiLocation.Profiles + "?unknown=filter");
             var secondActual = await Client.Get<List<ProfileResult>>(address, _logger).ConfigureAwait(false);
 
-            secondActual.ShouldAllBeEquivalentTo(firstActual);
+            secondActual.Should().BeEquivalentTo(firstActual);
         }
 
         [Fact]
@@ -305,7 +305,7 @@
         {
             var account = Model.Create<Account>();
             var newLanguage = Guid.NewGuid().ToString();
-            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearSkills().ClearLanguages();
+            var profile = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().ClearSkills().ClearLanguages();
             var filters = new List<ProfileFilter>
             {
                 new ProfileFilter
@@ -333,15 +333,15 @@
             var secondActual = await Client.Get<List<ProfileResult>>(address, _logger).ConfigureAwait(false);
 
             secondActual.Single(x => x.Id == profile.Id)
-                .ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+                .Should().BeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
         }
 
         [Fact]
         public async Task GetReturnProfileAfterSkillAddedToMatchExistingFilterTest()
         {
             var account = Model.Create<Account>();
-            var newSkill = Model.Using<ProfileBuildStrategy>().Create<Skill>();
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save(_logger, account)
+            var newSkill = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Skill>();
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().Save(_logger, account)
                 .ConfigureAwait(false);
             var filters = new List<ProfileFilter>
             {
@@ -368,7 +368,7 @@
             var secondActual = await Client.Get<List<ProfileResult>>(address, _logger).ConfigureAwait(false);
 
             secondActual.Single(x => x.Id == profile.Id)
-                .ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+                .Should().BeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
         }
 
         [Theory]
@@ -378,7 +378,7 @@
         public async Task GetReturnsEmptyWhenNoProfilesMatchFilterTest(CategoryGroup group)
         {
             // Ensure there is at least one profile available
-            await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save(_logger).ConfigureAwait(false);
+            await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().Save(_logger).ConfigureAwait(false);
 
             var filters = new List<ProfileFilter>
             {
@@ -398,7 +398,7 @@
         [Fact]
         public async Task GetReturnsGenderCorrectlyWhenToggledBetweenVisibleAndInvisibleTest()
         {
-            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>()
+            var profile = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>()
                 .Set(x => x.Gender = Guid.NewGuid().ToString());
             var filters = new List<ProfileFilter>
             {
@@ -421,7 +421,7 @@
             var administrator = ClaimsIdentityFactory.Build().AsAdministrator();
             var categoryAddress = ApiLocation.Category(CategoryGroup.Gender, profile.Gender);
             var updateCategory = new UpdateCategory
-                {Visible = false};
+            { Visible = false };
 
             // Hide the gender category
             await Client.Put(categoryAddress, _logger, updateCategory, administrator, HttpStatusCode.NoContent)
@@ -446,7 +446,7 @@
         public async Task GetReturnsMostRecentDataWhenProfileUpdatedTest()
         {
             var account = Model.Create<Account>();
-            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearSkills().ClearLanguages();
+            var profile = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().ClearSkills().ClearLanguages();
 
             // Save the gender
             await profile.SaveAllCategories(_logger).ConfigureAwait(false);
@@ -457,9 +457,9 @@
                 .ConfigureAwait(false);
 
             firstActual.Single(x => x.Id == profile.Id)
-                .ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+                .Should().BeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
 
-            var template = Model.Using<ProfileBuildStrategy>().Create<ProfileResult>();
+            var template = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<ProfileResult>();
 
             profile.BirthYear = template.BirthYear;
             profile.YearStartedInTech = template.YearStartedInTech;
@@ -477,15 +477,15 @@
                 .ConfigureAwait(false);
 
             secondActual.Single(x => x.Id == profile.Id)
-                .ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+                .Should().BeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
         }
 
         [Fact]
         public async Task GetReturnsMultipleProfilesMatchingFiltersTest()
         {
-            var firstProfile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save(_logger)
+            var firstProfile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().Save(_logger)
                 .ConfigureAwait(false);
-            var secondProfile = await Model.Using<ProfileBuildStrategy>().Create<Profile>()
+            var secondProfile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>()
                 .Set(x => x.Gender = firstProfile.Gender).Save(_logger).ConfigureAwait(false);
             var filters = new List<ProfileFilter>
             {
@@ -500,16 +500,16 @@
             var actual = await Client.Get<List<ProfileResult>>(address, _logger).ConfigureAwait(false);
 
             actual.Single(x => x.Id == firstProfile.Id)
-                .ShouldBeEquivalentTo(firstProfile, opt => opt.ExcludingMissingMembers());
+                .Should().BeEquivalentTo(firstProfile, opt => opt.ExcludingMissingMembers());
             actual.Single(x => x.Id == secondProfile.Id)
-                .ShouldBeEquivalentTo(secondProfile, opt => opt.ExcludingMissingMembers());
+                .Should().BeEquivalentTo(secondProfile, opt => opt.ExcludingMissingMembers());
         }
 
         [Fact]
         public async Task GetReturnsNewGenderAfterApprovedForAnonymousUserTest()
         {
-            var account = Model.Using<ProfileBuildStrategy>().Create<Account>();
-            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>();
+            var account = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Account>();
+            var profile = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>();
 
             await profile.SaveAllCategories(_logger).ConfigureAwait(false);
 
@@ -535,7 +535,7 @@
 
             var administrator = ClaimsIdentityFactory.Build().AsAdministrator();
 
-            await new NewCategory {Group = CategoryGroup.Gender, Name = profile.Gender}.Save(_logger, administrator)
+            await new NewCategory { Group = CategoryGroup.Gender, Name = profile.Gender }.Save(_logger, administrator)
                 .ConfigureAwait(false);
 
             var secondFilters = new List<ProfileFilter>
@@ -559,7 +559,7 @@
         [InlineData(ProfileStatus.Unavailable, true)]
         public async Task GetReturnsProfileBasedOnStatusTest(ProfileStatus status, bool found)
         {
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Set(x => x.Status = status).Save()
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().Set(x => x.Status = status).Save()
                 .ConfigureAwait(false);
 
             var actual = await Client.Get<List<ProfileResult>>(ApiLocation.Profiles, _logger).ConfigureAwait(false);
@@ -577,7 +577,7 @@
         [Fact]
         public async Task GetReturnsProfileWithAllCategoryFiltersAppliedTest()
         {
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save(_logger)
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().Save(_logger)
                 .ConfigureAwait(false);
             var filters = new List<ProfileFilter>();
 
@@ -617,7 +617,7 @@
 
             var actual = await Client.Get<List<ProfileResult>>(address, _logger).ConfigureAwait(false);
 
-            actual.Single(x => x.Id == profile.Id).ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+            actual.Single(x => x.Id == profile.Id).Should().BeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
         }
 
         [Theory]
@@ -634,7 +634,7 @@
 
             await category.Save(_logger).ConfigureAwait(false);
 
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Set(x => x.Gender = "Female")
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().Set(x => x.Gender = "Female")
                 .Save(_logger).ConfigureAwait(false);
             var filters = new List<ProfileFilter>
             {
@@ -648,13 +648,13 @@
 
             var actual = await Client.Get<List<ProfileResult>>(address, _logger).ConfigureAwait(false);
 
-            actual.Single(x => x.Id == profile.Id).ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+            actual.Single(x => x.Id == profile.Id).Should().BeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
         }
 
         [Fact]
         public async Task GetReturnsProfileWithGenderFilterTest()
         {
-            var profile = Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearSkills().ClearLanguages();
+            var profile = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().ClearSkills().ClearLanguages();
 
             // Save the gender
             await profile.SaveAllCategories(_logger).ConfigureAwait(false);
@@ -673,13 +673,13 @@
 
             var actual = await Client.Get<List<ProfileResult>>(address, _logger).ConfigureAwait(false);
 
-            actual.Single(x => x.Id == profile.Id).ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+            actual.Single(x => x.Id == profile.Id).Should().BeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
         }
 
         [Fact]
         public async Task GetReturnsProfileWithLanguageFilterTest()
         {
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save(_logger)
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().Save(_logger)
                 .ConfigureAwait(false);
             var filters = new List<ProfileFilter>
             {
@@ -695,24 +695,24 @@
 
             var actual = await Client.Get<List<ProfileResult>>(address, _logger).ConfigureAwait(false);
 
-            actual.Single(x => x.Id == profile.Id).ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+            actual.Single(x => x.Id == profile.Id).Should().BeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
         }
 
         [Fact]
         public async Task GetReturnsProfileWithoutAnyCategoryLinksWhenNoFiltersAppliedTest()
         {
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().ClearCategories().Save(_logger)
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().ClearCategories().Save(_logger)
                 .ConfigureAwait(false);
 
             var actual = await Client.Get<List<ProfileResult>>(ApiLocation.Profiles, _logger).ConfigureAwait(false);
 
-            actual.Single(x => x.Id == profile.Id).ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+            actual.Single(x => x.Id == profile.Id).Should().BeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
         }
 
         [Fact]
         public async Task GetReturnsProfileWithoutGenderWhenGenderIsUnapprovedTest()
         {
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>()
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>()
                 .Set(x => x.Gender = null)
                 .ClearLanguages().Save(_logger)
                 .ConfigureAwait(false);
@@ -736,14 +736,14 @@
 
             var result = actual.Single(x => x.Id == profile.Id);
 
-            result.ShouldBeEquivalentTo(profile, opt => opt.Excluding(x => x.Gender).ExcludingMissingMembers());
+            result.Should().BeEquivalentTo(profile, opt => opt.Excluding(x => x.Gender).ExcludingMissingMembers());
             result.Gender.Should().BeNull();
         }
 
         [Fact]
         public async Task GetReturnsProfileWithSkillFilterTest()
         {
-            var profile = await Model.Using<ProfileBuildStrategy>().Create<Profile>().Save(_logger)
+            var profile = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<Profile>().Save(_logger)
                 .ConfigureAwait(false);
             var filters = new List<ProfileFilter>
             {
@@ -759,13 +759,13 @@
 
             var actual = await Client.Get<List<ProfileResult>>(address, _logger).ConfigureAwait(false);
 
-            actual.Single(x => x.Id == profile.Id).ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+            actual.Single(x => x.Id == profile.Id).Should().BeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
         }
 
         [Fact]
         public async Task GetReturnsResultsWithExpectedSortOrderTest()
         {
-            var source = await Model.Using<ProfileBuildStrategy>().Create<List<Profile>>().SetEach(
+            var source = await Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<List<Profile>>().SetEach(
                 x =>
                 {
                     x.Gender = null;
@@ -774,9 +774,9 @@
                 }).Save().ConfigureAwait(false);
 
             var expected = (from x in source
-                orderby x.Status descending, x.YearStartedInTech ?? 0 descending, x.BirthYear ??
-                                                                                  DateTimeOffset.UtcNow.Year
-                select x.Id).ToList();
+                            orderby x.Status descending, x.YearStartedInTech ?? 0 descending, x.BirthYear ??
+                                                                                              DateTimeOffset.UtcNow.Year
+                            select x.Id).ToList();
 
             var address = ApiLocation.Profiles;
 

@@ -7,7 +7,9 @@
 
     public interface IProfileCommand
     {
-        Task<Profile> BanProfile(Guid id, DateTimeOffset bannedAt, CancellationToken cancellationToken);
+        Task<Profile> BanProfile(Guid profileId, DateTimeOffset bannedAt, CancellationToken cancellationToken);
+
+        Task DeleteProfile(Guid profileId, CancellationToken cancellationToken);
 
         Task UpdateProfile(Guid profileId, UpdatableProfile profile, CancellationToken cancellationToken);
     }

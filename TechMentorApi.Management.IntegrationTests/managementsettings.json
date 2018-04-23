@@ -1,0 +1,9 @@
+﻿{
+  "Auth0Management": {
+    "Audience": "",
+    "ClientId": "",
+    "ClientSecret": "",
+    "IsEnabled": true,
+    "Tenant": ""
+  }
+}

@@ -36,7 +36,7 @@
 
                 var result = actual.As<OkObjectResult>();
 
-                result.Value.ShouldBeEquivalentTo(expected);
+                result.Value.Should().BeEquivalentTo(expected);
             }
         }
 
@@ -74,7 +74,7 @@
         {
             Action action = () => new ProfilesController(null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
     }
 }

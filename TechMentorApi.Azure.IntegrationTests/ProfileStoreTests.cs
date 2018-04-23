@@ -1,14 +1,14 @@
 ﻿namespace TechMentorApi.Azure.IntegrationTests
 {
-    using System;
-    using System.Linq;
-    using System.Threading;
-    using System.Threading.Tasks;
     using FluentAssertions;
     using Microsoft.WindowsAzure.Storage;
     using Model;
     using ModelBuilder;
     using NSubstitute;
+    using System;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Xunit;
 
     public class ProfileStoreTests
@@ -47,7 +47,7 @@
             Func<Task> action = async () => await sut
                 .BanProfile(Guid.Empty, DateTimeOffset.UtcNow, CancellationToken.None).ConfigureAwait(false);
 
-            action.ShouldThrow<ArgumentException>();
+            action.Should().Throw<ArgumentException>();
         }
 
         [Fact]
@@ -62,8 +62,49 @@
 
             var actual = await sut.BanProfile(profile.Id, bannedAt, CancellationToken.None).ConfigureAwait(false);
 
-            actual.ShouldBeEquivalentTo(profile, opt => opt.Excluding(x => x.BannedAt));
+            actual.Should().BeEquivalentTo(profile, opt => opt.Excluding(x => x.BannedAt));
             actual.BannedAt.Should().Be(bannedAt);
+        }
+
+        [Fact]
+        public async Task DeleteProfileIgnoresProfileNotFoundTest()
+        {
+            var sut = new ProfileStore(Config.Storage);
+
+            var actual = await sut.DeleteProfile(Guid.NewGuid(), CancellationToken.None)
+                .ConfigureAwait(false);
+
+            actual.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task DeleteProfileRemovesProfileTest()
+        {
+            var profile = Model.Create<Profile>();
+
+            var sut = new ProfileStore(Config.Storage);
+
+            await sut.StoreProfile(profile, CancellationToken.None).ConfigureAwait(false);
+
+            var deletedProfile = await sut.DeleteProfile(profile.Id, CancellationToken.None)
+                .ConfigureAwait(false);
+
+            deletedProfile.Should().BeEquivalentTo(profile);
+
+            var actual = await sut.GetProfile(profile.Id, CancellationToken.None).ConfigureAwait(false);
+
+            actual.Should().BeNull();
+        }
+
+        [Fact]
+        public void DeleteProfileThrowsExceptionWithEmptyIdTest()
+        {
+            var sut = new ProfileStore(Config.Storage);
+
+            Func<Task> action = async () => await sut.DeleteProfile(Guid.Empty, CancellationToken.None)
+                .ConfigureAwait(false);
+
+            action.Should().Throw<ArgumentException>();
         }
 
         [Fact]
@@ -186,7 +227,7 @@
 
             var actual = await sut.GetProfile(expected.Id, CancellationToken.None).ConfigureAwait(false);
 
-            actual.ShouldBeEquivalentTo(expected);
+            actual.Should().BeEquivalentTo(expected);
         }
 
         [Fact]
@@ -197,7 +238,7 @@
             Func<Task> action = async () => await sut.GetProfile(Guid.Empty, CancellationToken.None)
                 .ConfigureAwait(false);
 
-            action.ShouldThrow<ArgumentException>();
+            action.Should().Throw<ArgumentException>();
         }
 
         [Fact]
@@ -221,7 +262,7 @@
 
             var actual = await sut.GetProfile(profile.Id, CancellationToken.None).ConfigureAwait(false);
 
-            actual.ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+            actual.Should().BeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
         }
 
         [Fact]
@@ -231,7 +272,7 @@
 
             Func<Task> action = async () => await sut.StoreProfile(null, CancellationToken.None).ConfigureAwait(false);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -245,7 +286,7 @@
 
             var actual = await sut.GetProfile(profile.Id, CancellationToken.None).ConfigureAwait(false);
 
-            actual.ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+            actual.Should().BeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
         }
 
         [Theory]
@@ -261,7 +302,7 @@
 
             var actual = await sut.GetProfile(profile.Id, CancellationToken.None).ConfigureAwait(false);
 
-            actual.ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+            actual.Should().BeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
         }
 
         [Fact]
@@ -279,7 +320,7 @@
 
             var actual = await sut.GetProfile(profile.Id, CancellationToken.None).ConfigureAwait(false);
 
-            actual.ShouldBeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
+            actual.Should().BeEquivalentTo(profile, opt => opt.ExcludingMissingMembers());
         }
 
         [Theory]
@@ -294,7 +335,7 @@
 
             Action action = () => new ProfileStore(config);
 
-            action.ShouldThrow<ArgumentException>();
+            action.Should().Throw<ArgumentException>();
         }
 
         [Fact]
@@ -302,7 +343,7 @@
         {
             Action action = () => new ProfileStore(null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
     }
 }

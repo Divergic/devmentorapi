@@ -14,7 +14,7 @@
 
             var sut = new Profile(source);
 
-            sut.ShouldBeEquivalentTo(source, opt => opt.ExcludingMissingMembers());
+            sut.Should().BeEquivalentTo(source, opt => opt.ExcludingMissingMembers());
         }
 
         [Fact]
@@ -52,7 +52,7 @@
         {
             Action action = () => new Profile(null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
     }
 }

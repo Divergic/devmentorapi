@@ -1,10 +1,10 @@
 ﻿namespace TechMentorApi.Business.UnitTests
 {
-    using System;
     using FluentAssertions;
     using Microsoft.Extensions.Caching.Memory;
     using ModelBuilder;
     using NSubstitute;
+    using System;
     using TechMentorApi.Model;
     using Xunit;
 
@@ -39,7 +39,7 @@
 
             var actual = sut.GetAccount(username);
 
-            actual.ShouldBeEquivalentTo(expected);
+            actual.Should().BeEquivalentTo(expected);
         }
 
         [Fact]
@@ -75,7 +75,39 @@
 
             Action action = () => sut.GetAccount(username);
 
-            action.ShouldThrow<ArgumentException>();
+            action.Should().Throw<ArgumentException>();
+        }
+
+        [Fact]
+        public void RemoveAccountRemovesCachedAccountTest()
+        {
+            var username = Guid.NewGuid().ToString();
+            var cacheKey = "Account|" + username;
+
+            var cache = Substitute.For<IMemoryCache>();
+            var config = Substitute.For<ICacheConfig>();
+
+            var sut = new AccountCache(cache, config);
+
+            sut.RemoveAccount(username);
+
+            cache.Received().Remove(cacheKey);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("  ")]
+        public void RemoveAccountThrowsExceptionWithInvalidUsernameTest(string username)
+        {
+            var cache = Substitute.For<IMemoryCache>();
+            var config = Substitute.For<ICacheConfig>();
+
+            var sut = new AccountCache(cache, config);
+
+            Action action = () => sut.RemoveAccount(username);
+
+            action.Should().Throw<ArgumentException>();
         }
 
         [Fact]
@@ -88,7 +120,7 @@
 
             Action action = () => sut.StoreAccount(null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]

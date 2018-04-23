@@ -18,7 +18,7 @@
 
             using (var sut = new Photo(source, newData))
             {
-                sut.ShouldBeEquivalentTo(source, opt => opt.Excluding(x => x.Data));
+                sut.Should().BeEquivalentTo(source, opt => opt.Excluding(x => x.Data));
                 sut.Data.Should().BeSameAs(newData);
             }
         }

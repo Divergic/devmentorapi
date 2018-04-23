@@ -6,6 +6,8 @@
     {
         Account GetAccount(string username);
 
+        void RemoveAccount(string username);
+
         void StoreAccount(Account account);
     }
 }

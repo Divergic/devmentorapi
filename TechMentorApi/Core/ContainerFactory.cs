@@ -7,6 +7,7 @@
     using TechMentorApi.Azure;
     using TechMentorApi.Business;
     using Microsoft.Extensions.DependencyInjection;
+    using TechMentorApi.Management;
 
     public static class ContainerFactory
     {
@@ -19,7 +20,8 @@
             {
                 typeof(ContainerFactory).GetTypeInfo().Assembly,
                 typeof(AzureModule).GetTypeInfo().Assembly,
-                typeof(BusinessModule).GetTypeInfo().Assembly
+                typeof(BusinessModule).GetTypeInfo().Assembly,
+                typeof(ManagementModule).GetTypeInfo().Assembly
             };
 
             // Register modules
@@ -41,9 +43,10 @@
                 return;
             }
 
-            // Register all the properties of the configuration as their interfaces
-            // This must be done after registering assembly types and modules because type scanning may have already registered the configuration classes as their interfaces 
-            // which means Autofac will return the default classes rather than these configuration instances that have values populated.
+            // Register all the properties of the configuration as their interfaces This must be done
+            // after registering assembly types and modules because type scanning may have already
+            // registered the configuration classes as their interfaces which means Autofac will
+            // return the default classes rather than these configuration instances that have values populated.
             var properties = configuration.GetType().GetTypeInfo().GetProperties();
 
             foreach (var property in properties)
@@ -71,8 +74,7 @@
 
                 if (configType.GetInterfaces().Any())
                 {
-                    // This is a type that has interfaces
-                    // Assume that it should be registered
+                    // This is a type that has interfaces Assume that it should be registered
                     builder.RegisterInstance(value).AsImplementedInterfaces();
                 }
 

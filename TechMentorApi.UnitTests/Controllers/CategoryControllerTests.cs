@@ -64,7 +64,7 @@
                     var result = actual.As<OkObjectResult>();
                     var resultValues = result.Value as Category;
 
-                    resultValues.ShouldBeEquivalentTo(category);
+                    resultValues.Should().BeEquivalentTo(category);
                 }
             }
         }
@@ -168,7 +168,7 @@
                     var result = actual.As<OkObjectResult>();
                     var resultValues = result.Value as PublicCategory;
 
-                    resultValues.ShouldBeEquivalentTo(category, opt => opt.ExcludingMissingMembers());
+                    resultValues.Should().BeEquivalentTo(category, opt => opt.ExcludingMissingMembers());
                 }
             }
         }
@@ -212,7 +212,7 @@
                     var result = actual.As<OkObjectResult>();
                     var resultValues = result.Value as PublicCategory;
 
-                    resultValues.ShouldBeEquivalentTo(category, opt => opt.ExcludingMissingMembers());
+                    resultValues.Should().BeEquivalentTo(category, opt => opt.ExcludingMissingMembers());
                 }
             }
         }
@@ -252,7 +252,7 @@
                     var result = actual.As<OkObjectResult>();
                     var resultValues = result.Value as PublicCategory;
 
-                    resultValues.ShouldBeEquivalentTo(category, opt => opt.ExcludingMissingMembers());
+                    resultValues.Should().BeEquivalentTo(category, opt => opt.ExcludingMissingMembers());
                 }
             }
         }
@@ -399,7 +399,7 @@
 
             Action action = () => new CategoryController(query, null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -409,7 +409,7 @@
 
             Action action = () => new CategoryController(null, command);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
     }
 }

@@ -1,14 +1,16 @@
 ﻿namespace TechMentorApi.Azure
 {
+    using EnsureThat;
+    using Microsoft.WindowsAzure.Storage;
+    using Microsoft.WindowsAzure.Storage.Blob;
     using System;
+    using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Security.Cryptography;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using EnsureThat;
-    using Microsoft.WindowsAzure.Storage;
-    using Microsoft.WindowsAzure.Storage.Blob;
     using TechMentorApi.Model;
 
     public class PhotoStore : IPhotoStore
@@ -130,6 +132,58 @@
             }
         }
 
+        public async Task<IEnumerable<Guid>> GetPhotos(Guid profileId, CancellationToken cancellationToken)
+        {
+            Ensure.Guid.IsNotEmpty(profileId, nameof(profileId));
+
+            var profilePath = GetProfileBlobFolder(profileId);
+            var client = GetClient();
+            var container = client.GetContainerReference(ContainerName);
+            var directory = container.GetDirectoryReference(profilePath);
+            var items = new List<CloudBlockBlob>();
+
+            try
+            {
+                BlobContinuationToken token = null;
+
+                do
+                {
+                    var segment = await directory.ListBlobsSegmentedAsync(false, BlobListingDetails.None, null, token, null, null, cancellationToken).ConfigureAwait(false);
+
+                    if (segment == null)
+                    {
+                        break;
+                    }
+
+                    var blobItems = segment.Results.OfType<CloudBlockBlob>();
+
+                    items.AddRange(blobItems);
+
+                    token = segment.ContinuationToken;
+                } while (token != null &&
+                         cancellationToken.IsCancellationRequested == false);
+
+                // The file names are the photo id values
+                return items.Select(x => Guid.Parse(x.Uri.Segments.Last()));
+            }
+            catch (StorageException ex)
+            {
+                if (ex.RequestInformation.HttpStatusCode != 404)
+                {
+                    return new List<Guid>();
+                }
+
+                // Check if this 404 is because of the container not existing
+                if (ex.RequestInformation.ExtendedErrorInformation.ErrorCode == "ContainerNotFound")
+                {
+                    return new List<Guid>();
+                }
+
+                // This is an unknown failure scenario
+                throw;
+            }
+        }
+
         public async Task<PhotoDetails> StorePhoto(Photo photo, CancellationToken cancellationToken)
         {
             Ensure.Any.IsNotNull(photo, nameof(photo));
@@ -205,12 +259,20 @@
 
         private static string GetBlobReference(Photo photo)
         {
-            var profileSegment = photo.ProfileId.ToString().ToLowerInvariant();
-            var partition = profileSegment.Substring(0, 1).ToLowerInvariant();
+            var profileFolderPath = GetProfileBlobFolder(photo.ProfileId);
             var photoFilename = photo.Id.ToString().ToLowerInvariant();
-            var blobReference = partition + "\\" + profileSegment + "\\" + photoFilename;
+            var blobReference = profileFolderPath + "/" + photoFilename;
 
             return blobReference;
+        }
+
+        private static string GetProfileBlobFolder(Guid profileId)
+        {
+            var profileSegment = profileId.ToString().ToLowerInvariant();
+            var partition = profileSegment.Substring(0, 1);
+            var folderPath = partition + "/" + profileSegment;
+
+            return folderPath;
         }
 
         private static string HexStringFromBytes(byte[] bytes)

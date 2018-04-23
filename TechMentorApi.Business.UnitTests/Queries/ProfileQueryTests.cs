@@ -54,7 +54,7 @@
 
                 var actual = await sut.GetProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
 
-                actual.ShouldBeEquivalentTo(expected, opt => opt.ExcludingMissingMembers());
+                actual.Should().BeEquivalentTo(expected, opt => opt.ExcludingMissingMembers());
                 cache.DidNotReceive().StoreProfile(Arg.Any<Profile>());
             }
         }
@@ -77,7 +77,7 @@
 
                 var actual = await sut.GetProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
 
-                actual.ShouldBeEquivalentTo(expected, opt => opt.ExcludingMissingMembers());
+                actual.Should().BeEquivalentTo(expected, opt => opt.ExcludingMissingMembers());
                 cache.Received().StoreProfile(expected);
             }
         }
@@ -99,7 +99,7 @@
 
                 var actual = await sut.GetProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
 
-                actual.ShouldBeEquivalentTo(expected);
+                actual.Should().BeEquivalentTo(expected);
             }
         }
 
@@ -121,7 +121,7 @@
 
                 var actual = await sut.GetProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
 
-                actual.ShouldBeEquivalentTo(expected, opt => opt.ExcludingMissingMembers());
+                actual.Should().BeEquivalentTo(expected, opt => opt.ExcludingMissingMembers());
                 cache.DidNotReceive().StoreProfile(Arg.Any<Profile>());
             }
         }
@@ -144,7 +144,7 @@
 
                 var actual = await sut.GetProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
 
-                actual.ShouldBeEquivalentTo(expected, opt => opt.ExcludingMissingMembers());
+                actual.Should().BeEquivalentTo(expected, opt => opt.ExcludingMissingMembers());
                 cache.Received().StoreProfile(expected);
             }
         }
@@ -181,7 +181,7 @@
             Func<Task> action = async () => await sut.GetProfile(Guid.Empty, CancellationToken.None)
                 .ConfigureAwait(false);
 
-            action.ShouldThrow<ArgumentException>();
+            action.Should().Throw<ArgumentException>();
         }
 
         [Theory]
@@ -383,7 +383,7 @@
 
                 var actual = await sut.GetPublicProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
 
-                actual.ShouldBeEquivalentTo(expected, opt => opt.ExcludingMissingMembers());
+                actual.Should().BeEquivalentTo(expected, opt => opt.ExcludingMissingMembers());
                 cache.Received().StoreProfile(expected);
             }
         }
@@ -522,7 +522,7 @@
 
                 var actual = await sut.GetPublicProfile(expected.Id, tokenSource.Token).ConfigureAwait(false);
 
-                actual.ShouldBeEquivalentTo(expected, opt => opt.ExcludingMissingMembers());
+                actual.Should().BeEquivalentTo(expected, opt => opt.ExcludingMissingMembers());
             }
         }
 
@@ -713,7 +713,7 @@
             Func<Task> action = async () => await sut.GetPublicProfile(Guid.Empty, CancellationToken.None)
                 .ConfigureAwait(false);
 
-            action.ShouldThrow<ArgumentException>();
+            action.Should().Throw<ArgumentException>();
         }
 
         [Fact]
@@ -724,7 +724,7 @@
 
             Action action = () => new ProfileQuery(store, null, query);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -735,7 +735,7 @@
 
             Action action = () => new ProfileQuery(null, cache, query);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -746,7 +746,7 @@
 
             Action action = () => new ProfileQuery(store, cache, null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
     }
 }

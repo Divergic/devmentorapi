@@ -126,7 +126,7 @@
 
             Action action = () => target.OnActionExecuting(null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
     }
 }

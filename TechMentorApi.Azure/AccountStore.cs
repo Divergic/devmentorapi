@@ -1,11 +1,11 @@
 ﻿namespace TechMentorApi.Azure
 {
-    using System;
-    using System.Threading;
-    using System.Threading.Tasks;
     using EnsureThat;
     using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Table;
+    using System;
+    using System.Threading;
+    using System.Threading.Tasks;
     using TechMentorApi.Model;
 
     public class AccountStore : TableStoreBase, IAccountStore
@@ -15,6 +15,28 @@
         public AccountStore(IStorageConfiguration configuration)
             : base(configuration)
         {
+        }
+
+        public async Task DeleteAccount(string provider, string subject, CancellationToken cancellationToken)
+        {
+            Ensure.String.IsNotNullOrWhiteSpace(provider, nameof(provider));
+            Ensure.String.IsNotNullOrWhiteSpace(subject, nameof(subject));
+
+            var retrieveOperation = TableOperation.Retrieve<AccountAdapter>(provider, subject);
+            var table = GetTable(TableName);
+
+            var result = await table.ExecuteAsync(retrieveOperation, null, null, cancellationToken).ConfigureAwait(false);
+
+            if (result.HttpStatusCode == 404)
+            {
+                return;
+            }
+
+            var entity = (AccountAdapter)result.Result;
+
+            var deleteOperation = TableOperation.Delete(entity);
+
+            await table.ExecuteAsync(deleteOperation).ConfigureAwait(false);
         }
 
         public async Task<AccountResult> GetAccount(string provider, string subject,
@@ -35,8 +57,7 @@
 
             try
             {
-                // This account does not yet exist
-                // Attempt to create it
+                // This account does not yet exist Attempt to create it
                 var newAccount = new Account
                 {
                     Id = Guid.NewGuid(),
@@ -53,12 +74,13 @@
             }
             catch (StorageException ex)
             {
-                // The account already exists between us trying to get it and create it
-                // This logic avoids us writing a synchronisation lock here which would slow down the code here
+                // The account already exists between us trying to get it and create it This logic
+                // avoids us writing a synchronisation lock here which would slow down the code here
                 // for a situation which will only happen up to once per account
                 if (ex.RequestInformation.ExtendedErrorInformation.ErrorCode == "EntityAlreadyExists")
                 {
-                    // The account already exists from another operation, probably concurrent asynchronous calls
+                    // The account already exists from another operation, probably concurrent
+                    // asynchronous calls
                     return await RetrieveAccount(cancellationToken, table, operation).ConfigureAwait(false);
                 }
 
@@ -74,9 +96,9 @@
 
             var adapter = new AccountAdapter(account);
 
-            // We can't use InsertOrMerge here because then the existing account would be updated with a new Id
-            // We have to try to push an insert and then handle conflict responses where they record has already been created
-            // Such that the existing Id can be returned
+            // We can't use InsertOrMerge here because then the existing account would be updated
+            // with a new Id We have to try to push an insert and then handle conflict responses
+            // where they record has already been created Such that the existing Id can be returned
             return InsertEntity(TableName, adapter, cancellationToken);
         }
 

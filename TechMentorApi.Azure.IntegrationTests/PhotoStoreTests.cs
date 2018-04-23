@@ -1,13 +1,14 @@
 ﻿namespace TechMentorApi.Azure.IntegrationTests
 {
+    using FluentAssertions;
+    using Microsoft.WindowsAzure.Storage;
+    using ModelBuilder;
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using FluentAssertions;
-    using Microsoft.WindowsAzure.Storage;
-    using ModelBuilder;
     using TechMentorApi.Model;
     using Xunit;
 
@@ -130,13 +131,13 @@
 
                 var photoDetails = await sut.StorePhoto(photo, CancellationToken.None).ConfigureAwait(false);
 
-                photoDetails.ShouldBeEquivalentTo(photo, opt => opt.ExcludingMissingMembers().Excluding(x => x.Hash));
+                photoDetails.Should().BeEquivalentTo(photo, opt => opt.ExcludingMissingMembers().Excluding(x => x.Hash));
                 photoDetails.Hash.Should().NotBeNullOrWhiteSpace();
 
                 using (var retrievedPhoto = await sut.GetPhoto(photo.ProfileId, photo.Id, CancellationToken.None)
                     .ConfigureAwait(false))
                 {
-                    retrievedPhoto.ShouldBeEquivalentTo(photoDetails, opt => opt.ExcludingMissingMembers());
+                    retrievedPhoto.Should().BeEquivalentTo(photoDetails, opt => opt.ExcludingMissingMembers());
 
                     using (var outputStream = retrievedPhoto.Data)
                     {
@@ -155,6 +156,108 @@
         }
 
         [Fact]
+        public async Task GetPhotosReturnsEmptyWhenContainerNotFoundTest()
+        {
+            // Retrieve storage account from connection-string
+            var storageAccount = CloudStorageAccount.Parse(Config.Storage.ConnectionString);
+
+            // Create the client
+            var client = storageAccount.CreateCloudBlobClient();
+
+            var container = client.GetContainerReference("photos");
+
+            await container.DeleteIfExistsAsync().ConfigureAwait(false);
+
+            var sut = new PhotoStore(Config.Storage);
+
+            var actual = await sut.GetPhotos(Guid.NewGuid(), CancellationToken.None)
+                .ConfigureAwait(false);
+
+            actual.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task GetPhotosReturnsEmptyWhenProfileNotFoundTest()
+        {
+            // Retrieve storage account from connection-string
+            var storageAccount = CloudStorageAccount.Parse(Config.Storage.ConnectionString);
+
+            // Create the client
+            var client = storageAccount.CreateCloudBlobClient();
+
+            var container = client.GetContainerReference("photos");
+
+            await container.CreateIfNotExistsAsync().ConfigureAwait(false);
+
+            var sut = new PhotoStore(Config.Storage);
+
+            var actual = await sut.GetPhotos(Guid.NewGuid(), CancellationToken.None)
+                .ConfigureAwait(false);
+
+            actual.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task GetPhotosReturnsMultipleProfilePhotoIdsTest()
+        {
+            var profileId = Guid.NewGuid();
+            var expected = new List<Guid>();
+
+            var sut = new PhotoStore(Config.Storage);
+
+            for (int index = 0; index < 10; index++)
+            {
+                var photo = Model.Ignoring<Photo>(x => x.Data).Create<Photo>().Set(x => x.ProfileId = profileId).Set(x => x.ContentType = ".jpg");
+                var photoData = Model.Create<byte[]>();
+
+                using (var inputStream = new MemoryStream(photoData))
+                {
+                    photo.Data = inputStream;
+
+                    var photoDetails = await sut.StorePhoto(photo, CancellationToken.None).ConfigureAwait(false);
+
+                    expected.Add(photoDetails.Id);
+                }
+            }
+
+            var actual = await sut.GetPhotos(profileId, CancellationToken.None).ConfigureAwait(false);
+
+            actual.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public async Task GetPhotosReturnsSingleProfilePhotoIdTest()
+        {
+            var photo = Model.Ignoring<Photo>(x => x.Data).Create<Photo>().Set(x => x.ContentType = ".jpg");
+            var photoData = Model.Create<byte[]>();
+
+            var sut = new PhotoStore(Config.Storage);
+
+            using (var inputStream = new MemoryStream(photoData))
+            {
+                photo.Data = inputStream;
+
+                var photoDetails = await sut.StorePhoto(photo, CancellationToken.None).ConfigureAwait(false);
+
+                var photos = (await sut.GetPhotos(photo.ProfileId, CancellationToken.None).ConfigureAwait(false)).ToList();
+
+                photos.Count.Should().Be(1);
+                photos[0].Should().Be(photoDetails.Id);
+            }
+        }
+
+        [Fact]
+        public void GetPhotosThrowsExceptionWithEmptyProfileIdTest()
+        {
+            var sut = new PhotoStore(Config.Storage);
+
+            Func<Task> action = async () =>
+                await sut.GetPhotos(Guid.Empty, CancellationToken.None).ConfigureAwait(false);
+
+            action.Should().Throw<ArgumentException>();
+        }
+
+        [Fact]
         public void GetPhotoThrowsExceptionWithEmptyPhotoIdTest()
         {
             var sut = new PhotoStore(Config.Storage);
@@ -162,7 +265,7 @@
             Func<Task> action = async () =>
                 await sut.GetPhoto(Guid.NewGuid(), Guid.Empty, CancellationToken.None).ConfigureAwait(false);
 
-            action.ShouldThrow<ArgumentException>();
+            action.Should().Throw<ArgumentException>();
         }
 
         [Fact]
@@ -173,7 +276,7 @@
             Func<Task> action = async () =>
                 await sut.GetPhoto(Guid.Empty, Guid.NewGuid(), CancellationToken.None).ConfigureAwait(false);
 
-            action.ShouldThrow<ArgumentException>();
+            action.Should().Throw<ArgumentException>();
         }
 
         [Fact]
@@ -200,13 +303,13 @@
 
                 var photoDetails = await sut.StorePhoto(photo, CancellationToken.None).ConfigureAwait(false);
 
-                photoDetails.ShouldBeEquivalentTo(photo, opt => opt.ExcludingMissingMembers().Excluding(x => x.Hash));
+                photoDetails.Should().BeEquivalentTo(photo, opt => opt.ExcludingMissingMembers().Excluding(x => x.Hash));
                 photoDetails.Hash.Should().NotBeNullOrWhiteSpace();
 
                 var retrievedPhoto = await sut.GetPhoto(photo.ProfileId, photo.Id, CancellationToken.None)
                     .ConfigureAwait(false);
 
-                retrievedPhoto.ShouldBeEquivalentTo(photoDetails, opt => opt.ExcludingMissingMembers());
+                retrievedPhoto.Should().BeEquivalentTo(photoDetails, opt => opt.ExcludingMissingMembers());
 
                 using (var outputStream = retrievedPhoto.Data)
                 {
@@ -237,12 +340,12 @@
 
                 var photoDetails = await sut.StorePhoto(photo, CancellationToken.None).ConfigureAwait(false);
 
-                photoDetails.ShouldBeEquivalentTo(photo, opt => opt.ExcludingMissingMembers().Excluding(x => x.Hash));
+                photoDetails.Should().BeEquivalentTo(photo, opt => opt.ExcludingMissingMembers().Excluding(x => x.Hash));
                 photoDetails.Hash.Should().NotBeNullOrWhiteSpace();
                 var retrievedPhoto = await sut.GetPhoto(photo.ProfileId, photo.Id, CancellationToken.None)
                     .ConfigureAwait(false);
 
-                retrievedPhoto.ShouldBeEquivalentTo(photoDetails, opt => opt.ExcludingMissingMembers());
+                retrievedPhoto.Should().BeEquivalentTo(photoDetails, opt => opt.ExcludingMissingMembers());
 
                 using (var outputStream = retrievedPhoto.Data)
                 {
@@ -267,7 +370,7 @@
             Func<Task> action = async () =>
                 await sut.StorePhoto(null, CancellationToken.None).ConfigureAwait(false);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -284,7 +387,7 @@
 
                 var firstStoredPhoto = await sut.StorePhoto(photo, CancellationToken.None).ConfigureAwait(false);
 
-                firstStoredPhoto.ShouldBeEquivalentTo(photo, opt => opt.Excluding(x => x.Hash));
+                firstStoredPhoto.Should().BeEquivalentTo(photo, opt => opt.ExcludingMissingMembers().Excluding(x => x.Hash));
                 firstStoredPhoto.Hash.Should().NotBeNullOrWhiteSpace();
             }
 
@@ -297,13 +400,13 @@
 
                 var photoDetails = await sut.StorePhoto(photo, CancellationToken.None).ConfigureAwait(false);
 
-                photoDetails.ShouldBeEquivalentTo(photo, opt => opt.ExcludingMissingMembers().Excluding(x => x.Hash));
+                photoDetails.Should().BeEquivalentTo(photo, opt => opt.ExcludingMissingMembers().Excluding(x => x.Hash));
                 photoDetails.Hash.Should().NotBeNullOrWhiteSpace();
 
                 var retrievedPhoto = await sut.GetPhoto(photo.ProfileId, photo.Id, CancellationToken.None)
                     .ConfigureAwait(false);
 
-                retrievedPhoto.ShouldBeEquivalentTo(photoDetails, opt => opt.ExcludingMissingMembers());
+                retrievedPhoto.Should().BeEquivalentTo(photoDetails, opt => opt.ExcludingMissingMembers());
 
                 using (var outputStream = retrievedPhoto.Data)
                 {

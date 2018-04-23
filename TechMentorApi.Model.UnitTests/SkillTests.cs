@@ -25,7 +25,7 @@
 
             var sut = new Skill(skill);
 
-            sut.ShouldBeEquivalentTo(skill, opt => opt.ExcludingMissingMembers());
+            sut.Should().BeEquivalentTo(skill, opt => opt.ExcludingMissingMembers());
         }
 
         [Fact]
@@ -33,7 +33,7 @@
         {
             Action action = () => new Skill(null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
     }
 }

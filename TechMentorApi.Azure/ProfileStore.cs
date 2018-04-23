@@ -1,14 +1,14 @@
 ﻿namespace TechMentorApi.Azure
 {
+    using EnsureThat;
+    using Microsoft.WindowsAzure.Storage.Table;
+    using Model;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
     using System.Threading;
     using System.Threading.Tasks;
-    using EnsureThat;
-    using Microsoft.WindowsAzure.Storage.Table;
-    using Model;
 
     public class ProfileStore : TableStoreBase, IProfileStore
     {
@@ -40,7 +40,7 @@
                 return null;
             }
 
-            var entity = (ProfileAdapter) result.Result;
+            var entity = (ProfileAdapter)result.Result;
 
             if (entity.Value.BannedAt.HasValue)
             {
@@ -53,6 +53,31 @@
             var updateOperation = TableOperation.Replace(entity);
 
             await table.ExecuteAsync(updateOperation).ConfigureAwait(false);
+
+            return entity.Value;
+        }
+
+        public async Task<Profile> DeleteProfile(Guid profileId, CancellationToken cancellationToken)
+        {
+            Ensure.Guid.IsNotEmpty(profileId, nameof(profileId));
+
+            var partitionKey = ProfileAdapter.BuildPartitionKey(profileId);
+            var rowKey = ProfileAdapter.BuildRowKey(profileId);
+            var readOperation = TableOperation.Retrieve<ProfileAdapter>(partitionKey, rowKey);
+            var table = GetTable(TableName);
+
+            var result = await table.ExecuteAsync(readOperation, null, null, cancellationToken).ConfigureAwait(false);
+
+            if (result.HttpStatusCode == 404)
+            {
+                return null;
+            }
+
+            var entity = (ProfileAdapter)result.Result;
+
+            var deleteOperation = TableOperation.Delete(entity);
+
+            await table.ExecuteAsync(deleteOperation).ConfigureAwait(false);
 
             return entity.Value;
         }
@@ -73,7 +98,7 @@
                 return null;
             }
 
-            var entity = (ProfileAdapter) result.Result;
+            var entity = (ProfileAdapter)result.Result;
 
             return entity.Value;
         }
@@ -83,7 +108,7 @@
             var table = GetTable(TableName);
 
             // We can't filter out BannedAt because the filter would search for where the value is null
-            // This is not possible with the query mechanics of Azure table services so this filter has 
+            // This is not possible with the query mechanics of Azure table services so this filter has
             // to happen in the code here rather than in the table service itself
             var statusFilter = TableQuery.GenerateFilterCondition(nameof(Profile.Status), QueryComparisons.NotEqual,
                 ProfileStatus.Hidden.ToString());
@@ -98,8 +123,8 @@
             var results = await table.ExecuteQueryAsync(query, cancellationToken).ConfigureAwait(false);
 
             return from x in results
-                where x.BannedAt == null
-                select x.Value;
+                   where x.BannedAt == null
+                   select x.Value;
         }
 
         public Task StoreProfile(Profile profile, CancellationToken cancellationToken)

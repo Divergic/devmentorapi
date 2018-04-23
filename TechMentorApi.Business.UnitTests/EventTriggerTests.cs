@@ -22,7 +22,7 @@
 
             Func<Task> action = async () => await sut.NewCategory(null, CancellationToken.None).ConfigureAwait(false);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -55,7 +55,7 @@
             Func<Task> action = async () =>
                 await sut.ProfileUpdated(null, CancellationToken.None).ConfigureAwait(false);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -84,7 +84,7 @@
 
             Action action = () => new EventTrigger(null, updatedProfileQueue);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -94,7 +94,7 @@
 
             Action action = () => new EventTrigger(newCategoryQueue, null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
     }
 }

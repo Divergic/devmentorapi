@@ -34,7 +34,7 @@
 
             var actual = sut.GetProfileResults();
 
-            actual.ShouldBeEquivalentTo(expected);
+            actual.Should().BeEquivalentTo(expected);
         }
 
         [Fact]
@@ -79,7 +79,7 @@
 
             var actual = sut.GetProfile(expected.Id);
 
-            actual.ShouldBeEquivalentTo(expected);
+            actual.Should().BeEquivalentTo(expected);
         }
 
         [Fact]
@@ -114,7 +114,7 @@
 
             Action action = () => sut.GetProfile(id);
 
-            action.ShouldThrow<ArgumentException>();
+            action.Should().Throw<ArgumentException>();
         }
 
         [Fact]
@@ -143,7 +143,7 @@
 
             Action action = () => sut.RemoveProfile(Guid.Empty);
 
-            action.ShouldThrow<ArgumentException>();
+            action.Should().Throw<ArgumentException>();
         }
 
         [Fact]
@@ -156,7 +156,7 @@
 
             Action action = () => sut.StoreProfileResults(null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -191,7 +191,7 @@
 
             Action action = () => sut.StoreProfile(null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -223,7 +223,7 @@
 
             Action action = () => new ProfileCache(null, config);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -233,7 +233,7 @@
 
             Action action = () => new ProfileCache(cache, null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
     }
 }

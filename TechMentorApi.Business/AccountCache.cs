@@ -1,8 +1,8 @@
 ﻿namespace TechMentorApi.Business
 {
-    using System;
     using EnsureThat;
     using Microsoft.Extensions.Caching.Memory;
+    using System;
     using TechMentorApi.Model;
 
     public class AccountCache : IAccountCache
@@ -40,6 +40,15 @@
             return account;
         }
 
+        public void RemoveAccount(string username)
+        {
+            Ensure.String.IsNotNullOrWhiteSpace(username, nameof(username));
+
+            var cacheKey = BuildAccountCacheKey(username);
+
+            _cache.Remove(cacheKey);
+        }
+
         public void StoreAccount(Account account)
         {
             Ensure.Any.IsNotNull(account, nameof(account));
@@ -56,7 +65,8 @@
 
         private static string BuildAccountCacheKey(string username)
         {
-            // The cache key has a prefix to partition this type of object just in case there is a key collision with another object type
+            // The cache key has a prefix to partition this type of object just in case there is a
+            // key collision with another object type
             return "Account|" + username;
         }
     }

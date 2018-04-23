@@ -153,7 +153,7 @@
 
                 var actual = await sut.GetAccount(user, tokenSource.Token).ConfigureAwait(false);
 
-                actual.ShouldBeEquivalentTo(expected);
+                actual.Should().BeEquivalentTo(expected);
             }
         }
 
@@ -178,7 +178,7 @@
 
                 var actual = await sut.GetAccount(user, tokenSource.Token).ConfigureAwait(false);
 
-                actual.ShouldBeEquivalentTo(expected);
+                actual.Should().BeEquivalentTo(expected);
             }
         }
 
@@ -201,7 +201,7 @@
 
                 var actual = await sut.GetAccount(user, tokenSource.Token).ConfigureAwait(false);
 
-                actual.ShouldBeEquivalentTo(expected);
+                actual.Should().BeEquivalentTo(expected);
             }
         }
 
@@ -217,7 +217,7 @@
 
             Func<Task> action = async () => await sut.GetAccount(null, CancellationToken.None).ConfigureAwait(false);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -229,7 +229,7 @@
 
             Action action = () => new AccountQuery(accountStore, profileStore, null, profileCache);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -241,7 +241,7 @@
 
             Action action = () => new AccountQuery(null, profileStore, accountCache, profileCache);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -253,7 +253,7 @@
 
             Action action = () => new AccountQuery(accountStore, profileStore, accountCache, null);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -265,7 +265,7 @@
 
             Action action = () => new AccountQuery(accountStore, null, accountCache, profileCache);
 
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
     }
 }

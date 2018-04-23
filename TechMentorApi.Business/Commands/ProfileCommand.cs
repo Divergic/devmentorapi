@@ -1,10 +1,10 @@
 ﻿namespace TechMentorApi.Business.Commands
 {
+    using EnsureThat;
     using System;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using EnsureThat;
     using TechMentorApi.Azure;
     using TechMentorApi.Model;
 
@@ -32,31 +32,42 @@
             _cache = cache;
         }
 
-        public async Task<Profile> BanProfile(Guid id, DateTimeOffset bannedAt, CancellationToken cancellationToken)
+        public async Task<Profile> BanProfile(Guid profileId, DateTimeOffset bannedAt, CancellationToken cancellationToken)
         {
-            Ensure.Guid.IsNotEmpty(id, nameof(id));
+            Ensure.Guid.IsNotEmpty(profileId, nameof(profileId));
 
-            var profile = await _store.BanProfile(id, bannedAt, cancellationToken).ConfigureAwait(false);
+            var profile = await _store.BanProfile(profileId, bannedAt, cancellationToken).ConfigureAwait(false);
 
             if (profile == null)
             {
                 return null;
             }
 
-            var linkChanges = _calculator.RemoveAllCategoryLinks(profile);
-
-            if (linkChanges.CategoryChanges.Count > 0)
-            {
-                await _processor.Execute(profile, linkChanges, cancellationToken).ConfigureAwait(false);
-            }
-
-            // Remove the profile from cache 
-            _cache.RemoveProfile(profile.Id);
-
-            // Remove this profile from the results cache
-            UpdateResultsCache(profile);
+            await HideProfile(profile, cancellationToken).ConfigureAwait(false);
 
             return profile;
+        }
+
+        public async Task DeleteProfile(Guid profileId, CancellationToken cancellationToken)
+        {
+            Ensure.Guid.IsNotEmpty(profileId, nameof(profileId));
+
+            var profile = await _store.GetProfile(profileId, cancellationToken).ConfigureAwait(false);
+
+            if (profile == null)
+            {
+                return;
+            }
+
+            // We will mark the profile (in memory) as hidden here so that the hide profile logic
+            // will ensure that the profile is not added back into the profile results cache
+            profile.Status = ProfileStatus.Hidden;
+
+            // Remove all the category links, profile cache and profile results cache entries related
+            // to this profile
+            await HideProfile(profile, cancellationToken).ConfigureAwait(false);
+
+            await _store.DeleteProfile(profileId, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task UpdateProfile(Guid profileId, UpdatableProfile profile, CancellationToken cancellationToken)
@@ -82,6 +93,22 @@
             }
         }
 
+        private async Task HideProfile(Profile profile, CancellationToken cancellationToken)
+        {
+            var linkChanges = _calculator.RemoveAllCategoryLinks(profile);
+
+            if (linkChanges.CategoryChanges.Count > 0)
+            {
+                await _processor.Execute(profile, linkChanges, cancellationToken).ConfigureAwait(false);
+            }
+
+            // Remove the profile from cache
+            _cache.RemoveProfile(profile.Id);
+
+            // Remove this profile from the results cache
+            UpdateResultsCache(profile);
+        }
+
         private void UpdateResultsCache(Profile profile)
         {
             // We need to update cache information for the publicly visible profiles
@@ -98,8 +125,8 @@
 
             if (cachedResult != null)
             {
-                // We found this profile in the cache, the profile has been updated or is hidden or banned
-                // We need to start by removing the existing profile from the cache
+                // We found this profile in the cache, the profile has been updated, has been deleted
+                // or is hidden or banned We need to start by removing the existing profile from the cache
                 results.Remove(cachedResult);
                 cacheRequiresUpdate = true;
             }

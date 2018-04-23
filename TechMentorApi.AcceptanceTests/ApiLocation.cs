@@ -8,6 +8,18 @@
 
     public static class ApiLocation
     {
+        public static Uri AccountProfile => new Uri(Config.WebsiteAddress, "/profile/");
+
+        public static Uri AccountProfileExport => new Uri(Config.WebsiteAddress, "/profile/export/");
+
+        public static Uri AccountProfilePhotos => new Uri(Config.WebsiteAddress, "/profile/photos/");
+
+        public static Uri Categories => new Uri(Config.WebsiteAddress, "/categories/");
+
+        public static Uri Ping => new Uri(Config.WebsiteAddress, "/ping/");
+
+        public static Uri Profiles => new Uri(Config.WebsiteAddress, "/profiles/");
+
         public static Uri Category(CategoryGroup group, string name)
         {
             return Category(group.ToString(), name);
@@ -75,15 +87,5 @@
 
             return WebUtility.UrlEncode(value).Replace("+", "%20");
         }
-
-        public static Uri AccountProfile => new Uri(Config.WebsiteAddress, "/profile/");
-
-        public static Uri AccountProfilePhotos => new Uri(Config.WebsiteAddress, "/profile/photos/");
-
-        public static Uri Categories => new Uri(Config.WebsiteAddress, "/categories/");
-
-        public static Uri Ping => new Uri(Config.WebsiteAddress, "/ping/");
-
-        public static Uri Profiles => new Uri(Config.WebsiteAddress, "/profiles/");
     }
 }
