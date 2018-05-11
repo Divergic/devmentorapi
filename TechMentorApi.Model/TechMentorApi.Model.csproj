@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="ConfigureAwaitChecker.Analyzer" Version="1.0.1" />
-    <PackageReference Include="Ensure.That" Version="7.2.1" />
+    <PackageReference Include="Ensure.That" Version="8.0.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="2.6.0" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.4.1" />
   </ItemGroup>

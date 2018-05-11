@@ -20,11 +20,11 @@
 
   <ItemGroup>
     <PackageReference Include="ConfigureAwaitChecker.Analyzer" Version="1.0.1" />
-    <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.7" />
-    <PackageReference Include="Autofac" Version="4.7.0" />
-    <PackageReference Include="Ensure.That" Version="7.2.1" />
+    <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.8" />
+    <PackageReference Include="Autofac" Version="4.8.1" />
+    <PackageReference Include="Ensure.That" Version="8.0.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="2.6.0" />
-    <PackageReference Include="Polly" Version="5.9.0" />
+    <PackageReference Include="Polly" Version="6.0.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="2.4.0" />
   </ItemGroup>
   <ItemGroup>
