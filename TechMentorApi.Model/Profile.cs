@@ -9,13 +9,14 @@
         public Profile()
         {
         }
-        
+
         public Profile(UpdatableProfile profile)
         {
             Ensure.Any.IsNotNull(profile, nameof(profile));
 
             About = profile.About;
             AcceptCoC = profile.AcceptCoC;
+            AcceptTaC = profile.AcceptTaC;
             BirthYear = profile.BirthYear;
             Email = profile.Email;
             FirstName = profile.FirstName;
@@ -32,6 +33,10 @@
             Website = profile.Website;
             YearStartedInTech = profile.YearStartedInTech;
         }
+
+        public DateTimeOffset? AcceptedCoCAt { get; set; }
+
+        public DateTimeOffset? AcceptedTaCAt { get; set; }
 
         public DateTimeOffset? BannedAt { get; set; }
 

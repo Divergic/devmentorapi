@@ -19,6 +19,8 @@ namespace TechMentorApi.Model
 
             Id = profile.Id;
             BannedAt = profile.BannedAt;
+            AcceptedCoCAt = profile.AcceptedCoCAt;
+            AcceptedTaCAt = profile.AcceptedTaCAt;
 
             Photos = new Collection<ExportPhoto>(photos.ToList());
         }

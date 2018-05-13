@@ -84,8 +84,21 @@
                 var updated = new Profile(profile)
                 {
                     Id = original.Id,
-                    BannedAt = original.BannedAt
+                    BannedAt = original.BannedAt,
+                    AcceptedCoCAt = original.AcceptedCoCAt,
+                    AcceptedTaCAt = original.AcceptedTaCAt
                 };
+
+                // Determine consent changes
+                if (original.AcceptCoC == false && profile.AcceptCoC)
+                {
+                    updated.AcceptedCoCAt = DateTimeOffset.UtcNow;
+                }
+
+                if (original.AcceptTaC == false && profile.AcceptTaC)
+                {
+                    updated.AcceptedTaCAt = DateTimeOffset.UtcNow;
+                }
 
                 await _processor.Execute(updated, changes, cancellationToken).ConfigureAwait(false);
 

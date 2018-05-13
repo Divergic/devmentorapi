@@ -1,20 +1,28 @@
 ﻿namespace TechMentorApi.Business.UnitTests.Commands
 {
-    using FluentAssertions;
-    using ModelBuilder;
-    using NSubstitute;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using FluentAssertions;
+    using ModelBuilder;
+    using NSubstitute;
     using TechMentorApi.Azure;
     using TechMentorApi.Business.Commands;
     using TechMentorApi.Model;
     using Xunit;
+    using Xunit.Abstractions;
 
     public class ProfileCommandTests
     {
+        private readonly ITestOutputHelper _output;
+
+        public ProfileCommandTests(ITestOutputHelper output)
+        {
+            _output = output;
+        }
+
         [Fact]
         public async Task BanProfileCallsStoreWithBanInformationTest()
         {
@@ -55,7 +63,7 @@
             {
                 calculator.RemoveAllCategoryLinks(profile).Returns(new ProfileChangeResult());
                 store.BanProfile(profile.Id, profile.BannedAt.Value, tokenSource.Token).Returns(profile);
-                cache.GetProfileResults().Returns((ICollection<ProfileResult>)null);
+                cache.GetProfileResults().Returns((ICollection<ProfileResult>) null);
 
                 await sut.BanProfile(profile.Id, profile.BannedAt.Value, tokenSource.Token).ConfigureAwait(false);
 
@@ -144,9 +152,7 @@
         {
             var profile = Model.Create<Profile>().Set(x => x.BannedAt = DateTimeOffset.UtcNow);
             var cacheResults = new List<ProfileResult>
-            {
-                Model.Create<ProfileResult>().Set(x => x.Id = profile.Id)
-            };
+                {Model.Create<ProfileResult>().Set(x => x.Id = profile.Id)};
 
             var store = Substitute.For<IProfileStore>();
             var calculator = Substitute.For<IProfileChangeCalculator>();
@@ -225,7 +231,7 @@
                 store.GetProfile(profile.Id, tokenSource.Token).Returns(profile);
                 calculator.RemoveAllCategoryLinks(profile).Returns(new ProfileChangeResult());
                 store.DeleteProfile(profile.Id, tokenSource.Token).Returns(profile);
-                cache.GetProfileResults().Returns((ICollection<ProfileResult>)null);
+                cache.GetProfileResults().Returns((ICollection<ProfileResult>) null);
 
                 await sut.DeleteProfile(profile.Id, tokenSource.Token).ConfigureAwait(false);
 
@@ -333,9 +339,7 @@
         {
             var profile = Model.Create<Profile>();
             var cacheResults = new List<ProfileResult>
-            {
-                Model.Create<ProfileResult>().Set(x => x.Id = profile.Id)
-            };
+                {Model.Create<ProfileResult>().Set(x => x.Id = profile.Id)};
 
             var store = Substitute.For<IProfileStore>();
             var calculator = Substitute.For<IProfileChangeCalculator>();
@@ -479,7 +483,11 @@
         public async Task UpdateProfileCalculatesAndProcessesChangesForUpdatedProfileTest()
         {
             var expected = Model.Create<UpdatableProfile>();
-            var profile = Model.Create<Profile>();
+            var profile = Model.Create<Profile>().Set(x =>
+            {
+                x.AcceptCoC = true;
+                x.AcceptTaC = true;
+            });
             var changeResult = Model.Create<ProfileChangeResult>().Set(x => x.ProfileChanged = true);
 
             var store = Substitute.For<IProfileStore>();
@@ -497,7 +505,8 @@
                 await sut.UpdateProfile(profile.Id, expected, tokenSource.Token).ConfigureAwait(false);
 
                 await processor.Received().Execute(
-                    Verify.That<Profile>(x => x.Should().BeEquivalentTo(expected, opt => opt.ExcludingMissingMembers())),
+                    Verify.That<Profile>(x =>
+                        x.Should().BeEquivalentTo(expected, opt => opt.ExcludingMissingMembers())),
                     changeResult,
                     tokenSource.Token).ConfigureAwait(false);
             }
@@ -573,7 +582,7 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                cache.GetProfileResults().Returns((ICollection<ProfileResult>)null);
+                cache.GetProfileResults().Returns((ICollection<ProfileResult>) null);
                 store.GetProfile(profile.Id, tokenSource.Token).Returns(profile);
                 calculator.CalculateChanges(profile, expected).Returns(changeResult);
 
@@ -618,9 +627,7 @@
             var profile = Model.Create<Profile>().Set(x => x.BannedAt = DateTimeOffset.UtcNow);
             var changeResult = Model.Create<ProfileChangeResult>().Set(x => x.ProfileChanged = true);
             var cacheResults = new List<ProfileResult>
-            {
-                Model.Create<ProfileResult>().Set(x => x.Id = profile.Id)
-            };
+                {Model.Create<ProfileResult>().Set(x => x.Id = profile.Id)};
 
             var store = Substitute.For<IProfileStore>();
             var calculator = Substitute.For<IProfileChangeCalculator>();
@@ -649,9 +656,7 @@
             var profile = Model.Create<Profile>().Set(x => x.BannedAt = null);
             var changeResult = Model.Create<ProfileChangeResult>().Set(x => x.ProfileChanged = true);
             var cacheResults = new List<ProfileResult>
-            {
-                Model.Create<ProfileResult>().Set(x => x.Id = profile.Id)
-            };
+                {Model.Create<ProfileResult>().Set(x => x.Id = profile.Id)};
 
             var store = Substitute.For<IProfileStore>();
             var calculator = Substitute.For<IProfileChangeCalculator>();
@@ -673,8 +678,179 @@
             }
         }
 
+        [Theory]
+        [InlineData(true, true, false)]
+        [InlineData(true, false, false)]
+        [InlineData(false, true, true)]
+        [InlineData(false, false, false)]
+        public async Task UpdateProfileStoresProfileWithAcceptedCoCAtDependingOnConsentTest(bool originalConsent,
+            bool updatedConsent, bool timeSet)
+        {
+            var expected = Model.Create<UpdatableProfile>().Set(x => x.AcceptCoC = updatedConsent);
+            var profile = Model.Create<Profile>().Set(x =>
+            {
+                x.AcceptCoC = originalConsent;
+                x.AcceptedCoCAt = DateTimeOffset.UtcNow.AddYears(-1);
+            });
+            var changeResult = Model.Create<ProfileChangeResult>().Set(x => x.ProfileChanged = true);
+
+            var store = Substitute.For<IProfileStore>();
+            var calculator = Substitute.For<IProfileChangeCalculator>();
+            var processor = Substitute.For<IProfileChangeProcessor>();
+            var cache = Substitute.For<IProfileCache>();
+
+            var sut = new ProfileCommand(store, calculator, processor, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                store.GetProfile(profile.Id, tokenSource.Token).Returns(profile);
+                calculator.CalculateChanges(profile, expected).Returns(changeResult);
+
+                await sut.UpdateProfile(profile.Id, expected, tokenSource.Token).ConfigureAwait(false);
+
+                if (timeSet)
+                {
+                    await processor.Received().Execute(
+                        Verify.That<Profile>(x => x.AcceptedCoCAt.Should().BeCloseTo(DateTimeOffset.UtcNow)),
+                        Arg.Any<ProfileChangeResult>(),
+                        tokenSource.Token).ConfigureAwait(false);
+                }
+                else
+                {
+                    await processor.Received().Execute(
+                        Arg.Is<Profile>(x => x.AcceptedCoCAt == profile.AcceptedCoCAt),
+                        Arg.Any<ProfileChangeResult>(),
+                        tokenSource.Token).ConfigureAwait(false);
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData(true, true, false)]
+        [InlineData(true, false, false)]
+        [InlineData(false, true, true)]
+        [InlineData(false, false, false)]
+        public async Task UpdateProfileStoresProfileWithAcceptedTaCAtDependingOnConsentTest(bool originalConsent,
+            bool updatedConsent, bool timeSet)
+        {
+            var expected = Model.Create<UpdatableProfile>().Set(x => x.AcceptTaC = updatedConsent);
+            var profile = Model.Create<Profile>().Set(x =>
+            {
+                x.AcceptTaC = originalConsent;
+                x.AcceptedTaCAt = DateTimeOffset.UtcNow.AddYears(-1);
+            });
+            var changeResult = Model.Create<ProfileChangeResult>().Set(x => x.ProfileChanged = true);
+
+            var store = Substitute.For<IProfileStore>();
+            var calculator = Substitute.For<IProfileChangeCalculator>();
+            var processor = Substitute.For<IProfileChangeProcessor>();
+            var cache = Substitute.For<IProfileCache>();
+
+            var sut = new ProfileCommand(store, calculator, processor, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                store.GetProfile(profile.Id, tokenSource.Token).Returns(profile);
+                calculator.CalculateChanges(profile, expected).Returns(changeResult);
+
+                await sut.UpdateProfile(profile.Id, expected, tokenSource.Token).ConfigureAwait(false);
+
+                if (timeSet)
+                {
+                    await processor.Received().Execute(
+                        Verify.That<Profile>(x => x.AcceptedTaCAt.Should().BeCloseTo(DateTimeOffset.UtcNow)),
+                        Arg.Any<ProfileChangeResult>(),
+                        tokenSource.Token).ConfigureAwait(false);
+                }
+                else
+                {
+                    await processor.Received().Execute(
+                        Arg.Is<Profile>(x => x.AcceptedTaCAt == profile.AcceptedTaCAt),
+                        Arg.Any<ProfileChangeResult>(),
+                        tokenSource.Token).ConfigureAwait(false);
+                }
+            }
+        }
+
         [Fact]
-        public async Task UpdateProfileStoresProfileWithOriginalProfileBannedValueTest()
+        public async Task UpdateProfileStoresProfileWithOriginalProfileAcceptedCoCAtValueTest()
+        {
+            var expected = Model.Create<UpdatableProfile>();
+            var profile = Model.Create<Profile>().Set(x =>
+            {
+                x.AcceptCoC = true;
+                x.AcceptTaC = true;
+                x.AcceptedCoCAt = DateTimeOffset.UtcNow;
+            });
+            var changeResult = Model.Create<ProfileChangeResult>().Set(x => x.ProfileChanged = true);
+
+            var store = Substitute.For<IProfileStore>();
+            var calculator = Substitute.For<IProfileChangeCalculator>();
+            var processor = Substitute.For<IProfileChangeProcessor>();
+            var cache = Substitute.For<IProfileCache>();
+
+            var sut = new ProfileCommand(store, calculator, processor, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                store.GetProfile(profile.Id, tokenSource.Token).Returns(profile);
+                calculator.CalculateChanges(profile, expected).Returns(changeResult);
+
+                await sut.UpdateProfile(profile.Id, expected, tokenSource.Token).ConfigureAwait(false);
+
+                await processor.Received().Execute(
+                    Arg.Is<Profile>(x => x.AcceptedCoCAt == profile.AcceptedCoCAt),
+                    Arg.Any<ProfileChangeResult>(),
+                    tokenSource.Token).ConfigureAwait(false);
+                cache.DidNotReceive().StoreProfile(Arg.Any<Profile>());
+            }
+        }
+
+        [Fact]
+        public async Task UpdateProfileStoresProfileWithOriginalProfileAcceptedTaCAtValueTest()
+        {
+            var expected = Model.Create<UpdatableProfile>();
+            var profile = Model.Create<Profile>().Set(x =>
+            {
+                x.AcceptCoC = true;
+                x.AcceptTaC = true;
+                x.AcceptedTaCAt = DateTimeOffset.UtcNow;
+            });
+            var changeResult = Model.Create<ProfileChangeResult>().Set(x => x.ProfileChanged = true);
+
+            var store = Substitute.For<IProfileStore>();
+            var calculator = Substitute.For<IProfileChangeCalculator>();
+            var processor = Substitute.For<IProfileChangeProcessor>();
+            var cache = Substitute.For<IProfileCache>();
+
+            var sut = new ProfileCommand(store, calculator, processor, cache);
+
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                store.GetProfile(profile.Id, tokenSource.Token).Returns(profile);
+                calculator.CalculateChanges(profile, expected).Returns(changeResult);
+
+                await sut.UpdateProfile(profile.Id, expected, tokenSource.Token).ConfigureAwait(false);
+
+                if (profile.AcceptedTaCAt.HasValue)
+                {
+                    _output.WriteLine(profile.AcceptedTaCAt.Value.ToString());
+                }
+                else
+                {
+                    _output.WriteLine("No value");
+                }
+
+                await processor.Received().Execute(
+                    Arg.Is<Profile>(x => x.AcceptedTaCAt == profile.AcceptedTaCAt),
+                    Arg.Any<ProfileChangeResult>(),
+                    tokenSource.Token).ConfigureAwait(false);
+                cache.DidNotReceive().StoreProfile(Arg.Any<Profile>());
+            }
+        }
+
+        [Fact]
+        public async Task UpdateProfileStoresProfileWithOriginalProfileBannedAtValueTest()
         {
             var expected = Model.Create<UpdatableProfile>();
             var profile = Model.Create<Profile>().Set(x => x.BannedAt = DateTimeOffset.UtcNow);
@@ -747,9 +923,7 @@
             var profile = Model.Create<Profile>().Set(x => x.BannedAt = null);
             var changeResult = Model.Create<ProfileChangeResult>().Set(x => x.ProfileChanged = true);
             var cacheResults = new List<ProfileResult>
-            {
-                Model.Create<ProfileResult>().Set(x => x.Id = profile.Id)
-            };
+                {Model.Create<ProfileResult>().Set(x => x.Id = profile.Id)};
 
             var store = Substitute.For<IProfileStore>();
             var calculator = Substitute.For<IProfileChangeCalculator>();

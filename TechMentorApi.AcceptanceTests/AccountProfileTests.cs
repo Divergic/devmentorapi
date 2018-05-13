@@ -706,13 +706,31 @@
                 .ConfigureAwait(false);
         }
 
-        [Fact]
-        public async Task PutReturnsBadRequestWhenAcceptCoCIsFalseTest()
+        [Theory]
+        [InlineData(ProfileStatus.Available, false, false, HttpStatusCode.BadRequest)]
+        [InlineData(ProfileStatus.Available, false, true, HttpStatusCode.BadRequest)]
+        [InlineData(ProfileStatus.Available, true, false, HttpStatusCode.BadRequest)]
+        [InlineData(ProfileStatus.Available, true, true, HttpStatusCode.NoContent)]
+        [InlineData(ProfileStatus.Unavailable, false, false, HttpStatusCode.BadRequest)]
+        [InlineData(ProfileStatus.Unavailable, false, true, HttpStatusCode.BadRequest)]
+        [InlineData(ProfileStatus.Unavailable, true, false, HttpStatusCode.BadRequest)]
+        [InlineData(ProfileStatus.Unavailable, true, true, HttpStatusCode.NoContent)]
+        [InlineData(ProfileStatus.Hidden, false, false, HttpStatusCode.NoContent)]
+        [InlineData(ProfileStatus.Hidden, false, true, HttpStatusCode.NoContent)]
+        [InlineData(ProfileStatus.Hidden, true, false, HttpStatusCode.NoContent)]
+        [InlineData(ProfileStatus.Hidden, true, true, HttpStatusCode.NoContent)]
+        public async Task PutEvaluatesProfileConsentTest(ProfileStatus status, bool acceptCoC, bool acceptTaC,
+            HttpStatusCode statusCode)
         {
-            var expected = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<UpdatableProfile>().Set(x => x.AcceptCoC = false);
+            var expected = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<UpdatableProfile>().Set(x =>
+            {
+                x.AcceptCoC = acceptCoC;
+                x.AcceptTaC = acceptTaC;
+                x.Status = status;
+            });
             var user = ClaimsIdentityFactory.Build(null, expected);
 
-            await Client.Put(ApiLocation.AccountProfile, _logger, expected, user, HttpStatusCode.BadRequest)
+            await Client.Put(ApiLocation.AccountProfile, _logger, expected, user, statusCode)
                 .ConfigureAwait(false);
         }
 
