@@ -11,7 +11,7 @@
 
     public class ProfileChangeProcessor : IProfileChangeProcessor
     {
-        private readonly ICacheManager _cache;
+        private readonly ICategoryCache _cache;
         private readonly ICategoryStore _categoryStore;
         private readonly IEventTrigger _eventTrigger;
         private readonly ICategoryLinkStore _linkStore;
@@ -24,7 +24,7 @@
             ICategoryLinkStore linkStore,
             IEventTrigger eventTrigger,
             IProfileCache profileCache,
-            ICacheManager cache)
+            ICategoryCache cache)
         {
             Ensure.Any.IsNotNull(profileStore, nameof(profileStore));
             Ensure.Any.IsNotNull(categoryStore, nameof(categoryStore));

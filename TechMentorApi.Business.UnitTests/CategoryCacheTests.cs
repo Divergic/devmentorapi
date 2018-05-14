@@ -9,7 +9,7 @@
     using TechMentorApi.Model;
     using Xunit;
 
-    public class CacheManagerTests
+    public class CategoryCacheTests
     {
         [Fact]
         public void GetCategoriesReturnsCachedCategoriesTest()
@@ -30,7 +30,7 @@
                     return true;
                 });
 
-            var sut = new CacheManager(cache, config);
+            var sut = new CategoryCache(cache, config);
 
             var actual = sut.GetCategories();
 
@@ -49,7 +49,7 @@
 
             cache.TryGetValue(CacheKey, out value).Returns(x => false);
 
-            var sut = new CacheManager(cache, config);
+            var sut = new CategoryCache(cache, config);
 
             var actual = sut.GetCategories();
 
@@ -76,7 +76,7 @@
                     return true;
                 });
 
-            var sut = new CacheManager(cache, config);
+            var sut = new CategoryCache(cache, config);
 
             var actual = sut.GetCategoryLinks(filter);
 
@@ -96,7 +96,7 @@
 
             cache.TryGetValue(cacheKey, out value).Returns(x => false);
 
-            var sut = new CacheManager(cache, config);
+            var sut = new CategoryCache(cache, config);
 
             var actual = sut.GetCategoryLinks(filter);
 
@@ -109,7 +109,7 @@
             var cache = Substitute.For<IMemoryCache>();
             var config = Substitute.For<ICacheConfig>();
 
-            var sut = new CacheManager(cache, config);
+            var sut = new CategoryCache(cache, config);
 
             Action action = () => sut.GetCategoryLinks(null);
 
@@ -135,7 +135,7 @@
                     return true;
                 });
 
-            var sut = new CacheManager(cache, config);
+            var sut = new CategoryCache(cache, config);
 
             var actual = sut.GetCategory(expected.Group, expected.Name);
 
@@ -155,7 +155,7 @@
 
             cache.TryGetValue(cacheKey, out value).Returns(x => false);
 
-            var sut = new CacheManager(cache, config);
+            var sut = new CategoryCache(cache, config);
 
             var actual = sut.GetCategory(expected.Group, expected.Name);
 
@@ -170,7 +170,7 @@
             var config = Substitute.For<ICacheConfig>();
             var cacheKey = "CategoryLinks|" + filter.CategoryGroup + "|" + filter.CategoryName;
 
-            var sut = new CacheManager(cache, config);
+            var sut = new CategoryCache(cache, config);
 
             sut.RemoveCategoryLinks(filter);
 
@@ -183,7 +183,7 @@
             var cache = Substitute.For<IMemoryCache>();
             var config = Substitute.For<ICacheConfig>();
 
-            var sut = new CacheManager(cache, config);
+            var sut = new CategoryCache(cache, config);
 
             Action action = () => sut.RemoveCategoryLinks(null);
 
@@ -196,7 +196,7 @@
             var cache = Substitute.For<IMemoryCache>();
             var config = Substitute.For<ICacheConfig>();
 
-            var sut = new CacheManager(cache, config);
+            var sut = new CategoryCache(cache, config);
 
             sut.RemoveCategories();
 
@@ -212,7 +212,7 @@
             var cache = Substitute.For<IMemoryCache>();
             var config = Substitute.For<ICacheConfig>();
 
-            var sut = new CacheManager(cache, config);
+            var sut = new CategoryCache(cache, config);
 
             sut.RemoveCategory(expected.Group, expected.Name);
 
@@ -225,7 +225,7 @@
             var cache = Substitute.For<IMemoryCache>();
             var config = Substitute.For<ICacheConfig>();
 
-            var sut = new CacheManager(cache, config);
+            var sut = new CategoryCache(cache, config);
 
             Action action = () => sut.StoreCategories(null);
 
@@ -246,7 +246,7 @@
             config.CategoriesExpiration.Returns(cacheExpiry);
             cache.CreateEntry(CacheKey).Returns(cacheEntry);
 
-            var sut = new CacheManager(cache, config);
+            var sut = new CategoryCache(cache, config);
 
             sut.StoreCategories(expected);
 
@@ -261,7 +261,7 @@
             var cache = Substitute.For<IMemoryCache>();
             var config = Substitute.For<ICacheConfig>();
 
-            var sut = new CacheManager(cache, config);
+            var sut = new CategoryCache(cache, config);
 
             Action action = () => sut.StoreCategoryLinks(filter, null);
 
@@ -275,7 +275,7 @@
             var cache = Substitute.For<IMemoryCache>();
             var config = Substitute.For<ICacheConfig>();
 
-            var sut = new CacheManager(cache, config);
+            var sut = new CategoryCache(cache, config);
 
             Action action = () => sut.StoreCategoryLinks(null, links);
 
@@ -297,7 +297,7 @@
             config.CategoryLinksExpiration.Returns(cacheExpiry);
             cache.CreateEntry(cacheKey).Returns(cacheEntry);
 
-            var sut = new CacheManager(cache, config);
+            var sut = new CategoryCache(cache, config);
 
             sut.StoreCategoryLinks(filter, expected);
 
@@ -311,7 +311,7 @@
             var cache = Substitute.For<IMemoryCache>();
             var config = Substitute.For<ICacheConfig>();
 
-            var sut = new CacheManager(cache, config);
+            var sut = new CategoryCache(cache, config);
 
             Action action = () => sut.StoreCategory(null);
 
@@ -332,7 +332,7 @@
             config.CategoriesExpiration.Returns(cacheExpiry);
             cache.CreateEntry(cacheKey).Returns(cacheEntry);
 
-            var sut = new CacheManager(cache, config);
+            var sut = new CategoryCache(cache, config);
 
             sut.StoreCategory(expected);
 
@@ -345,7 +345,7 @@
         {
             var config = Substitute.For<ICacheConfig>();
 
-            Action action = () => new CacheManager(null, config);
+            Action action = () => new CategoryCache(null, config);
 
             action.Should().Throw<ArgumentNullException>();
         }
@@ -355,7 +355,7 @@
         {
             var cache = Substitute.For<IMemoryCache>();
 
-            Action action = () => new CacheManager(cache, null);
+            Action action = () => new CategoryCache(cache, null);
 
             action.Should().Throw<ArgumentNullException>();
         }

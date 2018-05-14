@@ -28,7 +28,7 @@
             var categoryStore = Substitute.For<ICategoryStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var profileCache = Substitute.For<IProfileCache>();
-            var cacheManager = Substitute.For<ICacheManager>();
+            var cacheManager = Substitute.For<ICategoryCache>();
             var eventTrigger = Substitute.For<IEventTrigger>();
 
             var sut = new ProfileChangeProcessor(
@@ -80,7 +80,7 @@
             var categoryStore = Substitute.For<ICategoryStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var profileCache = Substitute.For<IProfileCache>();
-            var cacheManager = Substitute.For<ICacheManager>();
+            var cacheManager = Substitute.For<ICategoryCache>();
             var eventTrigger = Substitute.For<IEventTrigger>();
 
             var sut = new ProfileChangeProcessor(
@@ -133,7 +133,7 @@
             var categoryStore = Substitute.For<ICategoryStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var profileCache = Substitute.For<IProfileCache>();
-            var cacheManager = Substitute.For<ICacheManager>();
+            var cacheManager = Substitute.For<ICategoryCache>();
             var eventTrigger = Substitute.For<IEventTrigger>();
 
             var sut = new ProfileChangeProcessor(
@@ -184,7 +184,7 @@
             var categoryStore = Substitute.For<ICategoryStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var profileCache = Substitute.For<IProfileCache>();
-            var cacheManager = Substitute.For<ICacheManager>();
+            var cacheManager = Substitute.For<ICategoryCache>();
             var eventTrigger = Substitute.For<IEventTrigger>();
 
             var sut = new ProfileChangeProcessor(
@@ -225,7 +225,7 @@
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var eventTrigger = Substitute.For<IEventTrigger>();
             var profileCache = Substitute.For<IProfileCache>();
-            var cacheManager = Substitute.For<ICacheManager>();
+            var cacheManager = Substitute.For<ICategoryCache>();
 
             var sut = new ProfileChangeProcessor(
                 profileStore,
@@ -254,7 +254,7 @@
             var categoryStore = Substitute.For<ICategoryStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var profileCache = Substitute.For<IProfileCache>();
-            var cacheManager = Substitute.For<ICacheManager>();
+            var cacheManager = Substitute.For<ICategoryCache>();
             var eventTrigger = Substitute.For<IEventTrigger>();
 
             var sut = new ProfileChangeProcessor(
@@ -286,7 +286,7 @@
             var categoryStore = Substitute.For<ICategoryStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var profileCache = Substitute.For<IProfileCache>();
-            var cacheManager = Substitute.For<ICacheManager>();
+            var cacheManager = Substitute.For<ICategoryCache>();
             var eventTrigger = Substitute.For<IEventTrigger>();
 
             var sut = new ProfileChangeProcessor(
@@ -344,7 +344,7 @@
             var categoryStore = Substitute.For<ICategoryStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var profileCache = Substitute.For<IProfileCache>();
-            var cacheManager = Substitute.For<ICacheManager>();
+            var cacheManager = Substitute.For<ICategoryCache>();
             var eventTrigger = Substitute.For<IEventTrigger>();
 
             var sut = new ProfileChangeProcessor(
@@ -392,7 +392,7 @@
             var categoryStore = Substitute.For<ICategoryStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var profileCache = Substitute.For<IProfileCache>();
-            var cacheManager = Substitute.For<ICacheManager>();
+            var cacheManager = Substitute.For<ICategoryCache>();
             var eventTrigger = Substitute.For<IEventTrigger>();
 
             var sut = new ProfileChangeProcessor(
@@ -418,7 +418,7 @@
             var categoryStore = Substitute.For<ICategoryStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var profileCache = Substitute.For<IProfileCache>();
-            var cacheManager = Substitute.For<ICacheManager>();
+            var cacheManager = Substitute.For<ICategoryCache>();
             var eventTrigger = Substitute.For<IEventTrigger>();
 
             var sut = new ProfileChangeProcessor(
@@ -449,7 +449,7 @@
             var categoryStore = Substitute.For<ICategoryStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var profileCache = Substitute.For<IProfileCache>();
-            var cacheManager = Substitute.For<ICacheManager>();
+            var cacheManager = Substitute.For<ICategoryCache>();
             var eventTrigger = Substitute.For<IEventTrigger>();
 
             var sut = new ProfileChangeProcessor(
@@ -486,7 +486,7 @@
             var categoryStore = Substitute.For<ICategoryStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var profileCache = Substitute.For<IProfileCache>();
-            var cacheManager = Substitute.For<ICacheManager>();
+            var cacheManager = Substitute.For<ICategoryCache>();
             var eventTrigger = Substitute.For<IEventTrigger>();
 
             var sut = new ProfileChangeProcessor(
@@ -517,7 +517,7 @@
             var categoryStore = Substitute.For<ICategoryStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var profileCache = Substitute.For<IProfileCache>();
-            var cacheManager = Substitute.For<ICacheManager>();
+            var cacheManager = Substitute.For<ICategoryCache>();
             var eventTrigger = Substitute.For<IEventTrigger>();
 
             var sut = new ProfileChangeProcessor(
@@ -563,7 +563,7 @@
             var profileStore = Substitute.For<IProfileStore>();
             var categoryStore = Substitute.For<ICategoryStore>();
             var profileCache = Substitute.For<IProfileCache>();
-            var cacheManager = Substitute.For<ICacheManager>();
+            var cacheManager = Substitute.For<ICategoryCache>();
             var eventTrigger = Substitute.For<IEventTrigger>();
 
             Action action = () => new ProfileChangeProcessor(
@@ -583,7 +583,7 @@
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var profileCache = Substitute.For<IProfileCache>();
-            var cacheManager = Substitute.For<ICacheManager>();
+            var cacheManager = Substitute.For<ICategoryCache>();
             var eventTrigger = Substitute.For<IEventTrigger>();
 
             Action action = () => new ProfileChangeProcessor(
@@ -604,7 +604,7 @@
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var profileCache = Substitute.For<IProfileCache>();
-            var cacheManager = Substitute.For<ICacheManager>();
+            var cacheManager = Substitute.For<ICategoryCache>();
 
             Action action = () => new ProfileChangeProcessor(
                 profileStore,
@@ -623,7 +623,7 @@
             var categoryStore = Substitute.For<ICategoryStore>();
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var cacheManager = Substitute.For<ICacheManager>();
+            var cacheManager = Substitute.For<ICategoryCache>();
             var eventTrigger = Substitute.For<IEventTrigger>();
 
             Action action = () => new ProfileChangeProcessor(
@@ -643,7 +643,7 @@
             var categoryStore = Substitute.For<ICategoryStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
             var profileCache = Substitute.For<IProfileCache>();
-            var cacheManager = Substitute.For<ICacheManager>();
+            var cacheManager = Substitute.For<ICategoryCache>();
             var eventTrigger = Substitute.For<IEventTrigger>();
 
             Action action = () => new ProfileChangeProcessor(

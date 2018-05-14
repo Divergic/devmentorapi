@@ -20,7 +20,7 @@
             var category = Model.Create<Category>().Set(x => x.Group = expected.Group).Set(x => x.Name = expected.Name);
 
             var store = Substitute.For<ICategoryStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<ICategoryCache>();
 
             var sut = new CategoryCommand(store, cache);
 
@@ -54,7 +54,7 @@
             var expected = Model.Create<NewCategory>();
 
             var store = Substitute.For<ICategoryStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<ICategoryCache>();
 
             var sut = new CategoryCommand(store, cache);
 
@@ -86,7 +86,7 @@
             var expected = Model.Create<NewCategory>();
 
             var store = Substitute.For<ICategoryStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<ICategoryCache>();
 
             var sut = new CategoryCommand(store, cache);
 
@@ -103,7 +103,7 @@
         public void CreateCategoryThrowsExceptionWithNullCategoryTest()
         {
             var store = Substitute.For<ICategoryStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<ICategoryCache>();
 
             var sut = new CategoryCommand(store, cache);
 
@@ -126,7 +126,7 @@
         [Fact]
         public void ThrowsExceptionWhenCreatedWithNullCategoryStoreTest()
         {
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<ICategoryCache>();
 
             Action action = () => new CategoryCommand(null, cache);
 
@@ -140,7 +140,7 @@
             var category = Model.Create<Category>().Set(x => x.Group = expected.Group).Set(x => x.Name = expected.Name);
 
             var store = Substitute.For<ICategoryStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<ICategoryCache>();
 
             var sut = new CategoryCommand(store, cache);
 
@@ -176,7 +176,7 @@
             var category = Model.Create<Category>().Set(x => x.Group = expected.Group).Set(x => x.Name = expected.Name);
 
             var store = Substitute.For<ICategoryStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<ICategoryCache>();
 
             var sut = new CategoryCommand(store, cache);
 
@@ -200,7 +200,7 @@
             var category = Model.Create<Category>().Set(x => x.Group = expected.Group).Set(x => x.Name = expected.Name);
 
             var store = Substitute.For<ICategoryStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<ICategoryCache>();
 
             var sut = new CategoryCommand(store, cache);
 
@@ -221,7 +221,7 @@
             var expected = Model.Create<Category>();
 
             var store = Substitute.For<ICategoryStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<ICategoryCache>();
 
             var sut = new CategoryCommand(store, cache);
 
@@ -238,7 +238,7 @@
         public void UpdateCategoryThrowsExceptionWithNullCategoryTest()
         {
             var store = Substitute.For<ICategoryStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<ICategoryCache>();
 
             var sut = new CategoryCommand(store, cache);
 

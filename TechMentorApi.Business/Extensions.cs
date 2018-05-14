@@ -19,7 +19,7 @@
             return items;
         }
 
-        internal static void RemoveCategory(this ICacheManager cache, ProfileFilter filter)
+        internal static void RemoveCategory(this ICategoryCache cache, ProfileFilter filter)
         {
             Ensure.Any.IsNotNull(cache, nameof(cache));
             Ensure.Any.IsNotNull(filter, nameof(filter));
@@ -27,7 +27,7 @@
             cache.RemoveCategory(filter.CategoryGroup, filter.CategoryName);
         }
 
-        internal static void RemoveCategory(this ICacheManager cache, Category category)
+        internal static void RemoveCategory(this ICategoryCache cache, Category category)
         {
             Ensure.Any.IsNotNull(cache, nameof(cache));
             Ensure.Any.IsNotNull(category, nameof(category));
