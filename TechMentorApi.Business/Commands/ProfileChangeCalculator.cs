@@ -285,6 +285,16 @@
             Debug.Assert(original != null, "No original profile provided");
             Debug.Assert(updated != null, "No updated profile provided");
 
+            if (original.AcceptCoC != updated.AcceptCoC)
+            {
+                return true;
+            }
+
+            if (original.AcceptTaC != updated.AcceptTaC)
+            {
+                return true;
+            }
+
             if (HasStringChanged(original.About, updated.About))
             {
                 return true;

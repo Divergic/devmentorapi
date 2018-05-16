@@ -4,7 +4,7 @@
     using System.Collections.Generic;
     using TechMentorApi.Model;
 
-    public interface ICacheManager
+    public interface ICategoryCache
     {
         ICollection<Category> GetCategories();
 

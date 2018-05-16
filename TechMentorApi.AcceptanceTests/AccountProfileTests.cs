@@ -56,7 +56,7 @@
 
             var address = ApiLocation.AccountProfile;
 
-            await Client.Delete(address, _logger, identity, HttpStatusCode.NoContent).ConfigureAwait(false);
+            await Client.Delete(address, _logger, identity).ConfigureAwait(false);
 
             var profileAddress = ApiLocation.ProfileFor(profile.Id);
 
@@ -87,7 +87,7 @@
 
             var address = ApiLocation.AccountProfile;
 
-            await Client.Delete(address, _logger, identity, HttpStatusCode.NoContent).ConfigureAwait(false);
+            await Client.Delete(address, _logger, identity).ConfigureAwait(false);
 
             var profileResults = await Client.Get<List<ProfileResult>>(searchAddress, _logger).ConfigureAwait(false);
 
@@ -116,7 +116,7 @@
 
             var address = ApiLocation.AccountProfile;
 
-            await Client.Delete(address, _logger, identity, HttpStatusCode.NoContent).ConfigureAwait(false);
+            await Client.Delete(address, _logger, identity).ConfigureAwait(false);
 
             await IsDeleted(profile.Id, identity).ConfigureAwait(false);
         }
@@ -135,7 +135,7 @@
 
             var actual = await Client.Get<Profile>(address, _logger, identity).ConfigureAwait(false);
 
-            await Client.Delete(address, _logger, identity, HttpStatusCode.NoContent).ConfigureAwait(false);
+            await Client.Delete(address, _logger, identity).ConfigureAwait(false);
 
             await IsDeleted(actual.Id, identity).ConfigureAwait(false);
         }
@@ -158,7 +158,7 @@
 
             var address = ApiLocation.AccountProfile;
 
-            await Client.Delete(address, _logger, identity, HttpStatusCode.NoContent).ConfigureAwait(false);
+            await Client.Delete(address, _logger, identity).ConfigureAwait(false);
 
             await IsDeleted(profile.Id, identity).ConfigureAwait(false);
         }
@@ -180,11 +180,11 @@
 
             await profile.SaveAllCategories(_logger).ConfigureAwait(false);
 
-            profile = await profile.Save(_logger, account).ConfigureAwait(false);
+            await profile.Save(_logger, account).ConfigureAwait(false);
 
             var address = ApiLocation.AccountProfile;
 
-            await Client.Delete(address, _logger, identity, HttpStatusCode.NoContent).ConfigureAwait(false);
+            await Client.Delete(address, _logger, identity).ConfigureAwait(false);
 
             var actual = await Client.Get<Profile>(address, _logger, identity).ConfigureAwait(false);
 
@@ -413,11 +413,14 @@
             var client = storageAccount.CreateCloudQueueClient();
             var queue = client.GetQueueReference(queueName);
 
-            var queueItem = await queue.GetMessageAsync().ConfigureAwait(false);
+            var queueItems = (await queue.GetMessagesAsync(32).ConfigureAwait(false)).ToList();
 
-            while (queueItem != null)
+            while (queueItems.Count > 0)
             {
-                var actual = queueItem.AsString;
+                var items = from x in queueItems
+                    select x.AsString;
+
+                var actual = items.FirstOrDefault(x => x == expected);
 
                 if (actual == expected)
                 {
@@ -426,7 +429,7 @@
                 }
 
                 // Check the next queue item
-                queueItem = await queue.GetMessageAsync().ConfigureAwait(false);
+                queueItems = (await queue.GetMessagesAsync(32).ConfigureAwait(false)).ToList();
             }
 
             throw new InvalidOperationException("Expected queue item was not found.");
@@ -706,13 +709,31 @@
                 .ConfigureAwait(false);
         }
 
-        [Fact]
-        public async Task PutReturnsBadRequestWhenAcceptCoCIsFalseTest()
+        [Theory]
+        [InlineData(ProfileStatus.Available, false, false, HttpStatusCode.BadRequest)]
+        [InlineData(ProfileStatus.Available, false, true, HttpStatusCode.BadRequest)]
+        [InlineData(ProfileStatus.Available, true, false, HttpStatusCode.BadRequest)]
+        [InlineData(ProfileStatus.Available, true, true, HttpStatusCode.NoContent)]
+        [InlineData(ProfileStatus.Unavailable, false, false, HttpStatusCode.BadRequest)]
+        [InlineData(ProfileStatus.Unavailable, false, true, HttpStatusCode.BadRequest)]
+        [InlineData(ProfileStatus.Unavailable, true, false, HttpStatusCode.BadRequest)]
+        [InlineData(ProfileStatus.Unavailable, true, true, HttpStatusCode.NoContent)]
+        [InlineData(ProfileStatus.Hidden, false, false, HttpStatusCode.NoContent)]
+        [InlineData(ProfileStatus.Hidden, false, true, HttpStatusCode.NoContent)]
+        [InlineData(ProfileStatus.Hidden, true, false, HttpStatusCode.NoContent)]
+        [InlineData(ProfileStatus.Hidden, true, true, HttpStatusCode.NoContent)]
+        public async Task PutEvaluatesProfileConsentTest(ProfileStatus status, bool acceptCoC, bool acceptTaC,
+            HttpStatusCode statusCode)
         {
-            var expected = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<UpdatableProfile>().Set(x => x.AcceptCoC = false);
+            var expected = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<UpdatableProfile>().Set(x =>
+            {
+                x.AcceptCoC = acceptCoC;
+                x.AcceptTaC = acceptTaC;
+                x.Status = status;
+            });
             var user = ClaimsIdentityFactory.Build(null, expected);
 
-            await Client.Put(ApiLocation.AccountProfile, _logger, expected, user, HttpStatusCode.BadRequest)
+            await Client.Put(ApiLocation.AccountProfile, _logger, expected, user, statusCode)
                 .ConfigureAwait(false);
         }
 
@@ -790,9 +811,7 @@
         private async Task IsDeleted(Guid profileId, IIdentity identity)
         {
             var accountReference = new Account(identity.Name);
-            var accountStore = new AccountStore(Config.Storage);
             var storageAccount = CloudStorageAccount.Parse(Config.AzureConnectionString);
-            var adapter = new AccountAdapter(accountReference);
             var operation = TableOperation.Retrieve<AccountAdapter>(accountReference.Provider, accountReference.Subject);
 
             var client = storageAccount.CreateCloudTableClient();

@@ -61,6 +61,8 @@
                 // This must be second because it calls all subsequent middleware and watches for failures
                 app.UseMiddleware<ExceptionMonitorMiddleware>();
 
+                app.UseSentry(Configuration.Sentry.Dsn);
+
                 app.UseMiddleware<OversizeDataExceptionMiddleware>();
 
                 app.UseCors(builder => builder.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());

@@ -8,10 +8,10 @@
 
     public class CategoryCommand : ICategoryCommand
     {
-        private readonly ICacheManager _cache;
+        private readonly ICategoryCache _cache;
         private readonly ICategoryStore _store;
 
-        public CategoryCommand(ICategoryStore store, ICacheManager cache)
+        public CategoryCommand(ICategoryStore store, ICategoryCache cache)
         {
             Ensure.Any.IsNotNull(store, nameof(store));
             Ensure.Any.IsNotNull(cache, nameof(cache));

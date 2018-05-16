@@ -21,7 +21,7 @@
             var expected = Model.Create<List<Category>>();
 
             var store = Substitute.For<ICategoryStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<ICategoryCache>();
 
             var sut = new CategoryQuery(store, cache);
 
@@ -43,7 +43,7 @@
             var expected = Model.Create<List<Category>>();
 
             var store = Substitute.For<ICategoryStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<ICategoryCache>();
 
             cache.GetCategories().Returns(expected);
 
@@ -63,7 +63,7 @@
             var expected = Model.Create<List<Category>>();
 
             var store = Substitute.For<ICategoryStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<ICategoryCache>();
 
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -82,7 +82,7 @@
         public async Task GetCategoriesReturnsEmptyListWhenCategoriesNotFoundTest()
         {
             var store = Substitute.For<ICategoryStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<ICategoryCache>();
 
             var sut = new CategoryQuery(store, cache);
 
@@ -104,7 +104,7 @@
             var expected = categories.Where(x => x.Visible).ToList();
 
             var store = Substitute.For<ICategoryStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<ICategoryCache>();
 
             cache.GetCategories().Returns(expected);
 
@@ -125,7 +125,7 @@
             var expected = categories.Where(x => x.Visible);
 
             var store = Substitute.For<ICategoryStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<ICategoryCache>();
 
             var sut = new CategoryQuery(store, cache);
 
@@ -146,7 +146,7 @@
             var expected = Model.Create<Category>();
 
             var store = Substitute.For<ICategoryStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<ICategoryCache>();
 
             var sut = new CategoryQuery(store, cache);
 
@@ -175,7 +175,7 @@
             var expected = Model.Create<Category>().Set(x => x.Visible = isVisible);
 
             var store = Substitute.For<ICategoryStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<ICategoryCache>();
 
             var sut = new CategoryQuery(store, cache);
 
@@ -203,7 +203,7 @@
             var expected = Model.Create<Category>();
 
             var store = Substitute.For<ICategoryStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<ICategoryCache>();
 
             var sut = new CategoryQuery(store, cache);
 
@@ -225,7 +225,7 @@
             var expected = Model.Create<Category>();
 
             var store = Substitute.For<ICategoryStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<ICategoryCache>();
 
             var sut = new CategoryQuery(store, cache);
 
@@ -251,7 +251,7 @@
         public void GetCategoryThrowsExceptionWithInvalidNameTest(string name)
         {
             var store = Substitute.For<ICategoryStore>();
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<ICategoryCache>();
 
             var sut = new CategoryQuery(store, cache);
 
@@ -275,7 +275,7 @@
         [Fact]
         public void ThrowsExceptionWhenCreatedWithNullCategoryStoreTest()
         {
-            var cache = Substitute.For<ICacheManager>();
+            var cache = Substitute.For<ICategoryCache>();
 
             Action action = () => new CategoryQuery(null, cache);
 

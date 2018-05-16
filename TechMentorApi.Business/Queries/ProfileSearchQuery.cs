@@ -11,7 +11,7 @@
 
     public class ProfileSearchQuery : IProfileSearchQuery
     {
-        private readonly ICacheManager _cache;
+        private readonly ICategoryCache _cache;
         private readonly ICategoryLinkStore _linkStore;
         private readonly IProfileCache _profileCache;
         private readonly IProfileStore _profileStore;
@@ -22,7 +22,7 @@
             IProfileStore profileStore,
             ICategoryLinkStore linkStore,
             IProfileCache profileCache,
-            ICacheManager cache)
+            ICategoryCache cache)
         {
             Ensure.Any.IsNotNull(profileStore, nameof(profileStore));
             Ensure.Any.IsNotNull(linkStore, nameof(linkStore));

@@ -7,13 +7,13 @@
     using Microsoft.Extensions.Caching.Memory;
     using TechMentorApi.Model;
 
-    public class CacheManager : ICacheManager
+    public class CategoryCache : ICategoryCache
     {
         private const string CategoriesCacheKey = "Categories";
         private readonly IMemoryCache _cache;
         private readonly ICacheConfig _config;
 
-        public CacheManager(IMemoryCache cache, ICacheConfig config)
+        public CategoryCache(IMemoryCache cache, ICacheConfig config)
         {
             Ensure.Any.IsNotNull(cache, nameof(cache));
             Ensure.Any.IsNotNull(config, nameof(config));

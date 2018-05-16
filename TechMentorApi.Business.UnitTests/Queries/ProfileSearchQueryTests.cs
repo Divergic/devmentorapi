@@ -52,7 +52,7 @@
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var categoryCache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICategoryCache>();
             var query = Substitute.For<ICategoryQuery>();
             var profileCache = Substitute.For<IProfileCache>();
 
@@ -94,7 +94,7 @@
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var categoryCache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICategoryCache>();
             var query = Substitute.For<ICategoryQuery>();
             var profileCache = Substitute.For<IProfileCache>();
 
@@ -160,7 +160,7 @@
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var categoryCache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICategoryCache>();
             var query = Substitute.For<ICategoryQuery>();
             var profileCache = Substitute.For<IProfileCache>();
 
@@ -222,7 +222,7 @@
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var categoryCache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICategoryCache>();
             var query = Substitute.For<ICategoryQuery>();
             var profileCache = Substitute.For<IProfileCache>();
 
@@ -281,7 +281,7 @@
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var categoryCache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICategoryCache>();
             var query = Substitute.For<ICategoryQuery>();
             var profileCache = Substitute.For<IProfileCache>();
 
@@ -343,7 +343,7 @@
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var categoryCache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICategoryCache>();
             var query = Substitute.For<ICategoryQuery>();
             var profileCache = Substitute.For<IProfileCache>();
 
@@ -380,7 +380,7 @@
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var categoryCache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICategoryCache>();
             var query = Substitute.For<ICategoryQuery>();
             var profileCache = Substitute.For<IProfileCache>();
 
@@ -412,7 +412,7 @@
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var categoryCache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICategoryCache>();
             var query = Substitute.For<ICategoryQuery>();
             var profileCache = Substitute.For<IProfileCache>();
 
@@ -445,7 +445,7 @@
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var categoryCache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICategoryCache>();
             var query = Substitute.For<ICategoryQuery>();
             var profileCache = Substitute.For<IProfileCache>();
 
@@ -492,7 +492,7 @@
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var categoryCache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICategoryCache>();
             var query = Substitute.For<ICategoryQuery>();
             var profileCache = Substitute.For<IProfileCache>();
 
@@ -547,7 +547,7 @@
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var categoryCache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICategoryCache>();
             var query = Substitute.For<ICategoryQuery>();
             var profileCache = Substitute.For<IProfileCache>();
 
@@ -621,7 +621,7 @@
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var categoryCache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICategoryCache>();
             var query = Substitute.For<ICategoryQuery>();
             var profileCache = Substitute.For<IProfileCache>();
 
@@ -665,7 +665,7 @@
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var categoryCache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICategoryCache>();
             var query = Substitute.For<ICategoryQuery>();
             var profileCache = Substitute.For<IProfileCache>();
 
@@ -704,7 +704,7 @@
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var categoryCache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICategoryCache>();
             var query = Substitute.For<ICategoryQuery>();
             var profileCache = Substitute.For<IProfileCache>();
 
@@ -757,7 +757,7 @@
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var categoryCache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICategoryCache>();
             var query = Substitute.For<ICategoryQuery>();
             var profileCache = Substitute.For<IProfileCache>();
 
@@ -831,7 +831,7 @@
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var categoryCache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICategoryCache>();
             var query = Substitute.For<ICategoryQuery>();
             var profileCache = Substitute.For<IProfileCache>();
 
@@ -871,7 +871,7 @@
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var categoryCache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICategoryCache>();
             var query = Substitute.For<ICategoryQuery>();
             var profileCache = Substitute.For<IProfileCache>();
 
@@ -933,7 +933,7 @@
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var categoryCache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICategoryCache>();
             var query = Substitute.For<ICategoryQuery>();
             var profileCache = Substitute.For<IProfileCache>();
 
@@ -1018,7 +1018,7 @@
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var categoryCache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICategoryCache>();
             var query = Substitute.For<ICategoryQuery>();
             var profileCache = Substitute.For<IProfileCache>();
 
@@ -1080,7 +1080,7 @@
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var categoryCache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICategoryCache>();
             var query = Substitute.For<ICategoryQuery>();
             var profileCache = Substitute.For<IProfileCache>();
 
@@ -1153,7 +1153,7 @@
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var categoryCache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICategoryCache>();
             var query = Substitute.For<ICategoryQuery>();
             var profileCache = Substitute.For<IProfileCache>();
 
@@ -1202,7 +1202,7 @@
 
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var categoryCache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICategoryCache>();
             var query = Substitute.For<ICategoryQuery>();
             var profileCache = Substitute.For<IProfileCache>();
 
@@ -1250,7 +1250,7 @@
         public void ThrowsExceptionWhenCreatedWithNullLinkStoreTest()
         {
             var profileStore = Substitute.For<IProfileStore>();
-            var categoryCache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICategoryCache>();
             var query = Substitute.For<ICategoryQuery>();
             var profileCache = Substitute.For<IProfileCache>();
 
@@ -1264,7 +1264,7 @@
         {
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var categoryCache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICategoryCache>();
             var query = Substitute.For<ICategoryQuery>();
 
             Action action = () => new ProfileSearchQuery(query, profileStore, linkStore, null, categoryCache);
@@ -1276,7 +1276,7 @@
         public void ThrowsExceptionWhenCreatedWithNullProfileStoreTest()
         {
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var categoryCache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICategoryCache>();
             var query = Substitute.For<ICategoryQuery>();
             var profileCache = Substitute.For<IProfileCache>();
 
@@ -1290,7 +1290,7 @@
         {
             var profileStore = Substitute.For<IProfileStore>();
             var linkStore = Substitute.For<ICategoryLinkStore>();
-            var categoryCache = Substitute.For<ICacheManager>();
+            var categoryCache = Substitute.For<ICategoryCache>();
             var profileCache = Substitute.For<IProfileCache>();
 
             Action action = () => new ProfileSearchQuery(null, profileStore, linkStore, profileCache, categoryCache);

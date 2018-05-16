@@ -5,7 +5,7 @@
     using System.ComponentModel.DataAnnotations;
     using TechMentorApi.Model.Properties;
 
-    public class UpdatableProfile
+    public class UpdatableProfile : IValidatableObject
     {
         private ICollection<string> _languages;
         private ICollection<Skill> _skills;
@@ -16,10 +16,33 @@
             Skills = new List<Skill>();
         }
 
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (Status != ProfileStatus.Hidden)
+            {
+                // Check to see if there is consent to have this profile visible
+                if (AcceptCoC == false &&
+                    AcceptTaC == false)
+                {
+                    yield return new ValidationResult(Resources.NoConsent_Message,
+                        new[] {nameof(AcceptCoC), nameof(AcceptTaC)});
+                }
+                else if (AcceptCoC == false)
+                {
+                    yield return new ValidationResult(Resources.NoCocConsent_Message, new[] {nameof(AcceptCoC)});
+                }
+                else if (AcceptTaC == false)
+                {
+                    yield return new ValidationResult(Resources.NoTacConsent_Message, new[] {nameof(AcceptTaC)});
+                }
+            }
+        }
+
         public string About { get; set; }
 
-        [RequireBoolean]
         public bool AcceptCoC { get; set; }
+
+        public bool AcceptTaC { get; set; }
 
         public int? BirthYear { get; set; }
 
@@ -30,7 +53,8 @@
         [Required]
         public string FirstName { get; set; }
 
-        [RegularExpression("^[^\\\\/]*$", ErrorMessageResourceName = "NoSlashAttribute_MessageFormat", ErrorMessageResourceType = typeof(Resources))]
+        [RegularExpression("^[^\\\\/]*$", ErrorMessageResourceName = "NoSlashAttribute_MessageFormat",
+            ErrorMessageResourceType = typeof(Resources))]
         public string Gender { get; set; }
 
         public string GitHubUsername { get; set; }

@@ -10,7 +10,7 @@
     using Microsoft.WindowsAzure.Storage.Queue;
     using Newtonsoft.Json;
 
-    public abstract class QueueStore<T> : IQueueStore<T>
+    public abstract class QueueStore<T> : IQueueStore<T> where T: class
     {
         public static readonly Regex NameExpression = new Regex(
             "^[a-z0-9]+(-?[a-z0-9]+)*$",

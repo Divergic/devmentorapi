@@ -120,8 +120,17 @@
   <data name="InvalidYearInRangeFormat" xml:space="preserve">
     <value>The {0} value is invalid. Please provide a year between 1988 and the current year inclusive.</value>
   </data>
+  <data name="NoCocConsent_Message" xml:space="preserve">
+    <value>You must accept the Code of Conduct to make your profile publicly available.</value>
+  </data>
+  <data name="NoConsent_Message" xml:space="preserve">
+    <value>You must accept the Terms and Conditions as well as the Code of Conduct to make your profile publicly available.</value>
+  </data>
   <data name="NoSlashAttribute_MessageFormat" xml:space="preserve">
     <value>The {0} value must not contain / or \.</value>
+  </data>
+  <data name="NoTacConsent_Message" xml:space="preserve">
+    <value>You must accept the Terms and Conditions to make your profile publicly available.</value>
   </data>
   <data name="NotFoundException_Message" xml:space="preserve">
     <value>The requested item was not found.</value>

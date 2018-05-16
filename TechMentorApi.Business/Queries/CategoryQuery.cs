@@ -10,10 +10,10 @@
 
     public class CategoryQuery : ICategoryQuery
     {
-        private readonly ICacheManager _cache;
+        private readonly ICategoryCache _cache;
         private readonly ICategoryStore _store;
 
-        public CategoryQuery(ICategoryStore store, ICacheManager cache)
+        public CategoryQuery(ICategoryStore store, ICategoryCache cache)
         {
             Ensure.Any.IsNotNull(store, nameof(store));
             Ensure.Any.IsNotNull(cache, nameof(cache));

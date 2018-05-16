@@ -70,11 +70,38 @@ namespace TechMentorApi.Model.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You must accept the Code of Conduct to make your profile publicly available..
+        /// </summary>
+        internal static string NoCocConsent_Message {
+            get {
+                return ResourceManager.GetString("NoCocConsent_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You must accept the Terms and Conditions as well as the Code of Conduct to make your profile publicly available..
+        /// </summary>
+        internal static string NoConsent_Message {
+            get {
+                return ResourceManager.GetString("NoConsent_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The {0} value must not contain / or \..
         /// </summary>
         internal static string NoSlashAttribute_MessageFormat {
             get {
                 return ResourceManager.GetString("NoSlashAttribute_MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You must accept the Terms and Conditions to make your profile publicly available..
+        /// </summary>
+        internal static string NoTacConsent_Message {
+            get {
+                return ResourceManager.GetString("NoTacConsent_Message", resourceCulture);
             }
         }
         
