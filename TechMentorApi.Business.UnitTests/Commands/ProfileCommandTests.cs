@@ -486,7 +486,7 @@
             var profile = Model.Create<Profile>().Set(x =>
             {
                 x.AcceptCoC = true;
-                x.AcceptTaC = true;
+                x.AcceptToS = true;
             });
             var changeResult = Model.Create<ProfileChangeResult>().Set(x => x.ProfileChanged = true);
 
@@ -730,14 +730,14 @@
         [InlineData(true, false, false)]
         [InlineData(false, true, true)]
         [InlineData(false, false, false)]
-        public async Task UpdateProfileStoresProfileWithAcceptedTaCAtDependingOnConsentTest(bool originalConsent,
+        public async Task UpdateProfileStoresProfileWithAcceptedToSAtDependingOnConsentTest(bool originalConsent,
             bool updatedConsent, bool timeSet)
         {
-            var expected = Model.Create<UpdatableProfile>().Set(x => x.AcceptTaC = updatedConsent);
+            var expected = Model.Create<UpdatableProfile>().Set(x => x.AcceptToS = updatedConsent);
             var profile = Model.Create<Profile>().Set(x =>
             {
-                x.AcceptTaC = originalConsent;
-                x.AcceptedTaCAt = DateTimeOffset.UtcNow.AddYears(-1);
+                x.AcceptToS = originalConsent;
+                x.AcceptedToSAt = DateTimeOffset.UtcNow.AddYears(-1);
             });
             var changeResult = Model.Create<ProfileChangeResult>().Set(x => x.ProfileChanged = true);
 
@@ -758,14 +758,14 @@
                 if (timeSet)
                 {
                     await processor.Received().Execute(
-                        Verify.That<Profile>(x => x.AcceptedTaCAt.Should().BeCloseTo(DateTimeOffset.UtcNow)),
+                        Verify.That<Profile>(x => x.AcceptedToSAt.Should().BeCloseTo(DateTimeOffset.UtcNow, 1000)),
                         Arg.Any<ProfileChangeResult>(),
                         tokenSource.Token).ConfigureAwait(false);
                 }
                 else
                 {
                     await processor.Received().Execute(
-                        Arg.Is<Profile>(x => x.AcceptedTaCAt == profile.AcceptedTaCAt),
+                        Arg.Is<Profile>(x => x.AcceptedToSAt == profile.AcceptedToSAt),
                         Arg.Any<ProfileChangeResult>(),
                         tokenSource.Token).ConfigureAwait(false);
                 }
@@ -779,7 +779,7 @@
             var profile = Model.Create<Profile>().Set(x =>
             {
                 x.AcceptCoC = true;
-                x.AcceptTaC = true;
+                x.AcceptToS = true;
                 x.AcceptedCoCAt = DateTimeOffset.UtcNow;
             });
             var changeResult = Model.Create<ProfileChangeResult>().Set(x => x.ProfileChanged = true);
@@ -807,14 +807,14 @@
         }
 
         [Fact]
-        public async Task UpdateProfileStoresProfileWithOriginalProfileAcceptedTaCAtValueTest()
+        public async Task UpdateProfileStoresProfileWithOriginalProfileAcceptedToSAtValueTest()
         {
             var expected = Model.Create<UpdatableProfile>();
             var profile = Model.Create<Profile>().Set(x =>
             {
                 x.AcceptCoC = true;
-                x.AcceptTaC = true;
-                x.AcceptedTaCAt = DateTimeOffset.UtcNow;
+                x.AcceptToS = true;
+                x.AcceptedToSAt = DateTimeOffset.UtcNow;
             });
             var changeResult = Model.Create<ProfileChangeResult>().Set(x => x.ProfileChanged = true);
 
@@ -832,9 +832,9 @@
 
                 await sut.UpdateProfile(profile.Id, expected, tokenSource.Token).ConfigureAwait(false);
 
-                if (profile.AcceptedTaCAt.HasValue)
+                if (profile.AcceptedToSAt.HasValue)
                 {
-                    _output.WriteLine(profile.AcceptedTaCAt.Value.ToString());
+                    _output.WriteLine(profile.AcceptedToSAt.Value.ToString());
                 }
                 else
                 {
@@ -842,7 +842,7 @@
                 }
 
                 await processor.Received().Execute(
-                    Arg.Is<Profile>(x => x.AcceptedTaCAt == profile.AcceptedTaCAt),
+                    Arg.Is<Profile>(x => x.AcceptedToSAt == profile.AcceptedToSAt),
                     Arg.Any<ProfileChangeResult>(),
                     tokenSource.Token).ConfigureAwait(false);
                 cache.DidNotReceive().StoreProfile(Arg.Any<Profile>());

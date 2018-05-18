@@ -124,16 +124,16 @@
     <value>You must accept the Code of Conduct to make your profile publicly available.</value>
   </data>
   <data name="NoConsent_Message" xml:space="preserve">
-    <value>You must accept the Terms and Conditions as well as the Code of Conduct to make your profile publicly available.</value>
+    <value>You must accept the Terms of Service as well as the Code of Conduct to make your profile publicly available.</value>
   </data>
   <data name="NoSlashAttribute_MessageFormat" xml:space="preserve">
     <value>The {0} value must not contain / or \.</value>
   </data>
-  <data name="NoTacConsent_Message" xml:space="preserve">
-    <value>You must accept the Terms and Conditions to make your profile publicly available.</value>
-  </data>
   <data name="NotFoundException_Message" xml:space="preserve">
     <value>The requested item was not found.</value>
+  </data>
+  <data name="NoTosConsent_Message" xml:space="preserve">
+    <value>You must accept the Terms of Service to make your profile publicly available.</value>
   </data>
   <data name="RequireBooleanAttribute_Message" xml:space="preserve">
     <value>{0} must be true.</value>

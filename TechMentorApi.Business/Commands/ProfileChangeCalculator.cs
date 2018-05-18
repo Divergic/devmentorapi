@@ -290,7 +290,7 @@
                 return true;
             }
 
-            if (original.AcceptTaC != updated.AcceptTaC)
+            if (original.AcceptToS != updated.AcceptToS)
             {
                 return true;
             }

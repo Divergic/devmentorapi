@@ -16,7 +16,7 @@
 
             About = profile.About;
             AcceptCoC = profile.AcceptCoC;
-            AcceptTaC = profile.AcceptTaC;
+            AcceptToS = profile.AcceptToS;
             BirthYear = profile.BirthYear;
             Email = profile.Email;
             FirstName = profile.FirstName;
@@ -36,7 +36,7 @@
 
         public DateTimeOffset? AcceptedCoCAt { get; set; }
 
-        public DateTimeOffset? AcceptedTaCAt { get; set; }
+        public DateTimeOffset? AcceptedToSAt { get; set; }
 
         public DateTimeOffset? BannedAt { get; set; }
 
