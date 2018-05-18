@@ -30,13 +30,13 @@
         [InlineData(ProfileStatus.Hidden, false, true, false)]
         [InlineData(ProfileStatus.Hidden, true, false, false)]
         [InlineData(ProfileStatus.Hidden, true, true, false)]
-        public void ValidateEvaluatesConsentTest(ProfileStatus status, bool acceptCoC, bool acceptTaC,
+        public void ValidateEvaluatesConsentTest(ProfileStatus status, bool acceptCoC, bool acceptToS,
             bool hasErrors)
         {
             var sut = new UpdatableProfile
             {
                 AcceptCoC = acceptCoC,
-                AcceptTaC = acceptTaC,
+                AcceptToS = acceptToS,
                 Status = status
             };
 
@@ -60,7 +60,7 @@
             var sut = new UpdatableProfile
             {
                 AcceptCoC = false,
-                AcceptTaC = true,
+                AcceptToS = true,
                 Status = ProfileStatus.Available
             };
 
@@ -78,7 +78,7 @@
             var sut = new UpdatableProfile
             {
                 AcceptCoC = false,
-                AcceptTaC = false,
+                AcceptToS = false,
                 Status = ProfileStatus.Available
             };
 
@@ -88,16 +88,16 @@
 
             errors[0].MemberNames.Should().HaveCount(2);
             errors[0].MemberNames.Should().Contain(x => x == nameof(UpdatableProfile.AcceptCoC));
-            errors[0].MemberNames.Should().Contain(x => x == nameof(UpdatableProfile.AcceptTaC));
+            errors[0].MemberNames.Should().Contain(x => x == nameof(UpdatableProfile.AcceptToS));
         }
 
         [Fact]
-        public void ValidateIncludesTaCConsentErrorTest()
+        public void ValidateIncludesToSConsentErrorTest()
         {
             var sut = new UpdatableProfile
             {
                 AcceptCoC = true,
-                AcceptTaC = false,
+                AcceptToS = false,
                 Status = ProfileStatus.Available
             };
 
@@ -106,7 +106,7 @@
             var errors = sut.Validate(context).ToList();
 
             errors[0].MemberNames.Should().HaveCount(1);
-            errors[0].MemberNames.Should().Contain(x => x == nameof(UpdatableProfile.AcceptTaC));
+            errors[0].MemberNames.Should().Contain(x => x == nameof(UpdatableProfile.AcceptToS));
         }
     }
 }

@@ -722,13 +722,13 @@
         [InlineData(ProfileStatus.Hidden, false, true, HttpStatusCode.NoContent)]
         [InlineData(ProfileStatus.Hidden, true, false, HttpStatusCode.NoContent)]
         [InlineData(ProfileStatus.Hidden, true, true, HttpStatusCode.NoContent)]
-        public async Task PutEvaluatesProfileConsentTest(ProfileStatus status, bool acceptCoC, bool acceptTaC,
+        public async Task PutEvaluatesProfileConsentTest(ProfileStatus status, bool acceptCoC, bool acceptToS,
             HttpStatusCode statusCode)
         {
             var expected = Model.UsingBuildStrategy<ProfileBuildStrategy>().Create<UpdatableProfile>().Set(x =>
             {
                 x.AcceptCoC = acceptCoC;
-                x.AcceptTaC = acceptTaC;
+                x.AcceptToS = acceptToS;
                 x.Status = status;
             });
             var user = ClaimsIdentityFactory.Build(null, expected);

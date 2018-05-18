@@ -86,7 +86,7 @@
                     Id = original.Id,
                     BannedAt = original.BannedAt,
                     AcceptedCoCAt = original.AcceptedCoCAt,
-                    AcceptedTaCAt = original.AcceptedTaCAt
+                    AcceptedToSAt = original.AcceptedToSAt
                 };
 
                 // Determine consent changes
@@ -95,9 +95,9 @@
                     updated.AcceptedCoCAt = DateTimeOffset.UtcNow;
                 }
 
-                if (original.AcceptTaC == false && profile.AcceptTaC)
+                if (original.AcceptToS == false && profile.AcceptToS)
                 {
-                    updated.AcceptedTaCAt = DateTimeOffset.UtcNow;
+                    updated.AcceptedToSAt = DateTimeOffset.UtcNow;
                 }
 
                 await _processor.Execute(updated, changes, cancellationToken).ConfigureAwait(false);

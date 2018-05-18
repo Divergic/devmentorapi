@@ -79,7 +79,7 @@ namespace TechMentorApi.Model.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You must accept the Terms and Conditions as well as the Code of Conduct to make your profile publicly available..
+        ///   Looks up a localized string similar to You must accept the Terms of Service as well as the Code of Conduct to make your profile publicly available..
         /// </summary>
         internal static string NoConsent_Message {
             get {
@@ -97,20 +97,20 @@ namespace TechMentorApi.Model.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You must accept the Terms and Conditions to make your profile publicly available..
-        /// </summary>
-        internal static string NoTacConsent_Message {
-            get {
-                return ResourceManager.GetString("NoTacConsent_Message", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The requested item was not found..
         /// </summary>
         internal static string NotFoundException_Message {
             get {
                 return ResourceManager.GetString("NotFoundException_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You must accept the Terms of Service to make your profile publicly available..
+        /// </summary>
+        internal static string NoTosConsent_Message {
+            get {
+                return ResourceManager.GetString("NoTosConsent_Message", resourceCulture);
             }
         }
         

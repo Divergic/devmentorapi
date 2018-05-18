@@ -22,18 +22,18 @@
             {
                 // Check to see if there is consent to have this profile visible
                 if (AcceptCoC == false &&
-                    AcceptTaC == false)
+                    AcceptToS == false)
                 {
                     yield return new ValidationResult(Resources.NoConsent_Message,
-                        new[] {nameof(AcceptCoC), nameof(AcceptTaC)});
+                        new[] {nameof(AcceptCoC), nameof(AcceptToS)});
                 }
                 else if (AcceptCoC == false)
                 {
                     yield return new ValidationResult(Resources.NoCocConsent_Message, new[] {nameof(AcceptCoC)});
                 }
-                else if (AcceptTaC == false)
+                else if (AcceptToS == false)
                 {
-                    yield return new ValidationResult(Resources.NoTacConsent_Message, new[] {nameof(AcceptTaC)});
+                    yield return new ValidationResult(Resources.NoTosConsent_Message, new[] {nameof(AcceptToS)});
                 }
             }
         }
@@ -42,7 +42,7 @@
 
         public bool AcceptCoC { get; set; }
 
-        public bool AcceptTaC { get; set; }
+        public bool AcceptToS { get; set; }
 
         public int? BirthYear { get; set; }
 
