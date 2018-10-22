@@ -7,7 +7,6 @@
     using EnsureThat;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
-    using Swashbuckle.AspNetCore.SwaggerGen;
     using TechMentorApi.Business.Commands;
     using TechMentorApi.Core;
     using TechMentorApi.Model;
@@ -36,8 +35,7 @@
         [Route("profile/photos/")]
         [HttpPost]
         [ProducesResponseType(typeof(PhotoDetails), (int) HttpStatusCode.Created)]
-        [SwaggerResponse((int) HttpStatusCode.Created, typeof(PhotoDetails))]
-        [SwaggerResponse((int) HttpStatusCode.NotFound)]
+        [ProducesResponseType((int) HttpStatusCode.NotFound)]
         public async Task<IActionResult> Post([ContentType] IFormFile file, CancellationToken cancellationToken)
         {
             if (file == null)
@@ -57,11 +55,7 @@
             {
                 var details = await _command.CreatePhoto(photo, cancellationToken).ConfigureAwait(false);
 
-                var routeValues = new
-                {
-                    profileId = details.ProfileId,
-                    photoId = details.Id
-                };
+                var routeValues = new {profileId = details.ProfileId, photoId = details.Id};
 
                 return new CreatedAtRouteResult("ProfilePhoto", routeValues, details);
             }

@@ -7,7 +7,6 @@
     using EnsureThat;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
-    using Swashbuckle.AspNetCore.SwaggerGen;
     using TechMentorApi.Business;
     using TechMentorApi.Business.Commands;
     using TechMentorApi.Business.Queries;
@@ -44,8 +43,7 @@
         [HttpGet]
         [AllowAnonymous]
         [ProducesResponseType(typeof(PublicCategory), (int)HttpStatusCode.OK)]
-        [SwaggerResponse((int)HttpStatusCode.OK, typeof(PublicCategory))]
-        [SwaggerResponse((int)HttpStatusCode.NotFound)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> Get(string group, string name, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(group))
@@ -108,7 +106,6 @@
         [HttpPut]
         [Authorize(Policy = Role.Administrator)]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        [SwaggerResponse((int)HttpStatusCode.NoContent)]
         public async Task<IActionResult> Put(
             string group,
             string name,

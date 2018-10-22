@@ -4,6 +4,7 @@
     using System.Reflection;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
+    using Microsoft.AspNetCore.Mvc.Infrastructure;
     using TechMentorApi.Azure;
     using TechMentorApi.Business;
     using Microsoft.Extensions.DependencyInjection;
@@ -28,6 +29,9 @@
             builder.RegisterAssemblyModules(moduleAssemblies);
 
             RegisterConfigTypes(builder, configuration);
+
+            // Push the ObjectResultExecutor class
+            builder.RegisterType<ObjectResultExecutor>().AsSelf();
 
             builder.Populate(services);
 

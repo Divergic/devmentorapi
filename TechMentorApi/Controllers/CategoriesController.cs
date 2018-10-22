@@ -8,7 +8,6 @@
     using EnsureThat;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
-    using Swashbuckle.AspNetCore.SwaggerGen;
     using TechMentorApi.Business;
     using TechMentorApi.Business.Commands;
     using TechMentorApi.Business.Queries;
@@ -43,7 +42,6 @@
         [HttpGet]
         [AllowAnonymous]
         [ProducesResponseType(typeof(IEnumerable<PublicCategory>), (int) HttpStatusCode.OK)]
-        [SwaggerResponse((int) HttpStatusCode.OK, typeof(IEnumerable<PublicCategory>))]
         public async Task<IActionResult> Get(CancellationToken cancellationToken)
         {
             var readType = ReadType.VisibleOnly;
@@ -84,7 +82,6 @@
         [HttpPost]
         [Authorize(Policy = Role.Administrator)]
         [ProducesResponseType((int) HttpStatusCode.Created)]
-        [SwaggerResponse((int) HttpStatusCode.Created)]
         public async Task<IActionResult> Post([FromBody] NewCategory model, CancellationToken cancellationToken)
         {
             if (model == null)

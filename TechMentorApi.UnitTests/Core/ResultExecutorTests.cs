@@ -9,7 +9,7 @@
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Formatters;
-    using Microsoft.AspNetCore.Mvc.Internal;
+    using Microsoft.AspNetCore.Mvc.Infrastructure;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using NSubstitute;
@@ -29,7 +29,10 @@
 
             var writerFactory = Substitute.For<IHttpResponseStreamWriterFactory>();
             var loggerFactory = Substitute.For<ILoggerFactory>();
-            var executor = Substitute.For<ObjectResultExecutor>(options, writerFactory, loggerFactory);
+            
+            var formatSelector = new DefaultOutputFormatterSelector(options, loggerFactory);
+
+            var executor = Substitute.For<ObjectResultExecutor>(formatSelector, writerFactory, loggerFactory);
             var result = new ObjectResult(Guid.NewGuid().ToString())
             {
                 StatusCode = (int)StatusCode
@@ -60,12 +63,14 @@
         {
             var mvcOptions = new MvcOptions();
             var options = Substitute.For<IOptions<MvcOptions>>();
-
-            options.Value.Returns(mvcOptions);
-
             var writerFactory = Substitute.For<IHttpResponseStreamWriterFactory>();
             var loggerFactory = Substitute.For<ILoggerFactory>();
-            var executor = new ObjectResultExecutor(options, writerFactory, loggerFactory);
+
+            options.Value.Returns(mvcOptions);
+            
+            var formatSelector = new DefaultOutputFormatterSelector(options, loggerFactory);
+
+            var executor = new ObjectResultExecutor(formatSelector, writerFactory, loggerFactory);
             var result = new ObjectResult(Guid.NewGuid().ToString());
             var context = Substitute.For<HttpContext>();
             var response = Substitute.For<HttpResponse>();
@@ -91,7 +96,10 @@
 
             var writerFactory = Substitute.For<IHttpResponseStreamWriterFactory>();
             var loggerFactory = Substitute.For<ILoggerFactory>();
-            var executor = new ObjectResultExecutor(options, writerFactory, loggerFactory);
+            
+            var formatSelector = new DefaultOutputFormatterSelector(options, loggerFactory);
+
+            var executor = new ObjectResultExecutor(formatSelector, writerFactory, loggerFactory);
             var result = new ObjectResult(Guid.NewGuid().ToString());
 
             var sut = new ResultExecutor(executor);
@@ -111,7 +119,10 @@
 
             var writerFactory = Substitute.For<IHttpResponseStreamWriterFactory>();
             var loggerFactory = Substitute.For<ILoggerFactory>();
-            var executor = new ObjectResultExecutor(options, writerFactory, loggerFactory);
+            
+            var formatSelector = new DefaultOutputFormatterSelector(options, loggerFactory);
+
+            var executor = new ObjectResultExecutor(formatSelector, writerFactory, loggerFactory);
             var context = Substitute.For<HttpContext>();
 
             var sut = new ResultExecutor(executor);

@@ -3,7 +3,6 @@
     using EnsureThat;
     using Microsoft.AspNetCore.Mvc;
     using Polly;
-    using Swashbuckle.AspNetCore.SwaggerGen;
     using System;
     using System.Net;
     using System.Threading;
@@ -39,7 +38,6 @@
         [Route("profile")]
         [HttpDelete]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        [SwaggerResponse((int)HttpStatusCode.NoContent)]
         public async Task<IActionResult> Delete(CancellationToken cancellationToken)
         {
             var profileId = User.Identity.GetClaimValue<Guid>(ClaimType.ProfileId);
@@ -57,8 +55,7 @@
         [Route("profile")]
         [HttpGet]
         [ProducesResponseType(typeof(Profile), (int)HttpStatusCode.OK)]
-        [SwaggerResponse((int)HttpStatusCode.OK, typeof(Profile))]
-        [SwaggerResponse((int)HttpStatusCode.NotFound, null, "The profile does not exist.")]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> Get(CancellationToken cancellationToken)
         {
             var profileId = User.Identity.GetClaimValue<Guid>(ClaimType.ProfileId);
@@ -91,7 +88,6 @@
         [Route("profile")]
         [HttpPut]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        [SwaggerResponse((int)HttpStatusCode.NoContent)]
         public async Task<IActionResult> Put([FromBody] UpdatableProfile model, CancellationToken cancellationToken)
         {
             if (model == null)

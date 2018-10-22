@@ -6,7 +6,7 @@
     using EnsureThat;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.Mvc.Internal;
+    using Microsoft.AspNetCore.Mvc.Infrastructure;
 
     public class ResultExecutor : IResultExecutor
     {
@@ -15,7 +15,7 @@
         public ResultExecutor(ObjectResultExecutor oex)
         {
             Ensure.Any.IsNotNull(oex, nameof(oex));
-
+            
             _oex = oex;
         }
 

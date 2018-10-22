@@ -7,7 +7,6 @@
     using EnsureThat;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
-    using Swashbuckle.AspNetCore.SwaggerGen;
     using TechMentorApi.Business.Queries;
     using TechMentorApi.Core;
     using TechMentorApi.Properties;
@@ -40,8 +39,7 @@
         [HttpGet]
         [AllowAnonymous]
         [ProducesResponseType((int) HttpStatusCode.OK)]
-        [SwaggerResponse((int) HttpStatusCode.OK)]
-        [SwaggerResponse((int) HttpStatusCode.NotFound, null, "The photo does not exist.")]
+        [ProducesResponseType((int) HttpStatusCode.NotFound)]
         public async Task<IActionResult> Get(Guid profileId, Guid photoId, CancellationToken cancellationToken)
         {
             if (profileId == Guid.Empty)

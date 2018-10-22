@@ -4,17 +4,15 @@
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
-    using Business;
-    using Core;
     using EnsureThat;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
-    using Model;
-    using Properties;
-    using Security;
-    using Swashbuckle.AspNetCore.SwaggerGen;
     using TechMentorApi.Business.Commands;
     using TechMentorApi.Business.Queries;
+    using TechMentorApi.Core;
+    using TechMentorApi.Model;
+    using TechMentorApi.Properties;
+    using TechMentorApi.Security;
 
     public class ProfileController : Controller
     {
@@ -43,7 +41,7 @@
         [Route("profiles/{profileId:guid}")]
         [HttpDelete]
         [Authorize(Policy = Role.Administrator)]
-        [SwaggerResponse((int) HttpStatusCode.NoContent)]
+        [ProducesResponseType((int) HttpStatusCode.NoContent)]
         public async Task<IActionResult> Delete(Guid profileId, CancellationToken cancellationToken)
         {
             if (profileId == Guid.Empty)
@@ -77,8 +75,7 @@
         [HttpGet]
         [AllowAnonymous]
         [ProducesResponseType(typeof(PublicProfile), (int) HttpStatusCode.OK)]
-        [SwaggerResponse((int) HttpStatusCode.OK, typeof(PublicProfile))]
-        [SwaggerResponse((int) HttpStatusCode.NotFound, null, "The profile does not exist.")]
+        [ProducesResponseType((int) HttpStatusCode.NotFound)]
         public async Task<IActionResult> Get(Guid profileId, CancellationToken cancellationToken)
         {
             if (profileId == Guid.Empty)

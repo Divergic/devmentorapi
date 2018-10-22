@@ -1,6 +1,5 @@
 ﻿using EnsureThat;
 using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
 using System.Net;
 using System.Threading;
@@ -33,8 +32,7 @@ namespace TechMentorApi.Controllers
         [Route("profile/export/")]
         [HttpGet]
         [ProducesResponseType(typeof(ExportProfile), (int)HttpStatusCode.OK)]
-        [SwaggerResponse((int)HttpStatusCode.OK, typeof(ExportProfile))]
-        [SwaggerResponse((int)HttpStatusCode.NotFound, null, "The profile does not exist.")]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> Get(CancellationToken cancellationToken)
         {
             var profileId = User.Identity.GetClaimValue<Guid>(ClaimType.ProfileId);
